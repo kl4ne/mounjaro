@@ -13,6 +13,9 @@
   <meta name="theme-color" content="#090d16">
   <meta name="description" content="Aplicación web progresiva para el control clínico integral de Mounjaro y Ozempic, análisis de platos con IA, hidratación y seguridad digestiva.">
 
+  <!-- Manifest PWA embebido -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"GLP-1 Companion","short_name":"GLP1App","start_url":".","display":"standalone","background_color":"#090d16","theme_color":"#090d16","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3063/3063176.png","sizes":"512x512","type":"image/png"}]}'>
+
   <!-- External CDNs: Tailwind, Chart.js, Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -111,7 +114,6 @@
       box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
     }
 
-    /* Reglas de impresión médica limpia (AirPrint / PDF) */
     @media print {
       body {
         background-color: #ffffff !important;
@@ -154,7 +156,7 @@
 <body class="text-slate-200 antialiased min-h-screen pb-28 flex flex-col items-center">
   <div id="app-container" class="w-full max-w-lg min-h-screen bg-[#090d16] shadow-2xl flex flex-col relative border-x border-[#1e293b]">
     
-    <!-- Encabezado de impresión médica exclusiva -->
+    <!-- Encabezado de impresión médica -->
     <div class="print-header p-4 border-b border-slate-300 mb-4 text-slate-900">
       <div class="flex justify-between items-center">
         <div>
@@ -163,12 +165,12 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.3</p>
+          <p id="print-app-version">Versión: v2.4</p>
         </div>
       </div>
     </div>
 
-    <!-- Top Sticky Header con soporte para iPhone 16 Pro Max -->
+    <!-- Top Sticky Header con soporte para Dynamic Island -->
     <header class="sticky top-0 z-30 bg-[#090d16]/92 backdrop-blur-md border-b border-[#223455] px-4 py-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -180,7 +182,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.3</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.4</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -234,7 +236,6 @@
       <!-- TAB 1: PANEL Y DIARIO -->
       <section id="tab-dashboard" class="tab-content space-y-4">
         
-        <!-- Próxima inyección con recordatorio Apple Calendar integrado -->
         <div class="glass-panel rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10 mb-2.5">
             <div>
@@ -258,13 +259,11 @@
             </div>
           </div>
 
-          <!-- Indicador de titulación de 4 semanas -->
           <div id="titration-banner-dash" class="mb-2 p-2 bg-[#111a2e] border border-cyan-500/30 rounded-xl text-xs flex items-center justify-between">
             <span id="titration-status-text" class="text-slate-300 font-semibold text-[11px]">Calculando titulación...</span>
             <span id="titration-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Semana 1/4</span>
           </div>
 
-          <!-- Barra de concentración plasmática -->
           <div class="bg-[#111a2e]/90 rounded-xl p-2.5 border border-[#223455] space-y-1 relative z-10">
             <div class="flex items-center justify-between text-xs">
               <span class="text-slate-400 flex items-center gap-1 text-[11px]">
@@ -543,6 +542,7 @@
           </div>
         </div>
 
+        <!-- Síntomas y motor de correlación de comidas -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -552,6 +552,15 @@
             <button onclick="saveDailySymptoms()" class="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-colors">
               Guardar
             </button>
+          </div>
+
+          <!-- Alerta de correlación inteligente de grasa y síntomas -->
+          <div id="correlation-alert-box" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs space-y-1 text-amber-200">
+            <div class="flex items-center gap-1.5 font-bold text-amber-300">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>Correlación clínica detectada</span>
+            </div>
+            <p id="correlation-alert-text" class="text-[11px] leading-relaxed"></p>
           </div>
 
           <div class="space-y-3 text-xs">
@@ -566,7 +575,7 @@
             <div class="grid grid-cols-2 gap-2.5 pt-1">
               <div>
                 <label class="block text-slate-400 font-medium mb-1">Náuseas:</label>
-                <select id="input-symptom-nausea" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
+                <select id="input-symptom-nausea" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white" onchange="checkFoodSymptomCorrelation()">
                   <option value="none">Ninguna</option>
                   <option value="mild">Leve (tolerable)</option>
                   <option value="moderate">Moderada</option>
@@ -576,7 +585,7 @@
 
               <div>
                 <label class="block text-slate-400 font-medium mb-1">Acidez / Reflujo:</label>
-                <select id="input-symptom-heartburn" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
+                <select id="input-symptom-heartburn" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white" onchange="checkFoodSymptomCorrelation()">
                   <option value="none">Ninguna</option>
                   <option value="mild">Leve</option>
                   <option value="moderate">Moderada</option>
@@ -586,7 +595,7 @@
 
               <div>
                 <label class="block text-slate-400 font-medium mb-1">Eructos de azufre (*sulfur*):</label>
-                <select id="input-symptom-sulfur" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
+                <select id="input-symptom-sulfur" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white" onchange="checkFoodSymptomCorrelation()">
                   <option value="none">Ninguno</option>
                   <option value="mild">Leves ocasionales</option>
                   <option value="frequent">Frecuentes (revisar grasa)</option>
@@ -639,12 +648,24 @@
           </div>
         </div>
 
-        <!-- Curva de peso y gestión de pesajes (con botón para borrar) -->
+        <!-- Tarjeta de proyección hacia el peso meta -->
+        <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-cyan-400"></i> Proyección de peso meta
+            </span>
+            <span id="proj-goal-badge" class="text-xs font-black text-white bg-[#111a2e] px-2 py-0.5 rounded-lg border border-cyan-500/40">Meta: -- lbs</span>
+          </div>
+          <p id="proj-summary-text" class="text-xs font-semibold text-slate-200">Calculando proyección metabólica...</p>
+          <p id="proj-subtext" class="text-[10px] text-slate-400">Basado en el ritmo promedio de pérdida de peso de las últimas semanas.</p>
+        </div>
+
+        <!-- Curva de peso con Media Móvil de 7 días -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-sm font-bold text-white">Control y curva de peso (lbs)</h3>
-              <p class="text-[10px] text-slate-400">Evolución, tendencia e historial editable</p>
+              <p class="text-[10px] text-slate-400">Incluye media móvil (7 días) para filtrar retención de agua</p>
             </div>
             <button onclick="openWeightModal()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors">
               + Anotar peso
@@ -726,7 +747,6 @@
           </div>
         </div>
 
-        <!-- Exportación médica: Apple Notes, Apple Health e Impresión PDF / AirPrint -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-[#162238] space-y-3">
           <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -753,7 +773,6 @@
           </div>
         </div>
 
-        <!-- Metas y selector de medicamento activo -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
           
@@ -767,6 +786,10 @@
 
           <div class="grid grid-cols-2 gap-3 text-xs pt-1">
             <div>
+              <label class="block text-slate-400 font-medium mb-1">Peso objetivo / Meta (lbs):</label>
+              <input id="setting-goal-weight" type="number" step="0.5" placeholder="Ej: 180" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-cyan-300 font-bold">
+            </div>
+            <div>
               <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
               <input id="setting-cal-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
@@ -778,7 +801,7 @@
               <label class="block text-slate-400 font-medium mb-1">Meta proteína (g):</label>
               <input id="setting-protein-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
-            <div>
+            <div class="col-span-2">
               <label class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
               <input id="setting-water-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
@@ -995,7 +1018,7 @@
       </div>
     </div>
 
-    <!-- Modal 3: Inyecciones (Dosis dinámicas) -->
+    <!-- Modal 3: Inyecciones -->
     <div id="modal-injection" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1254,9 +1277,9 @@
 
   <script>
     /* ==========================================================================
-       VERSION CONTROL & FIREBASE SYNC
+       VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.3";
+    const APP_VERSION = "v2.4";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1275,6 +1298,12 @@
     let currentUser = null;
     let unsubscribeFirestore = null;
 
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
     /* ==========================================================================
        STATE MANAGEMENT & LOCAL STORAGE ARCHITECTURE
        ========================================================================== */
@@ -1284,6 +1313,7 @@
       selectedDate: getFormattedDate(new Date()),
       settings: {
         medication: "mounjaro",
+        goalWeight: 180,
         calGoal: 1400,
         tdee: 2000,
         proteinGoal: 110,
@@ -1331,6 +1361,7 @@
           const parsed = JSON.parse(raw);
           state = Object.assign(state, parsed);
           if (!state.settings.medication) state.settings.medication = "mounjaro";
+          if (!state.settings.goalWeight) state.settings.goalWeight = 180;
           ensureInjectionIds();
         } else {
           setupInitialDemoData();
@@ -1521,9 +1552,6 @@
       }
     }
 
-    /* ==========================================================================
-       TITULACIÓN CLÍNICA DE 4 SEMANAS
-       ========================================================================== */
     function updateTitrationStatus() {
       const banner = document.getElementById('titration-banner-dash');
       const textEl = document.getElementById('titration-status-text');
@@ -1540,7 +1568,6 @@
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       const currentDose = sorted[0].dose;
 
-      // Contar cuántas inyecciones consecutivas se han aplicado en la dosis actual
       let consecutiveWeeks = 0;
       for (let i = 0; i < sorted.length; i++) {
         if (sorted[i].dose === currentDose) {
@@ -1561,9 +1588,6 @@
       }
     }
 
-    /* ==========================================================================
-       RECORDATORIO EN APPLE CALENDAR (.ICS)
-       ========================================================================== */
     function addToAppleCalendar() {
       if (!state.injections || state.injections.length === 0) {
         showToast("Registra primero una inyección para generar el recordatorio.");
@@ -1619,9 +1643,6 @@
       showToast("Archivo de calendario generado. Ábrelo para agregarlo a Apple Calendar.");
     }
 
-    /* ==========================================================================
-       VISTA DE IMPRESIÓN MÉDICA (PRINT TO PDF / AIRPRINT)
-       ========================================================================== */
     function triggerPrintReport() {
       const isOz = state.settings.medication === 'ozempic';
       const medName = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
@@ -1635,11 +1656,43 @@
         printPatientEl.innerText = `${userTag} &bull; Fármaco: ${medName}`;
       }
 
-      // Cambiar temporalmente a la pestaña de progreso para imprimir la gráfica y las tablas completas
       switchTab('tools');
       setTimeout(() => {
         window.print();
       }, 300);
+    }
+
+    /* ==========================================================================
+       CORRELACIÓN AUTOMÁTICA ENTRE SÍNTOMAS Y COMIDAS
+       ========================================================================== */
+    function checkFoodSymptomCorrelation() {
+      const alertBox = document.getElementById('correlation-alert-box');
+      const alertText = document.getElementById('correlation-alert-text');
+      if (!alertBox || !alertText) return;
+
+      const day = getSelectedDay();
+      const s = day.symptoms || {};
+      const hasDigestiveSymptoms = (s.nausea && s.nausea !== 'none') || 
+                                   (s.heartburn && s.heartburn !== 'none') || 
+                                   (s.sulfur && s.sulfur !== 'none');
+
+      let highFatMeals = [];
+      let totalFatToday = 0;
+      (day.meals || []).forEach(m => {
+        const f = Number(m.fat || 0);
+        totalFatToday += f;
+        if (f >= 14) {
+          highFatMeals.push(`${m.name} (${f}g grasa)`);
+        }
+      });
+
+      if (hasDigestiveSymptoms && (highFatMeals.length > 0 || totalFatToday >= 25)) {
+        alertBox.classList.remove('hidden');
+        alertText.innerText = `Se registraron síntomas digestivos tras consumir ${highFatMeals.length > 0 ? highFatMeals.join(', ') : `${totalFatToday}g de grasa acumulada hoy`}. En tratamiento GLP-1, las grasas moderadas/altas se retienen por vaciamiento gástrico lento, provocando reflujo, náuseas o eructos de azufre.`;
+      } else {
+        alertBox.classList.add('hidden');
+      }
+      lucide.createIcons();
     }
 
     function getSelectedDay() {
@@ -1975,6 +2028,7 @@
         day.meals.splice(idx, 1);
         persistState();
         updateDashboardView();
+        checkFoodSymptomCorrelation();
         showToast("Comida eliminada.");
       }
     }
@@ -2161,6 +2215,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       closeScannerModal();
       updateDashboardView();
+      checkFoodSymptomCorrelation();
       showToast("¡Comida guardada en el diario!");
     }
 
@@ -2197,6 +2252,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       closeManualMealModal();
       updateDashboardView();
+      checkFoodSymptomCorrelation();
       showToast("Comida registrada manualmente.");
     }
 
@@ -2329,6 +2385,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.getElementById('input-symptom-notes').value = s.notes || "";
 
       checkBowelMovementAlert();
+      checkFoodSymptomCorrelation();
       lucide.createIcons();
     }
 
@@ -2368,14 +2425,18 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         notes: document.getElementById('input-symptom-notes').value.trim()
       };
       persistState();
+      checkFoodSymptomCorrelation();
       showToast("Tolerancia y síntomas guardados.");
     }
 
     /* ==========================================================================
-       HERRAMIENTAS, PESO Y GESTIÓN DE PESAJES (ELIMINACIÓN)
+       HERRAMIENTAS, PESO, PROYECCIÓN Y MEDIA MÓVIL (7 DÍAS)
        ========================================================================== */
     function renderToolsView() {
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const goalW = Number(state.settings.goalWeight || 180);
+      document.getElementById('proj-goal-badge').innerText = `Meta: ${goalW} lbs`;
 
       if (state.weights.length > 0) {
         const startW = state.weights[0].weight;
@@ -2386,14 +2447,44 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('prog-cur-w').innerText = curW.toFixed(1);
         document.getElementById('prog-lost-w').innerText = `${totalLost > 0 ? '-' : ''}${Math.abs(totalLost)}`;
         document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
+
+        // Cálculo de proyección hacia la meta
+        const remainingToGoal = curW - goalW;
+        if (remainingToGoal <= 0) {
+          document.getElementById('proj-summary-text').innerText = `¡Meta alcanzada o superada! (${curW.toFixed(1)} lbs vs meta de ${goalW} lbs)`;
+          document.getElementById('proj-subtext').innerText = "Fase de consolidación y mantenimiento clínico.";
+        } else if (state.weights.length >= 2) {
+          const firstDate = new Date(state.weights[0].date + "T12:00:00");
+          const latestDate = new Date(state.weights[state.weights.length - 1].date + "T12:00:00");
+          const totalDays = Math.max(1, (latestDate - firstDate) / (1000 * 60 * 60 * 24));
+          const totalWeeks = totalDays / 7;
+          const lossRatePerWeek = (startW - curW) / Math.max(1, totalWeeks);
+
+          if (lossRatePerWeek > 0.1) {
+            const weeksRemaining = remainingToGoal / lossRatePerWeek;
+            const targetEstimatedDate = new Date(latestDate);
+            targetEstimatedDate.setDate(targetEstimatedDate.getDate() + Math.round(weeksRemaining * 7));
+
+            document.getElementById('proj-summary-text').innerText = `Fecha estimada: ${targetEstimatedDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} semanas)`;
+            document.getElementById('proj-subtext').innerText = `Ritmo promedio: -${lossRatePerWeek.toFixed(1)} lbs/semana. Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar ${goalW} lbs.`;
+          } else {
+            document.getElementById('proj-summary-text').innerText = `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+            document.getElementById('proj-subtext').innerText = "Registra más pesajes para calcular una proyección de ritmo estable.";
+          }
+        } else {
+          document.getElementById('proj-summary-text').innerText = `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+          document.getElementById('proj-subtext').innerText = "Anota al menos dos pesajes para estimar fecha y velocidad semanal.";
+        }
+
       } else {
         document.getElementById('prog-start-w').innerText = "--";
         document.getElementById('prog-cur-w').innerText = "--";
         document.getElementById('prog-lost-w').innerText = "0.0";
         document.getElementById('apple-health-weight-val').innerText = "-- lbs";
+        document.getElementById('proj-summary-text').innerText = "Anota tu primer peso para iniciar el cálculo.";
       }
 
-      // Lista interactiva para consultar y eliminar pesajes
+      // Historial interactivo de pesajes
       const wList = document.getElementById('weights-history-list');
       wList.innerHTML = '';
       if (state.weights.length === 0) {
@@ -2415,7 +2506,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         });
       }
 
-      // Lista de medidas
+      // Historial de medidas
       const mList = document.getElementById('measurements-history-list');
       mList.innerHTML = '';
       if (state.measurements.length === 0) {
@@ -2454,11 +2545,24 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      const labels = state.weights.map(w => {
+      const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const labels = sortedW.map(w => {
         const p = w.date.split('-');
         return `${p[2]}/${p[1]}`;
       });
-      const dataPoints = state.weights.map(w => w.weight);
+      const dataPoints = sortedW.map(w => w.weight);
+
+      // Cálculo de media móvil (7 días)
+      const movingAvgPoints = sortedW.map((w) => {
+        const currentDate = new Date(w.date + "T12:00:00");
+        const windowWeights = sortedW.filter(item => {
+          const itemDate = new Date(item.date + "T12:00:00");
+          const diffDays = (currentDate - itemDate) / (1000 * 60 * 60 * 24);
+          return diffDays >= 0 && diffDays < 7;
+        });
+        const avg = windowWeights.reduce((sum, item) => sum + item.weight, 0) / windowWeights.length;
+        return Number(avg.toFixed(1));
+      });
 
       if (weightChartInstance) {
         weightChartInstance.destroy();
@@ -2468,27 +2572,46 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         type: 'line',
         data: {
           labels: labels.length ? labels : ['Inicio'],
-          datasets: [{
-            label: 'Peso (lbs)',
-            data: dataPoints.length ? dataPoints : [0],
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.12)',
-            borderWidth: 2.5,
-            pointBackgroundColor: '#10b981',
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            fill: true,
-            tension: 0.35
-          }]
+          datasets: [
+            {
+              label: 'Peso real (lbs)',
+              data: dataPoints.length ? dataPoints : [0],
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.08)',
+              borderWidth: 2,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              fill: true,
+              tension: 0.25
+            },
+            {
+              label: 'Media móvil (7d)',
+              data: movingAvgPoints.length ? movingAvgPoints : [0],
+              borderColor: '#f59e0b',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false,
+              tension: 0.35
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#94a3b8',
+                boxWidth: 10,
+                font: { size: 10 }
+              }
+            },
             tooltip: {
               callbacks: {
-                label: (ctx) => ` ${ctx.parsed.y} lbs`
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} lbs`
               }
             }
           },
@@ -2734,6 +2857,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 ⚖️ EVOLUCIÓN DE PESO & METAS:
 • Peso inicial: ${startW} lbs
 • Peso actual: ${curW} lbs
+• Peso objetivo meta: ${state.settings.goalWeight || 180} lbs
 • Pérdida acumulada: ${totalLost} lbs
 
 💉 TRATAMIENTO & DOSIS FARMACOLÓGICA:
@@ -2755,7 +2879,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.3).`;
+Generado con GLP-1 Companion Web App (v2.4).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -2778,6 +2902,7 @@ Generado con GLP-1 Companion Web App (v2.3).`;
     }
 
     function saveNutritionalSettings() {
+      state.settings.goalWeight = Number(document.getElementById('setting-goal-weight').value) || 180;
       state.settings.calGoal = Number(document.getElementById('setting-cal-goal').value) || 1400;
       state.settings.tdee = Number(document.getElementById('setting-tdee').value) || 2000;
       state.settings.proteinGoal = Number(document.getElementById('setting-protein-goal').value) || 110;
@@ -2785,6 +2910,7 @@ Generado con GLP-1 Companion Web App (v2.3).`;
 
       persistState();
       updateDashboardView();
+      renderToolsView();
       showToast("Configuración guardada.");
     }
 
@@ -2876,6 +3002,7 @@ Generado con GLP-1 Companion Web App (v2.3).`;
       initFastingUI();
       applyMedicationTheme();
 
+      document.getElementById('setting-goal-weight').value = state.settings.goalWeight || 180;
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
       document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
