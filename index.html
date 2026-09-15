@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
@@ -14,8 +13,9 @@
   <meta name="theme-color" content="#090d16">
   <meta name="description" content="Aplicación web progresiva bilingüe para seguimiento GLP-1: dosis, nutrición, hidratación, síntomas, mantenimiento e insights personales.">
 
-  <!-- Manifest PWA embebido -->
-  <link rel="manifest" href='data:application/manifest+json,{"name":"GLP-1 Companion","short_name":"GLP1App","start_url":".","display":"standalone","background_color":"#090d16","theme_color":"#090d16","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3063/3063176.png","sizes":"512x512","type":"image/png"}]}'>
+  <!-- PWA manifest and project-owned icons -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 
   <!-- External CDNs: Tailwind, Chart.js, Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -167,7 +167,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.3</p>
+          <p id="print-app-version">Versión: v3.4</p>
         </div>
       </div>
     </div>
@@ -184,7 +184,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.3</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.4</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -278,7 +278,7 @@
             <div class="flex items-center justify-between text-xs">
               <span class="text-slate-400 flex items-center gap-1 text-[11px]">
                 <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
-                Concentración estimada en sangre:
+                Nivel estimado del medicamento:
               </span>
               <span id="dash-halflife-pct" class="font-bold text-cyan-400">--%</span>
             </div>
@@ -385,17 +385,17 @@
           </div>
 
           <div class="grid grid-cols-4 gap-2">
-            <button onclick="addWater(-8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-slate-400 font-bold text-xs border border-[#223455] flex items-center justify-center gap-1 active:scale-95 transition-all" title="Restar 8 oz">
-              -8 oz
+            <button id="water-btn-minus" onclick="quickWater(-1)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-slate-400 font-bold text-xs border border-[#223455] flex items-center justify-center gap-1 active:scale-95 transition-all" title="Restar agua">
+              <span id="water-btn-minus-text">-8 oz</span>
             </button>
-            <button onclick="addWater(8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 8 oz
+            <button id="water-btn-small" onclick="quickWater(1)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
+              <i data-lucide="plus" class="w-3 h-3"></i> <span id="water-btn-small-text">8 oz</span>
             </button>
-            <button onclick="addWater(16)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 16 oz
+            <button id="water-btn-medium" onclick="quickWater(2)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
+              <i data-lucide="plus" class="w-3 h-3"></i> <span id="water-btn-medium-text">16 oz</span>
             </button>
-            <button onclick="addWater(32)" class="py-2 px-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 32 oz
+            <button id="water-btn-large" onclick="quickWater(4)" class="py-2 px-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
+              <i data-lucide="plus" class="w-3 h-3"></i> <span id="water-btn-large-text">32 oz</span>
             </button>
           </div>
 
@@ -719,6 +719,17 @@
           <p class="text-[9px] text-slate-500">La app identifica coincidencias en tus registros; no determina causa ni diagnóstico.</p>
         </div>
 
+        <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-white">Tendencia de síntomas</h3>
+            <p class="text-[10px] text-slate-400">Intensidad registrada durante los últimos 30 días</p>
+          </div>
+          <div class="relative w-full h-52">
+            <canvas id="symptomTrendChart"></canvas>
+          </div>
+          <p class="text-[9px] text-slate-500">La gráfica organiza tus registros personales; no representa un diagnóstico ni determina causa.</p>
+        </div>
+
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
           <h4 class="text-xs font-bold text-white">Historial de inyecciones</h4>
           <div id="hub-injections-list" class="space-y-2 text-xs"></div>
@@ -733,17 +744,17 @@
           <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Inicial</span>
             <p id="prog-start-w" class="text-base font-black text-white">--</p>
-            <span class="text-[9px] text-slate-500">lbs</span>
+            <span id="prog-start-unit" class="text-[9px] text-slate-500">lbs</span>
           </div>
           <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Actual</span>
             <p id="prog-cur-w" class="text-base font-black text-cyan-400">--</p>
-            <span class="text-[9px] text-slate-500">lbs</span>
+            <span id="prog-current-unit" class="text-[9px] text-slate-500">lbs</span>
           </div>
           <div class="glass-panel p-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
             <span class="text-[10px] font-bold text-emerald-400 uppercase">Total perdido</span>
             <p id="prog-lost-w" class="text-base font-black text-emerald-400">0.0</p>
-            <span class="text-[9px] text-emerald-500">lbs</span>
+            <span id="prog-lost-unit" class="text-[9px] text-emerald-500">lbs</span>
           </div>
         </div>
 
@@ -777,7 +788,7 @@
           <div class="flex items-center gap-2">
             <label class="text-[10px] text-slate-400 shrink-0">Margen ±</label>
             <input id="maintenance-range-input" type="number" min="1" max="15" step="0.5" class="w-20 p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-xs text-white text-center" value="3">
-            <span class="text-[10px] text-slate-500">lb</span>
+            <span id="maintenance-range-unit" class="text-[10px] text-slate-500">lb</span>
             <button id="maintenance-toggle-btn" onclick="toggleMaintenanceMode()" class="ml-auto px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600/45 border border-emerald-500/40 text-emerald-200 text-xs font-bold rounded-xl">Activar</button>
           </div>
           <p class="text-[9px] text-slate-500">Este modo monitorea estabilidad de peso y hábitos. No recomienda cambios de dosis ni tratamiento.</p>
@@ -787,7 +798,7 @@
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-bold text-white">Control y curva de peso (lbs)</h3>
+              <h3 id="weight-chart-title" class="text-sm font-bold text-white">Control y curva de peso (lbs)</h3>
               <p class="text-[10px] text-slate-400">Incluye media móvil (7 días) para filtrar retención de agua</p>
             </div>
             <button onclick="openWeightModal()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors">
@@ -809,7 +820,7 @@
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-xs font-bold text-white">Medidas corporales (*Non-Scale Victories*)</h3>
-              <p class="text-[10px] text-slate-400">Pérdida de grasa visceral en pulgadas (cintura, pecho, cadera, cuello)</p>
+              <p id="measurements-subtitle" class="text-[10px] text-slate-400">Pérdida de grasa visceral en pulgadas (cintura, pecho, cadera, cuello)</p>
             </div>
             <button onclick="openMeasurementModal()" class="px-2.5 py-1 bg-[#111a2e] border border-[#223455] hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold transition-colors">
               + Medidas
@@ -911,6 +922,15 @@
             </select>
             <p class="text-[10px] text-slate-500 mt-1">La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.</p>
           </div>
+
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1 text-xs">Sistema de unidades:</label>
+            <select id="setting-units" onchange="setUnitSystem(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-cyan-500/40 rounded-xl text-cyan-300 font-bold text-xs">
+              <option value="imperial">Imperial — lb, oz, in</option>
+              <option value="metric">Métrico — kg, mL, cm</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-1">Tus datos se conservan internamente en un formato estable y solo se convierten para entrada, visualización y reportes.</p>
+          </div>
           
           <div>
             <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
@@ -929,24 +949,24 @@
 
           <div class="grid grid-cols-2 gap-3 text-xs pt-1">
             <div>
-              <label class="block text-slate-400 font-medium mb-1">Peso objetivo / Meta (lbs):</label>
-              <input id="setting-goal-weight" type="number" step="0.5" placeholder="Ej: 180" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-cyan-300 font-bold">
+              <label id="setting-goal-weight-label" class="block text-slate-400 font-medium mb-1">Peso objetivo / Meta (lbs):</label>
+              <input id="setting-goal-weight" type="number" min="50" max="1000" step="0.5" placeholder="Ej: 180" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-cyan-300 font-bold">
             </div>
             <div>
               <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
-              <input id="setting-cal-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              <input id="setting-cal-goal" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
             <div>
               <label class="block text-slate-400 font-medium mb-1">Gasto total (TDEE):</label>
-              <input id="setting-tdee" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              <input id="setting-tdee" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
             <div>
               <label class="block text-slate-400 font-medium mb-1">Meta proteína (g):</label>
-              <input id="setting-protein-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              <input id="setting-protein-goal" type="number" min="10" max="500" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
             <div class="col-span-2">
-              <label class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
-              <input id="setting-water-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              <label id="setting-water-goal-label" class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
+              <input id="setting-water-goal" type="number" min="8" max="300" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
             </div>
           </div>
           <button onclick="saveNutritionalSettings()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
@@ -1211,7 +1231,7 @@
     <div id="modal-weight" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Registrar peso en libras</h3>
+          <h3 id="weight-modal-title" class="text-sm font-bold text-white">Registrar peso en libras</h3>
           <button onclick="closeWeightModal()" class="text-slate-400 hover:text-white p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
@@ -1224,8 +1244,8 @@
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Peso en libras (lbs):</label>
-            <input id="weight-input-val" type="number" step="0.1" placeholder="Ej: 214.8" class="w-full p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-xl font-black text-center text-cyan-400">
+            <label id="weight-input-label" class="block font-semibold text-slate-300 mb-1">Peso en libras (lbs):</label>
+            <input id="weight-input-val" type="number" min="50" max="1000" step="0.1" placeholder="Ej: 214.8" class="w-full p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-xl font-black text-center text-cyan-400">
           </div>
 
           <button onclick="saveWeightEntry()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl transition-colors">
@@ -1239,7 +1259,7 @@
     <div id="modal-measurement" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Anotar medidas corporales (Pulgadas)</h3>
+          <h3 id="measurement-modal-title" class="text-sm font-bold text-white">Anotar medidas corporales (Pulgadas)</h3>
           <button onclick="closeMeasurementModal()" class="text-slate-400 hover:text-white p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
@@ -1253,20 +1273,20 @@
 
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cintura (in):</label>
-              <input id="meas-waist" type="number" step="0.5" placeholder="38" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
+              <label id="meas-waist-label" class="block font-semibold text-slate-300 mb-1">Cintura (in):</label>
+              <input id="meas-waist" type="number" min="5" max="100" step="0.1" placeholder="38" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
             </div>
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Pecho (in):</label>
-              <input id="meas-chest" type="number" step="0.5" placeholder="42" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
+              <label id="meas-chest-label" class="block font-semibold text-slate-300 mb-1">Pecho (in):</label>
+              <input id="meas-chest" type="number" min="5" max="100" step="0.1" placeholder="42" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
             </div>
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cadera (in):</label>
-              <input id="meas-hips" type="number" step="0.5" placeholder="40" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
+              <label id="meas-hips-label" class="block font-semibold text-slate-300 mb-1">Cadera (in):</label>
+              <input id="meas-hips" type="number" min="5" max="100" step="0.1" placeholder="40" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
             </div>
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cuello (in):</label>
-              <input id="meas-neck" type="number" step="0.5" placeholder="16" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
+              <label id="meas-neck-label" class="block font-semibold text-slate-300 mb-1">Cuello (in):</label>
+              <input id="meas-neck" type="number" min="5" max="100" step="0.1" placeholder="16" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
             </div>
           </div>
 
@@ -1480,7 +1500,8 @@
     <!-- Toast Notification Banner -->
     <div id="toast" class="fixed bottom-20 z-50 max-w-sm px-4 py-2.5 rounded-2xl bg-[#162238] text-white text-xs font-bold shadow-2xl border border-[#223455] transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2">
       <i id="toast-icon" data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-      <span id="toast-msg">Notificación</span>
+      <span id="toast-msg" class="flex-1">Notificación</span>
+      <button id="toast-undo-btn" type="button" class="hidden ml-2 px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-black text-[10px] pointer-events-auto">Deshacer</button>
     </div>
 
   </div>
@@ -1489,7 +1510,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.3";
+    const APP_VERSION = "v3.4";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_3";
 
     function formatSyncTime(timestamp) {
@@ -1582,7 +1603,7 @@
       "Rotación sugerida: Abdomen derecho": "Suggested rotation: Right abdomen",
       "Recordatorio": "Reminder",
       "Calculando titulación...": "Calculating titration...",
-      "Concentración estimada en sangre:": "Estimated medication level:",
+      "Nivel estimado del medicamento:": "Estimated medication level:",
       "Balance diario": "Daily balance",
       "Calorías y déficit neto": "Calories and net deficit",
       "Déficit óptimo": "Optimal deficit",
@@ -1789,11 +1810,23 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v3.3": "Version: v3.3",
+      "Versión: v3.4": "Version: v3.4",
       "Semana 1/4": "Week 1/4",
       "21 días máx.": "21 days max.",
       "21 días": "21 days",
       "Última evacuación registrada: Hoy": "Last bowel movement: Today",
+      "Sistema de unidades:": "Unit system:",
+      "Métrico — kg, mL, cm": "Metric — kg, mL, cm",
+      "Nivel de apetito (\"Ruido mental de comida\"):": "Appetite level (food noise):",
+      "Acidez y reflujo nocturno": "Heartburn and nighttime reflux",
+      "Eleva la cabecera:": "Elevate your upper body:",
+      "Duerme con el torso ligeramente inclinado o sobre tu costado izquierdo.": "Sleep with your upper body slightly elevated or on your left side.",
+      "Mareos al levantarte o fatiga": "Dizziness when standing or fatigue",
+      "Retira la piel tostada para reducir grasa concentrada y evitar reflujo o eructos de azufre.": "If a food seems to worsen symptoms, consider a lower-fat preparation and keep tracking your response.",
+      "Tus datos se conservan internamente en un formato estable y solo se convierten para entrada, visualización y reportes.": "Your data stays internally in a stable format and is converted only for input, display, and reports.",
+      "Tendencia de síntomas": "Symptom trend",
+      "Intensidad registrada durante los últimos 30 días": "Recorded intensity over the last 30 days",
+      "La gráfica organiza tus registros personales; no representa un diagnóstico ni determina causa.": "The chart organizes your personal records; it does not represent a diagnosis or determine cause.",
       "Meta: -- lbs": "Goal: -- lbs",
       "Mounjaro (tirzepatide • vida media 5 días • 21 días temp. ambiente)": "Mounjaro (tirzepatide)",
       "Ozempic (semaglutide • vida media 7 días • 56 días temp. ambiente)": "Ozempic Injection (semaglutide)",
@@ -1962,6 +1995,54 @@
       window.location.reload();
     }
 
+    const LB_TO_KG = 0.45359237;
+    const OZ_TO_ML = 29.5735295625;
+    const IN_TO_CM = 2.54;
+
+    function isMetric() { return state?.settings?.units === 'metric'; }
+    function weightUnit() { return isMetric() ? 'kg' : 'lb'; }
+    function waterUnit() { return isMetric() ? 'mL' : 'oz'; }
+    function lengthUnit() { return isMetric() ? 'cm' : 'in'; }
+    function displayWeight(lb) { const n=Number(lb); return Number.isFinite(n) ? (isMetric() ? n*LB_TO_KG : n) : null; }
+    function storageWeight(displayValue) { const n=Number(displayValue); return Number.isFinite(n) ? (isMetric() ? n/LB_TO_KG : n) : null; }
+    function displayWater(oz) { const n=Number(oz); return Number.isFinite(n) ? (isMetric() ? n*OZ_TO_ML : n) : null; }
+    function storageWater(displayValue) { const n=Number(displayValue); return Number.isFinite(n) ? (isMetric() ? n/OZ_TO_ML : n) : null; }
+    function displayLength(inches) { const n=Number(inches); return Number.isFinite(n) ? (isMetric() ? n*IN_TO_CM : n) : null; }
+    function storageLength(displayValue) { const n=Number(displayValue); return Number.isFinite(n) ? (isMetric() ? n/IN_TO_CM : n) : null; }
+    function formatWeight(lb, decimals=1) { const n=displayWeight(lb); return n===null?'--':`${n.toFixed(decimals)} ${weightUnit()}`; }
+    function formatWater(oz, decimals=null) { const n=displayWater(oz); if(n===null)return '--'; const d=decimals===null?(isMetric()?0:0):decimals; return `${n.toFixed(d)} ${waterUnit()}`; }
+    function formatLength(inches, decimals=1) { const n=displayLength(inches); return n===null?'--':`${n.toFixed(decimals)} ${lengthUnit()}`; }
+
+    function setUnitSystem(value, shouldPersist=true) {
+      state.settings.units = value === 'metric' ? 'metric' : 'imperial';
+      if (shouldPersist) persistState();
+      window.location.reload();
+    }
+
+    function applyUnitLabels() {
+      const metric=isMetric();
+      const set=(id,text)=>{const el=document.getElementById(id);if(el)el.innerText=text;};
+      set('setting-goal-weight-label', metric ? uiText('Peso objetivo / Meta (kg):','Goal weight (kg):') : uiText('Peso objetivo / Meta (lb):','Goal weight (lb):'));
+      set('setting-water-goal-label', metric ? uiText('Meta agua (mL):','Water goal (mL):') : uiText('Meta agua (oz):','Water goal (oz):'));
+      set('weight-modal-title', metric ? uiText('Registrar peso en kilogramos','Log weight in kilograms') : uiText('Registrar peso en libras','Log weight in pounds'));
+      set('weight-input-label', metric ? uiText('Peso en kilogramos (kg):','Weight in kilograms (kg):') : uiText('Peso en libras (lb):','Weight in pounds (lb):'));
+      set('measurement-modal-title', metric ? uiText('Anotar medidas corporales (cm)','Log body measurements (cm)') : uiText('Anotar medidas corporales (pulgadas)','Log body measurements (inches)'));
+      set('meas-waist-label', `${uiText('Cintura','Waist')} (${lengthUnit()}):`);
+      set('meas-chest-label', `${uiText('Pecho','Chest')} (${lengthUnit()}):`);
+      set('meas-hips-label', `${uiText('Cadera','Hips')} (${lengthUnit()}):`);
+      set('meas-neck-label', `${uiText('Cuello','Neck')} (${lengthUnit()}):`);
+      set('weight-chart-title', metric ? uiText('Control y curva de peso (kg)','Weight tracking and trend (kg)') : uiText('Control y curva de peso (lb)','Weight tracking and trend (lb)'));
+      set('measurements-subtitle', metric ? uiText('Medidas corporales en centímetros (cintura, pecho, cadera, cuello)','Body measurements in centimeters (waist, chest, hips, neck)') : uiText('Medidas corporales en pulgadas (cintura, pecho, cadera, cuello)','Body measurements in inches (waist, chest, hips, neck)'));
+      ['prog-start-unit','prog-current-unit','prog-lost-unit'].forEach(id=>set(id,weightUnit()));
+      set('maintenance-range-unit',weightUnit());
+      const quick=metric?['-250 mL','250 mL','500 mL','1 L']:['-8 oz','8 oz','16 oz','32 oz'];
+      ['water-btn-minus-text','water-btn-small-text','water-btn-medium-text','water-btn-large-text'].forEach((id,i)=>set(id,quick[i]));
+      const weightInput=document.getElementById('weight-input-val'); if(weightInput){weightInput.min=metric?'22':'50';weightInput.max=metric?'454':'1000';weightInput.step=metric?'0.1':'0.1';weightInput.placeholder=metric?'Ej: 97.4':'Ej: 214.8';}
+      ['meas-waist','meas-chest','meas-hips','meas-neck'].forEach(id=>{const el=document.getElementById(id);if(el){el.min=metric?'13':'5';el.max=metric?'254':'100';el.step='0.1';}});
+      const goal=document.getElementById('setting-goal-weight');if(goal){goal.min=metric?'22':'50';goal.max=metric?'454':'1000';goal.step='0.1';}
+      const water=document.getElementById('setting-water-goal');if(water){water.min=metric?'250':'8';water.max=metric?'9000':'300';water.step=metric?'50':'1';}
+    }
+
     function getStoredApiKey() {
       return localStorage.getItem("gemini_api_key_vault") || "";
     }
@@ -1989,6 +2070,7 @@
         fastingStart: null,
         isFasting: false,
         language: "es",
+        units: "imperial",
         maintenanceEnabled: false,
         maintenanceRangeLb: 3
       },
@@ -2006,6 +2088,7 @@
 
     let activeTab = 'dashboard';
     let weightChartInstance = null;
+    let symptomTrendChartInstance = null;
     let selectedImageBase64 = null;
     let pacingTimerInterval = null;
     let pacingSecondsLeft = 20 * 60;
@@ -2073,6 +2156,7 @@
           if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
           if (!state.settings.language) state.settings.language = "es";
+          if (!state.settings.units) state.settings.units = "imperial";
           if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
           if (!Number.isFinite(Number(state.settings.maintenanceRangeLb))) state.settings.maintenanceRangeLb = 3;
           if (!state.deletedRecords) {
@@ -2151,22 +2235,42 @@
       return `{${keys.map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
     }
 
-    function persistState() {
+    const CLOUD_SYNC_DELAY_MS = 1800;
+    let cloudSyncTimer = null;
+    let cloudSyncInFlight = false;
+    let cloudSyncPending = false;
+
+    function persistState(options = {}) {
       cleanupTombstones();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      if (currentUser) {
-        try {
-          const cleanCopy = getCloudSafeStateSnapshot();
-          setSyncStatus('syncing');
-          db.collection("trackers").doc(currentUser.uid).set(cleanCopy)
-            .then(() => setSyncStatus('synced'))
-            .catch(err => {
-              setSyncStatus('error');
-              console.error("Error sincronizando en Firestore:", err);
-            });
-        } catch (e) {
-          console.error("Error preparando sincronización en la nube:", e);
-        }
+      if (currentUser) scheduleCloudSync(Boolean(options.immediateCloud));
+    }
+
+    function scheduleCloudSync(immediate = false) {
+      if (!currentUser) return;
+      if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+      setSyncStatus('syncing');
+      cloudSyncTimer = setTimeout(() => {
+        cloudSyncTimer = null;
+        flushCloudSync();
+      }, immediate ? 0 : CLOUD_SYNC_DELAY_MS);
+    }
+
+    async function flushCloudSync() {
+      if (!currentUser) return;
+      if (cloudSyncInFlight) { cloudSyncPending = true; return; }
+      cloudSyncInFlight = true;
+      cloudSyncPending = false;
+      try {
+        const cleanCopy = getCloudSafeStateSnapshot();
+        await db.collection("trackers").doc(currentUser.uid).set(cleanCopy);
+        setSyncStatus('synced');
+      } catch (err) {
+        setSyncStatus('error');
+        console.error("Error sincronizando en Firestore:", err);
+      } finally {
+        cloudSyncInFlight = false;
+        if (cloudSyncPending) scheduleCloudSync(true);
       }
     }
 
@@ -2175,19 +2279,9 @@
       try {
         const mergedCopy = getCloudSafeStateSnapshot();
         const incomingCopy = JSON.parse(JSON.stringify(incomingCloud || {}));
-        if (incomingCopy.settings && incomingCopy.settings.apiKey) {
-          delete incomingCopy.settings.apiKey;
-        }
-
+        if (incomingCopy.settings && incomingCopy.settings.apiKey) delete incomingCopy.settings.apiKey;
         if (stableStringify(mergedCopy) === stableStringify(incomingCopy)) return;
-
-        setSyncStatus('syncing');
-        db.collection("trackers").doc(currentUser.uid).set(mergedCopy)
-          .then(() => setSyncStatus('synced'))
-          .catch(err => {
-            setSyncStatus('error');
-            console.error("Error guardando fusión en Firestore:", err);
-          });
+        scheduleCloudSync(true);
       } catch (err) {
         console.error("Error comparando la fusión con Firestore:", err);
       }
@@ -2440,7 +2534,7 @@
 
         if (user) {
           setSyncStatus('syncing');
-          if (authLabel) authLabel.innerText = "Salir";
+          if (authLabel) authLabel.innerText = uiText("Salir", "Sign out");
 
           const docRef = db.collection("trackers").doc(user.uid);
           if (unsubscribeFirestore) unsubscribeFirestore();
@@ -2458,14 +2552,14 @@
             console.error("Error en escucha Firestore:", err);
           });
 
-          showToast(`Sincronizado con: ${user.email}`);
+          showToast(isEnglish() ? `Synced with: ${user.email}` : `Sincronizado con: ${user.email}`);
         } else {
           if (unsubscribeFirestore) {
             unsubscribeFirestore();
             unsubscribeFirestore = null;
           }
           setSyncStatus('local');
-          if (authLabel) authLabel.innerText = "Sign in";
+          if (authLabel) authLabel.innerText = uiText("Entrar", "Sign in");
         }
         lucide.createIcons();
       });
@@ -2484,6 +2578,11 @@
           await auth.signInWithPopup(provider);
         } catch (err) {
           console.error("Error al autenticar:", err);
+          const fallbackCodes = new Set(['auth/popup-blocked','auth/operation-not-supported-in-this-environment']);
+          if (fallbackCodes.has(err && err.code)) {
+            showToast(uiText('El navegador bloqueó la ventana. Cambiando al inicio de sesión por redirección…','The browser blocked the popup. Switching to redirect sign-in…'));
+            try { await auth.signInWithRedirect(provider); return; } catch (redirectErr) { console.error('Redirect sign-in failed:', redirectErr); }
+          }
           showToast(uiText("Error de conexión: ", "Connection error: ") + err.message);
         }
       }
@@ -2845,14 +2944,14 @@
       const prev = getWeekMetrics(getFormattedDate(prevEndDate));
 
       let weightText = '--';
-      if (cur.weightDelta !== null) weightText = `${cur.weightDelta > 0 ? '+' : ''}${cur.weightDelta.toFixed(1)} lb`;
-      else if (cur.singleWeight !== null) weightText = `${cur.singleWeight.toFixed(1)} lb`;
+      if (cur.weightDelta !== null) weightText = `${cur.weightDelta > 0 ? '+' : cur.weightDelta < 0 ? '-' : ''}${formatWeight(Math.abs(cur.weightDelta),1)}`;
+      else if (cur.singleWeight !== null) weightText = formatWeight(cur.singleWeight,1);
 
       const pStart = cur.startKey.split('-');
       const pEnd = cur.endKey.split('-');
       document.getElementById('weekly-summary-range').innerText = `${pStart[2]}/${pStart[1]}–${pEnd[2]}/${pEnd[1]}`;
       document.getElementById('weekly-weight-change').innerText = weightText;
-      document.getElementById('weekly-water-avg').innerText = cur.waterAvg !== null ? `${Math.round(cur.waterAvg)} oz` : '--';
+      document.getElementById('weekly-water-avg').innerText = cur.waterAvg !== null ? formatWater(cur.waterAvg) : '--';
       document.getElementById('weekly-protein-avg').innerText = cur.proteinAvg !== null ? `${Math.round(cur.proteinAvg)} g` : '--';
       document.getElementById('weekly-tracked-days').innerText = `${cur.trackedDays}/7`;
       document.getElementById('weekly-symptom-days').innerText = String(cur.symptomDays);
@@ -2866,7 +2965,7 @@
       const grid = document.getElementById('weekly-comparison-grid');
       if (grid) {
         grid.innerHTML = [
-          comparisonText('Agua prom.', 'Avg. water', cur.waterAvg, prev.waterAvg, ' oz'),
+          comparisonText('Agua prom.', 'Avg. water', cur.waterAvg===null?null:displayWater(cur.waterAvg), prev.waterAvg===null?null:displayWater(prev.waterAvg), ` ${waterUnit()}`),
           comparisonText('Proteína prom.', 'Avg. protein', cur.proteinAvg, prev.proteinAvg, ' g'),
           comparisonText('Días con síntomas', 'Symptom days', cur.symptomDays, prev.symptomDays, '', true),
           comparisonText('Días registrados', 'Tracked days', cur.trackedDays, prev.trackedDays)
@@ -2892,7 +2991,7 @@
       if(x.lowWaterDays>=2&&x.adequateWaterDays>=2){const low=Math.round(x.lowWaterSymptomDays/x.lowWaterDays*100), good=Math.round(x.adequateWaterSymptomDays/x.adequateWaterDays*100);items.push({icon:'droplets',text:isEnglish()?`Digestive symptoms were logged on ${low}% of lower-hydration days vs ${good}% of better-hydrated days.`:`Registraste síntomas digestivos en ${low}% de los días con menor hidratación vs ${good}% de los días con mejor hidratación.`});}
       if(x.postTracked>=2&&x.otherTracked>=2){const a=Math.round(x.postSym/x.postTracked*100),b=Math.round(x.otherSym/x.otherTracked*100);items.push({icon:'syringe',text:isEnglish()?`Digestive symptoms appeared on ${a}% of tracked days within ~72h of a dose vs ${b}% on other tracked days.`:`Los síntomas digestivos aparecieron en ${a}% de los días registrados dentro de ~72 h de una dosis vs ${b}% en otros días registrados.`});}
       if(x.proteinTracked>=3){const pct=Math.round(x.proteinGoalDays/x.proteinTracked*100);items.push({icon:'drumstick',text:isEnglish()?`You reached at least 80% of your protein goal on ${pct}% of days with meals logged.`:`Alcanzaste al menos 80% de tu meta de proteína en ${pct}% de los días con comidas registradas.`});}
-      if(x.weightDelta!==null){items.push({icon:'trending-up',text:isEnglish()?`Recorded weight change over the last 30 days: ${x.weightDelta>0?'+':''}${x.weightDelta.toFixed(1)} lb.`:`Cambio de peso registrado en los últimos 30 días: ${x.weightDelta>0?'+':''}${x.weightDelta.toFixed(1)} lb.`});}
+      if(x.weightDelta!==null){items.push({icon:'trending-up',text:isEnglish()?`Recorded weight change over the last 30 days: ${x.weightDelta>0?'+':x.weightDelta<0?'-':''}${formatWeight(Math.abs(x.weightDelta),1)}.`:`Cambio de peso registrado en los últimos 30 días: ${x.weightDelta>0?'+':x.weightDelta<0?'-':''}${formatWeight(Math.abs(x.weightDelta),1)}.`});}
       if(!items.length) items.push({icon:'info',text:uiText('Sigue registrando agua, comidas, síntomas y dosis para generar insights personales más útiles.','Keep logging water, meals, symptoms and doses to generate more useful personal insights.')});
       el.innerHTML=items.slice(0,4).map(i=>`<div class="p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl flex gap-2 items-start"><i data-lucide="${i.icon}" class="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5"></i><span class="text-slate-300 leading-relaxed">${escapeHtml(i.text)}</span></div>`).join(''); lucide.createIcons();
     }
@@ -2950,16 +3049,17 @@
 
       const waterGoal = state.settings.waterGoal || 96;
       const curWater = day.water || 0;
-      document.getElementById('dash-water-badge').innerText = `${curWater} / ${waterGoal} oz`;
+      document.getElementById('dash-water-badge').innerText = `${Math.round(displayWater(curWater))} / ${Math.round(displayWater(waterGoal))} ${waterUnit()}`;
       const wPct = Math.min(100, Math.round((curWater / waterGoal) * 100));
       document.getElementById('dash-water-fill-bar').style.width = `${wPct}%`;
-      document.getElementById('dash-water-fill-text').innerText = `${wPct}% (${curWater} oz)`;
+      document.getElementById('dash-water-fill-text').innerText = `${wPct}% (${Math.round(displayWater(curWater))} ${waterUnit()})`;
 
       updateHalfLifeAndNextDose();
       updateTitrationStatus();
       checkBowelMovementAlert();
       renderMealsList();
       applyStaticTranslations();
+      applyUnitLabels();
     }
 
     function updateHalfLifeAndNextDose() {
@@ -2980,17 +3080,34 @@
         const rotations={'Abdomen derecho':'Abdomen izquierdo','Abdomen izquierdo':'Muslo derecho','Muslo derecho':'Muslo izquierdo','Muslo izquierdo':'Brazo derecho','Brazo derecho':'Brazo izquierdo','Brazo izquierdo':'Abdomen derecho'}; const nextSite=rotations[latest.site]||'Abdomen izquierdo';
         hint.innerHTML=`<i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i><span>${uiText('Rotación sugerida','Suggested rotation')}: <strong>${escapeHtml(translateSite(nextSite))}</strong></span>`;
       }
-      const daysSince=Math.max(0,(now-lastDate)/86400000), pct=Math.round(Math.pow(0.5,daysSince/p.halfLifeDays)*100); document.getElementById('dash-halflife-pct').innerText=`${pct}%`; document.getElementById('dash-halflife-bar').style.width=`${Math.min(100,pct)}%`;
-      const hl=p.halfLifeDays<1?`${Math.round(p.halfLifeDays*24)} h`:`~${p.halfLifeDays} ${uiText('días','days')}`; document.getElementById('dash-halflife-expl').innerText=isEnglish()?`Approximate half-life: ${hl} (${p.generic}). This is an estimate, not a drug-level measurement.`:`Vida media aproximada: ${hl} (${p.generic}). Es una estimación, no una medición del nivel del medicamento.`; lucide.createIcons();
+      const doseRows=sorted.filter(i=>!i.medication||i.medication===p.key).map(i=>{const mg=parseFloat(String(i.dose||'').replace(',','.'));const d=new Date(String(i.date).split('T')[0]+'T12:00:00');return Number.isFinite(mg)&&mg>0&&!Number.isNaN(d.getTime())?{mg,date:d}:null;}).filter(Boolean);
+      const remainingMg=doseRows.reduce((sum,row)=>{const age=Math.max(0,(now-row.date)/86400000);return sum+row.mg*Math.pow(0.5,age/p.halfLifeDays);},0);
+      const latestMg=parseFloat(String(latest.dose||'').replace(',','.'));
+      const decayPerInterval=Math.pow(0.5,p.frequencyDays/p.halfLifeDays);
+      const steadyStateMg=Number.isFinite(latestMg)&&latestMg>0 ? latestMg/Math.max(0.01,1-decayPerInterval) : 0;
+      const pct=steadyStateMg>0?Math.round((remainingMg/steadyStateMg)*100):0;
+      document.getElementById('dash-halflife-pct').innerText=`${pct}%`; document.getElementById('dash-halflife-bar').style.width=`${Math.min(100,Math.max(0,pct))}%`;
+      const hl=p.halfLifeDays<1?`${Math.round(p.halfLifeDays*24)} h`:`~${p.halfLifeDays} ${uiText('días','days')}`;
+      const amount=remainingMg>0?`${remainingMg.toFixed(2)} mg`:'--';
+      document.getElementById('dash-halflife-expl').innerText=isEnglish()?`Estimated relative medication level from all logged doses: ~${amount}. Approx. half-life: ${hl} (${p.generic}). The percentage is relative to an estimated steady-state level at the latest logged dose and is not a blood measurement.`:`Nivel relativo estimado del medicamento considerando todas las dosis registradas: ~${amount}. Vida media aprox.: ${hl} (${p.generic}). El porcentaje se compara con un nivel estable estimado usando la última dosis registrada y no es una medición en sangre.`; lucide.createIcons();
+    }
+
+    function quickWater(multiplier) {
+      const displayAmount=isMetric()?250*Math.abs(multiplier):8*Math.abs(multiplier);
+      const signed=multiplier<0?-displayAmount:displayAmount;
+      addWater(storageWater(signed));
     }
 
     function addWater(oz) {
       const day = getSelectedDay();
-      day.water = Math.max(0, (day.water || 0) + oz);
+      day.water = Math.max(0, (day.water || 0) + Number(oz||0));
       day.waterUpdatedAt = Date.now();
       persistState();
       updateDashboardView();
-      showToast(isEnglish() ? `${oz > 0 ? '+' : ''}${oz} oz water logged (Total: ${day.water} oz)` : `${oz > 0 ? '+' : ''}${oz} oz de agua registradas (Total: ${day.water} oz)`);
+      const shown=displayWater(Math.abs(Number(oz||0)));
+      const total=displayWater(day.water);
+      const sign=Number(oz)>0?'+':Number(oz)<0?'-':'';
+      showToast(isEnglish() ? `${sign}${Math.round(shown)} ${waterUnit()} water logged (Total: ${Math.round(total)} ${waterUnit()})` : `${sign}${Math.round(shown)} ${waterUnit()} de agua registradas (Total: ${Math.round(total)} ${waterUnit()})`);
     }
 
     function toggleUrineGuideDetails() {
@@ -3050,6 +3167,11 @@
       renderBowelStats();
     }
 
+    function translateMealSlot(slot) {
+      const map={Desayuno:['Desayuno','Breakfast'],Almuerzo:['Almuerzo','Lunch'],Cena:['Cena','Dinner'],Merienda:['Merienda','Snack'],Comida:['Comida','Meal'],Breakfast:['Desayuno','Breakfast'],Lunch:['Almuerzo','Lunch'],Dinner:['Cena','Dinner'],Snack:['Merienda','Snack'],Meal:['Comida','Meal']};
+      const pair=map[String(slot||'Comida')];return pair?uiText(pair[0],pair[1]):String(slot||uiText('Comida','Meal'));
+    }
+
     function renderMealsList() {
       const day = getSelectedDay();
       const container = document.getElementById('daily-meals-container');
@@ -3060,8 +3182,8 @@
         container.innerHTML = `
           <div class="text-center py-6 bg-[#111a2e]/50 rounded-2xl border border-dashed border-[#223455] p-5">
             <i data-lucide="utensils" class="w-7 h-7 text-slate-500 mx-auto mb-2"></i>
-            <p class="text-xs font-bold text-slate-300">Sin alimentos registrados en esta fecha</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">Usa 'Analizar plato' para fotografiar tu comida o añade manualmente.</p>
+            <p class="text-xs font-bold text-slate-300">${uiText('Sin alimentos registrados en esta fecha','No foods logged for this date')}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">${uiText("Usa 'Analizar plato' para fotografiar tu comida o añade manualmente.","Use 'Analyze meal' to photograph your food or add it manually.")}</p>
           </div>
         `;
         lucide.createIcons();
@@ -3075,7 +3197,7 @@
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${escapeHtml(meal.slot || 'Comida')}</span>
+                <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${escapeHtml(translateMealSlot(meal.slot))}</span>
                 <span class="text-[10px] text-slate-500">${escapeHtml(meal.time || '')}</span>
               </div>
               <h4 class="text-xs font-bold text-white mt-0.5">${escapeHtml(meal.name)}</h4>
@@ -3091,15 +3213,15 @@
               <span class="font-black text-white">${Number(meal.calories || 0)}</span>
             </div>
             <div>
-              <span class="text-[10px] text-amber-400 font-medium">Proteína:</span>
+              <span class="text-[10px] text-amber-400 font-medium">${uiText('Proteína:','Protein:')}</span>
               <span class="font-black text-amber-400">${Number(meal.protein || 0)}g</span>
             </div>
             <div>
-              <span class="text-[10px] text-slate-400 font-medium">Carbos:</span>
+              <span class="text-[10px] text-slate-400 font-medium">${uiText('Carbos:','Carbs:')}</span>
               <span class="font-semibold text-slate-300">${Number(meal.carbs || 0)}g</span>
             </div>
             <div>
-              <span class="text-[10px] text-slate-400 font-medium">Grasas:</span>
+              <span class="text-[10px] text-slate-400 font-medium">${uiText('Grasas:','Fat:')}</span>
               <span class="font-semibold text-slate-300">${Number(meal.fat || 0)}g</span>
             </div>
           </div>
@@ -3117,6 +3239,28 @@
       lucide.createIcons();
     }
 
+    let pendingUndoAction = null;
+    let undoTimer = null;
+    function showUndoToast(message, restoreFn) {
+      const btn=document.getElementById('toast-undo-btn');
+      pendingUndoAction=typeof restoreFn==='function'?restoreFn:null;
+      if(btn){
+        btn.innerText=uiText('Deshacer','Undo');
+        btn.classList.toggle('hidden',!pendingUndoAction);
+        btn.onclick=()=>{
+          if(!pendingUndoAction)return;
+          const fn=pendingUndoAction; pendingUndoAction=null;
+          if(undoTimer)clearTimeout(undoTimer);
+          btn.classList.add('hidden');
+          fn();
+          showToast(uiText('Eliminación deshecha.','Deletion undone.'));
+        };
+      }
+      showToast(message, 5000, true);
+      if(undoTimer)clearTimeout(undoTimer);
+      undoTimer=setTimeout(()=>{pendingUndoAction=null;if(btn)btn.classList.add('hidden');},5000);
+    }
+
     function removeMealItem(idx) {
       const day = getSelectedDay();
       if (day.meals && day.meals[idx]) {
@@ -3126,11 +3270,19 @@
           if (!state.deletedRecords.meals) state.deletedRecords.meals = {};
           state.deletedRecords.meals[meal.id] = Date.now();
         }
+        const removedMeal=JSON.parse(JSON.stringify(meal));
+        const removedDate=state.selectedDate;
         day.meals.splice(idx, 1);
         persistState();
         updateDashboardView();
         checkFoodSymptomCorrelation();
-        showToast(uiText("Comida eliminada.", "Meal deleted."));
+        showUndoToast(uiText("Comida eliminada.", "Meal deleted."),()=>{
+          const target=state.daysData[removedDate]||getSelectedDay();
+          if(!Array.isArray(target.meals))target.meals=[];
+          target.meals.splice(Math.min(idx,target.meals.length),0,removedMeal);
+          if(removedMeal.id&&state.deletedRecords?.meals)delete state.deletedRecords.meals[removedMeal.id];
+          persistState(); updateDashboardView(); checkFoodSymptomCorrelation();
+        });
       }
     }
 
@@ -3214,25 +3366,37 @@
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`;
 
       // Prompt neutral de asistente nutricional
-      const systemPrompt = `${isEnglish() ? 'You are a nutrition-analysis assistant for a GLP-1 tracking app. Respond in English.' : 'Eres un asistente de análisis nutricional para una app de seguimiento GLP-1. Responde en español.'}
+      const systemPrompt = isEnglish() ? `You are a nutrition-analysis assistant for a GLP-1 tracking app. Respond in English only.
 Medication logged: ${medLabel}.
 Analyze the food shown in the image or described in text.
-Debes responder obligatoriamente con un JSON válido con este formato:
+Return valid JSON only in this exact structure:
 {
-  "foodName": "Nombre descriptivo del plato",
+  "foodName": "Descriptive meal name in English",
   "calories": 390,
   "protein": 33,
   "carbs": 27,
   "fat": 16,
-  "mounjaroTip": "Advertencia para ${medLabel}: Si contiene piel de pollo, frituras o grasas concentradas, advierte sobre náuseas, acidez y reflujo por vaciamiento gástrico enlentecido. Recomienda comer la proteína primero."
+  "mounjaroTip": "Brief neutral tolerance note in English based on the food; do not diagnose."
 }
-Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
+Assume a small-to-medium homemade portion unless the user states otherwise. Focus on approximate nutrition and personal tolerance tracking.` : `Eres un asistente de análisis nutricional para una app de seguimiento GLP-1. Responde únicamente en español.
+Medicamento registrado: ${medLabel}.
+Analiza el alimento mostrado en la imagen o descrito en texto.
+Devuelve solamente JSON válido con esta estructura exacta:
+{
+  "foodName": "Nombre descriptivo del plato en español",
+  "calories": 390,
+  "protein": 33,
+  "carbs": 27,
+  "fat": 16,
+  "mounjaroTip": "Nota breve y neutral de tolerancia en español basada en el alimento; no diagnostiques."
+}
+Asume una porción casera pequeña a mediana salvo que el usuario indique otra cosa. Enfócate en nutrición aproximada y seguimiento de tolerancia personal.`;
 
       let parts = [];
       if (textQuery) {
-        parts.push({ text: `Detalles del usuario: ${textQuery}` });
+        parts.push({ text: isEnglish() ? `User details: ${textQuery}` : `Detalles del usuario: ${textQuery}` });
       } else {
-        parts.push({ text: `Analiza los alimentos en este plato y calcula calorías, macronutrientes y tolerancia digestiva para ${medLabel}.` });
+        parts.push({ text: isEnglish() ? `Analyze the foods in this plate and estimate calories, macronutrients, and tolerance context for ${medLabel}.` : `Analiza los alimentos en este plato y estima calorías, macronutrientes y contexto de tolerancia para ${medLabel}.` });
       }
 
       if (selectedImageBase64) {
@@ -3298,7 +3462,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         protein: 33,
         carbs: 27,
         fat: 16,
-        mounjaroTip: "Come primero la proteína antes de saciarte. Si notas acidez o reflujo, retira la piel tostada o grasa para acelerar la digestión."
+        mounjaroTip: uiText("Prioriza la proteína y registra cómo toleras la comida.", "Prioritize protein and log how you tolerate the meal.")
       };
 
       if (q.includes("pollo") || q.includes("pierna")) {
@@ -3322,7 +3486,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function populateAiResults(data, sourceLabel) {
-      document.getElementById('res-food-name').value = data.foodName || "Plato analizado";
+      document.getElementById('res-food-name').value = data.foodName || uiText("Plato analizado", "Analyzed meal");
       document.getElementById('res-cal').value = data.calories || 350;
       document.getElementById('res-protein').value = data.protein || 30;
       document.getElementById('res-carbs').value = data.carbs || 25;
@@ -3339,7 +3503,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function commitScannedMeal() {
-      const name = document.getElementById('res-food-name').value.trim() || "Plato escaneado";
+      const name = document.getElementById('res-food-name').value.trim() || uiText("Plato escaneado", "Scanned meal");
       const calories = Number(document.getElementById('res-cal').value) || 0;
       const protein = Number(document.getElementById('res-protein').value) || 0;
       const carbs = Number(document.getElementById('res-carbs').value) || 0;
@@ -3443,6 +3607,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         id: newId,
         date,
         dose,
+        medication: medProfile.key,
         site,
         notes,
         updatedAt: Date.now()
@@ -3530,7 +3695,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       grid.innerHTML = windows.map((m,idx)=>{
         if (!m.exists) return `<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><span class="text-[10px] font-black text-emerald-300">${labels[idx]}</span><p class="text-[10px] text-slate-500 mt-2">${uiText('Sin datos registrados','No records')}</p></div>`;
         const symptomText = m.symptoms.length ? m.symptoms.join(', ') : uiText('sin síntomas digestivos registrados','no digestive symptoms recorded');
-        return `<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-1"><span class="text-[10px] font-black text-emerald-300">${labels[idx]}</span><p class="text-[10px] text-slate-300">${escapeHtml(symptomText)}</p><p class="text-[9px] text-slate-500">${uiText('Agua','Water')}: ${Math.round(m.water)} oz · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g</p><p class="text-[9px] text-slate-500">${uiText('Apetito','Appetite')}: ${m.hunger ?? '--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p></div>`;
+        return `<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-1"><span class="text-[10px] font-black text-emerald-300">${labels[idx]}</span><p class="text-[10px] text-slate-300">${escapeHtml(symptomText)}</p><p class="text-[9px] text-slate-500">${uiText('Agua','Water')}: ${Math.round(displayWater(m.water))} ${waterUnit()} · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g</p><p class="text-[9px] text-slate-500">${uiText('Apetito','Appetite')}: ${m.hunger ?? '--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p></div>`;
       }).join('');
     }
 
@@ -3601,7 +3766,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const body=document.getElementById('injection-detail-body');
       subtitle.innerText=`${inj.dose||'--'} · ${String(inj.date).split('T')[0]} · ${translateSite(inj.site)}`;
       const windows=getInjectionResponse(inj), labels=['0–24 h','24–48 h','48–72 h'];
-      const cards=windows.map((m,idx)=>`<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><div class="flex justify-between"><span class="font-black text-emerald-300">${labels[idx]}</span><span class="text-[10px] text-slate-500">${escapeHtml(m.dateKey||'')}</span></div>${m.exists?`<p class="mt-1 text-slate-300">${escapeHtml(m.symptoms.length?m.symptoms.join(', '):uiText('Sin síntomas digestivos registrados','No digestive symptoms recorded'))}</p><p class="text-[10px] text-slate-500 mt-1">${uiText('Agua','Water')}: ${Math.round(m.water)} oz · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g · ${uiText('Apetito','Appetite')}: ${m.hunger??'--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p>`:`<p class="mt-1 text-slate-500">${uiText('Sin datos registrados','No records')}</p>`}</div>`).join('');
+      const cards=windows.map((m,idx)=>`<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><div class="flex justify-between"><span class="font-black text-emerald-300">${labels[idx]}</span><span class="text-[10px] text-slate-500">${escapeHtml(m.dateKey||'')}</span></div>${m.exists?`<p class="mt-1 text-slate-300">${escapeHtml(m.symptoms.length?m.symptoms.join(', '):uiText('Sin síntomas digestivos registrados','No digestive symptoms recorded'))}</p><p class="text-[10px] text-slate-500 mt-1">${uiText('Agua','Water')}: ${Math.round(displayWater(m.water))} ${waterUnit()} · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g · ${uiText('Apetito','Appetite')}: ${m.hunger??'--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p>`:`<p class="mt-1 text-slate-500">${uiText('Sin datos registrados','No records')}</p>`}</div>`).join('');
       body.innerHTML=`<div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"><p class="font-bold text-white">${escapeHtml(inj.dose||'--')} · ${escapeHtml(translateSite(inj.site))}</p><p class="text-[10px] text-slate-400">${escapeHtml(inj.notes||uiText('Sin observaciones','No notes'))}</p></div>${cards}<p class="text-[9px] text-slate-500">${uiText('Resumen aproximado por días; no sustituye evaluación médica.','Approximate day-based summary; not a substitute for medical evaluation.')}</p>`;
       const modal=document.getElementById('modal-injection-detail'); modal.classList.remove('hidden'); modal.classList.add('flex'); lucide.createIcons();
     }
@@ -3689,6 +3854,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       checkFoodSymptomCorrelation();
       renderDoseResponseInsights();
       renderTolerancePatterns();
+      renderSymptomTrendChart();
       applyStaticTranslations();
       applyMedicationTheme();
       renderPersonalInsights();
@@ -3700,23 +3866,32 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!id || id === 'undefined') return;
       if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
       if (!state.deletedRecords.injections) state.deletedRecords.injections = {};
+      const removed=state.injections.find(i=>i.id===id);
+      if(!removed)return;
+      const removedCopy=JSON.parse(JSON.stringify(removed));
       state.deletedRecords.injections[id] = Date.now();
       state.injections = state.injections.filter(i => i.id !== id);
       persistState();
       renderMounjaroView();
       updateDashboardView();
-      showToast(uiText("Registro de inyección eliminado.", "Injection record deleted."));
+      showUndoToast(uiText("Registro de dosis eliminado.", "Dose record deleted."),()=>{
+        state.injections.push(removedCopy);
+        state.injections.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+        if(state.deletedRecords?.injections)delete state.deletedRecords.injections[id];
+        persistState(); renderMounjaroView(); updateDashboardView();
+      });
     }
 
     function updateHungerLabel(val) {
       const lbl = document.getElementById('symptom-hunger-label');
-      let t = "";
-      if (val <= 2) t = `${val} / 10 (Apetito nulo)`;
-      else if (val <= 4) t = `${val} / 10 (Poco apetito)`;
-      else if (val <= 6) t = `${val} / 10 (Apetito moderado)`;
-      else if (val <= 8) t = `${val} / 10 (Apetito alto)`;
-      else t = `${val} / 10 (Hambre intensa)`;
-      lbl.innerText = t;
+      const n=Number(val)||3;
+      let label='';
+      if (n <= 2) label=uiText('Apetito nulo','No appetite');
+      else if (n <= 4) label=uiText('Poco apetito','Low appetite');
+      else if (n <= 6) label=uiText('Apetito moderado','Moderate appetite');
+      else if (n <= 8) label=uiText('Apetito alto','High appetite');
+      else label=uiText('Hambre intensa','Intense hunger');
+      lbl.innerText = `${n} / 10 (${label})`;
     }
 
     function saveDailySymptoms() {
@@ -3735,21 +3910,44 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       showToast(uiText("Tolerancia y síntomas guardados.", "Symptoms and tolerance saved."));
     }
 
+    function symptomSeverity(value, type='standard') {
+      if(!value||value==='none')return 0;
+      if(value==='mild')return 1;
+      if(value==='moderate')return 2;
+      if(value==='severe')return 3;
+      if(type==='sulfur'&&value==='frequent')return 3;
+      return 1;
+    }
+
+    function renderSymptomTrendChart() {
+      const canvas=document.getElementById('symptomTrendChart'); if(!canvas||typeof Chart==='undefined')return;
+      const keys=getLastNDaysKeys(30);
+      const labels=keys.map(k=>{const p=k.split('-');return `${p[2]}/${p[1]}`;});
+      const series=(field,type='standard')=>keys.map(k=>symptomSeverity(state.daysData?.[k]?.symptoms?.[field],type));
+      if(symptomTrendChartInstance)symptomTrendChartInstance.destroy();
+      symptomTrendChartInstance=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
+        {label:uiText('Náuseas','Nausea'),data:series('nausea'),tension:.25,pointRadius:1.5,borderWidth:2},
+        {label:uiText('Reflujo','Reflux'),data:series('heartburn'),tension:.25,pointRadius:1.5,borderWidth:2},
+        {label:uiText('Eructos de azufre','Sulfur burps'),data:series('sulfur','sulfur'),tension:.25,pointRadius:1.5,borderWidth:2},
+        {label:uiText('Fatiga','Fatigue'),data:series('fatigue'),tension:.25,pointRadius:1.5,borderWidth:2}
+      ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#94a3b8',boxWidth:10,font:{size:9}}},tooltip:{callbacks:{label:(ctx)=>{const words=isEnglish()?['None','Mild','Moderate','High']:['Ninguno','Leve','Moderado','Alto'];return ` ${ctx.dataset.label}: ${words[Math.max(0,Math.min(3,ctx.parsed.y||0))]}`;}}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',maxTicksLimit:8}},y:{min:0,max:3,ticks:{stepSize:1,color:'#64748b',callback:(v)=>isEnglish()?['None','Mild','Moderate','High'][v]:['Ninguno','Leve','Moderado','Alto'][v]},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+    }
+
     /* ==========================================================================
        HERRAMIENTAS, PESO, PROYECCIÓN Y MEDIA MÓVIL (7 DÍAS)
        ========================================================================== */
     function getLatestWeight(){const arr=(state.weights||[]).filter(w=>w&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));return arr.length?Number(arr.at(-1).weight):null;}
     function getWeightVariation(days=30){const cutoff=getDateOffsetKey(getFormattedDate(new Date()),-(days-1));const vals=(state.weights||[]).filter(w=>w&&String(w.date)>=cutoff&&Number.isFinite(Number(w.weight))).map(w=>Number(w.weight));if(vals.length<2)return null;return Math.max(...vals)-Math.min(...vals);}
-    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const range=Number(input&&input.value);if(Number.isFinite(range)&&range>=1&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;persistState();renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
+    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const shown=Number(input&&input.value);const range=storageWeight(shown);if(Number.isFinite(range)&&range>=0.5&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;persistState();renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
     function renderMaintenanceMode(){
       const badge=document.getElementById('maintenance-status-badge'),summary=document.getElementById('maintenance-summary'),rangeEl=document.getElementById('maintenance-range'),curEl=document.getElementById('maintenance-current'),varEl=document.getElementById('maintenance-variation'),btn=document.getElementById('maintenance-toggle-btn'),input=document.getElementById('maintenance-range-input');if(!badge||!summary)return;
-      const goal=Number(state.settings.goalWeight||180), margin=Math.max(1,Number(state.settings.maintenanceRangeLb||3)),cur=getLatestWeight(),variation=getWeightVariation(30),low=goal-margin,high=goal+margin,enabled=!!state.settings.maintenanceEnabled;if(input)input.value=margin;rangeEl.innerText=`${low.toFixed(1)}–${high.toFixed(1)} lb`;curEl.innerText=cur===null?'--':`${cur.toFixed(1)} lb`;varEl.innerText=variation===null?'--':`${variation.toFixed(1)} lb`;
+      const goal=Number(state.settings.goalWeight||180), margin=Math.max(.5,Number(state.settings.maintenanceRangeLb||3)),cur=getLatestWeight(),variation=getWeightVariation(30),low=goal-margin,high=goal+margin,enabled=!!state.settings.maintenanceEnabled;if(input){input.value=displayWeight(margin).toFixed(1);input.min=isMetric()?'0.5':'1';input.max=isMetric()?'6.8':'15';input.step='.5';}rangeEl.innerText=`${formatWeight(low,1)}–${formatWeight(high,1).replace(' '+weightUnit(),'')} ${weightUnit()}`;curEl.innerText=cur===null?'--':formatWeight(cur,1);varEl.innerText=variation===null?'--':formatWeight(variation,1);
       badge.innerText=enabled?uiText('Activo','Active'):uiText('Inactivo','Inactive');badge.className=enabled?'text-[9px] font-bold px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40':'text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700';btn.innerText=enabled?uiText('Desactivar','Disable'):uiText('Activar','Enable');
       if(!enabled){summary.innerText=cur!==null&&cur<=goal+margin?uiText('Tu peso registrado está cerca del rango meta. Activa este modo cuando tú y tu profesional decidan entrar en mantenimiento.','Your recorded weight is near the goal range. Enable this mode when you and your clinician decide to enter maintenance.'):uiText('Actívalo cuando tú y tu profesional de salud decidan que entraste en una fase de mantenimiento.','Enable it when you and your healthcare professional decide you have entered a maintenance phase.');return;}
       if(cur===null){summary.innerText=uiText('Registra un peso para evaluar estabilidad dentro del rango.','Log a weight to evaluate stability within the range.');return;}
-      if(cur<low)summary.innerText=uiText(`Tu último peso está ${Math.abs(cur-low).toFixed(1)} lb por debajo del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`,`Your latest weight is ${Math.abs(cur-low).toFixed(1)} lb below the configured range. Watch the trend and discuss it at your next visit.`);
-      else if(cur>high)summary.innerText=uiText(`Tu último peso está ${(cur-high).toFixed(1)} lb por encima del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`,`Your latest weight is ${(cur-high).toFixed(1)} lb above the configured range. Watch the trend and discuss it at your next visit.`);
-      else summary.innerText=variation!==null&&variation<=margin*2?uiText(`Tu último peso está dentro del rango configurado. Variación de 30 días: ${variation.toFixed(1)} lb.`,`Your latest weight is within the configured range. 30-day variation: ${variation.toFixed(1)} lb.`):uiText('Tu último peso está dentro del rango configurado. Sigue observando la tendencia de varias semanas.','Your latest weight is within the configured range. Keep watching the multi-week trend.');
+      if(cur<low)summary.innerText=isEnglish()?`Your latest weight is ${formatWeight(Math.abs(cur-low),1)} below the configured range. Watch the trend and discuss it at your next visit.`:`Tu último peso está ${formatWeight(Math.abs(cur-low),1)} por debajo del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`;
+      else if(cur>high)summary.innerText=isEnglish()?`Your latest weight is ${formatWeight(cur-high,1)} above the configured range. Watch the trend and discuss it at your next visit.`:`Tu último peso está ${formatWeight(cur-high,1)} por encima del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`;
+      else summary.innerText=variation!==null&&variation<=margin*2?(isEnglish()?`Your latest weight is within the configured range. 30-day variation: ${formatWeight(variation,1)}.`:`Tu último peso está dentro del rango configurado. Variación de 30 días: ${formatWeight(variation,1)}.`):uiText('Tu último peso está dentro del rango configurado. Sigue observando la tendencia de varias semanas.','Your latest weight is within the configured range. Keep watching the multi-week trend.');
     }
 
     function renderToolsView() {
@@ -3757,21 +3955,21 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const goalW = Number(state.settings.goalWeight || 180);
-      document.getElementById('proj-goal-badge').innerText = `${uiText('Meta','Goal')}: ${goalW} lbs`;
+      document.getElementById('proj-goal-badge').innerText = `${uiText('Meta','Goal')}: ${formatWeight(goalW,1)}`;
 
       if (state.weights.length > 0) {
         const startW = state.weights[0].weight;
         const curW = state.weights[state.weights.length - 1].weight;
         const totalLost = (startW - curW).toFixed(1);
 
-        document.getElementById('prog-start-w').innerText = startW.toFixed(1);
-        document.getElementById('prog-cur-w').innerText = curW.toFixed(1);
-        document.getElementById('prog-lost-w').innerText = `${totalLost > 0 ? '-' : ''}${Math.abs(totalLost)}`;
-        document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
+        document.getElementById('prog-start-w').innerText = displayWeight(startW).toFixed(1);
+        document.getElementById('prog-cur-w').innerText = displayWeight(curW).toFixed(1);
+        document.getElementById('prog-lost-w').innerText = `${Number(totalLost)>0?'-':''}${Math.abs(displayWeight(Number(totalLost))).toFixed(1)}`;
+        document.getElementById('apple-health-weight-val').innerText = formatWeight(curW,1);
 
         const remainingToGoal = curW - goalW;
         if (remainingToGoal <= 0) {
-          document.getElementById('proj-summary-text').innerText = isEnglish() ? `Goal reached or exceeded! (${curW.toFixed(1)} lbs vs ${goalW} lb goal)` : `¡Meta alcanzada o superada! (${curW.toFixed(1)} lbs vs meta de ${goalW} lbs)`;
+          document.getElementById('proj-summary-text').innerText = isEnglish() ? `Goal reached or exceeded! (${formatWeight(curW,1)} vs ${formatWeight(goalW,1)} goal)` : `¡Meta alcanzada o superada! (${formatWeight(curW,1)} vs meta de ${formatWeight(goalW,1)})`;
           document.getElementById('proj-subtext').innerText = uiText("Fase de consolidación y mantenimiento clínico.", "Maintenance phase.");
         } else if (state.weights.length >= 2) {
           const firstDate = new Date(state.weights[0].date + "T12:00:00");
@@ -3786,13 +3984,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
             targetEstimatedDate.setDate(targetEstimatedDate.getDate() + Math.round(weeksRemaining * 7));
 
             document.getElementById('proj-summary-text').innerText = isEnglish() ? `Estimated date: ${targetEstimatedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} weeks)` : `Fecha estimada: ${targetEstimatedDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} semanas)`;
-            document.getElementById('proj-subtext').innerText = isEnglish() ? `Average trend: -${lossRatePerWeek.toFixed(1)} lbs/week. ${remainingToGoal.toFixed(1)} lbs remaining to reach ${goalW} lbs.` : `Ritmo promedio: -${lossRatePerWeek.toFixed(1)} lbs/semana. Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar ${goalW} lbs.`;
+            document.getElementById('proj-subtext').innerText = isEnglish() ? `Average trend: -${formatWeight(lossRatePerWeek,1)}/week. ${formatWeight(remainingToGoal,1)} remaining to reach ${formatWeight(goalW,1)}.` : `Ritmo promedio: -${formatWeight(lossRatePerWeek,1)}/semana. Faltan ${formatWeight(remainingToGoal,1)} para alcanzar ${formatWeight(goalW,1)}.`;
           } else {
-            document.getElementById('proj-summary-text').innerText = isEnglish() ? `${remainingToGoal.toFixed(1)} lbs remaining to reach your ${goalW} lb goal.` : `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+            document.getElementById('proj-summary-text').innerText = isEnglish() ? `${formatWeight(remainingToGoal,1)} remaining to reach your ${formatWeight(goalW,1)} goal.` : `Faltan ${formatWeight(remainingToGoal,1)} para alcanzar tu meta de ${formatWeight(goalW,1)}.`;
             document.getElementById('proj-subtext').innerText = uiText("Registra más pesajes para calcular una proyección de ritmo estable.", "Log more weights to calculate a stable projection.");
           }
         } else {
-          document.getElementById('proj-summary-text').innerText = isEnglish() ? `${remainingToGoal.toFixed(1)} lbs remaining to reach your ${goalW} lb goal.` : `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+          document.getElementById('proj-summary-text').innerText = isEnglish() ? `${formatWeight(remainingToGoal,1)} remaining to reach your ${formatWeight(goalW,1)} goal.` : `Faltan ${formatWeight(remainingToGoal,1)} para alcanzar tu meta de ${formatWeight(goalW,1)}.`;
           document.getElementById('proj-subtext').innerText = uiText("Anota al menos dos pesajes para estimar fecha y velocidad semanal.", "Log at least two weights to estimate a date and weekly trend.");
         }
 
@@ -3800,7 +3998,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('prog-start-w').innerText = "--";
         document.getElementById('prog-cur-w').innerText = "--";
         document.getElementById('prog-lost-w').innerText = "0.0";
-        document.getElementById('apple-health-weight-val').innerText = "-- lbs";
+        document.getElementById('apple-health-weight-val').innerText = `-- ${weightUnit()}`;
         document.getElementById('proj-summary-text').innerText = uiText("Anota tu primer peso para iniciar el cálculo.", "Log your first weight to begin the calculation.");
       }
 
@@ -3815,7 +4013,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           row.innerHTML = `
             <span class="text-slate-300 font-medium">${escapeHtml(w.date)}</span>
             <div class="flex items-center space-x-3">
-              <strong class="text-cyan-400 font-black">${Number(w.weight).toFixed(1)} lbs</strong>
+              <strong class="text-cyan-400 font-black">${formatWeight(Number(w.weight),1)}</strong>
               <button data-delete-weight="${escapeHtml(w.date)}" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar este pesaje">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
@@ -3836,10 +4034,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           r.innerHTML = `
             <span class="text-slate-300 font-medium">${escapeHtml(m.date)}</span>
             <div class="text-slate-400 space-x-2 text-[11px]">
-              <span>${uiText("Cint", "Waist")}: <strong class="text-white">${escapeHtml(m.waist)}"</strong></span>
-              <span>${uiText("Pech", "Chest")}: <strong class="text-white">${escapeHtml(m.chest)}"</strong></span>
-              <span>${uiText("Cad", "Hips")}: <strong class="text-white">${escapeHtml(m.hips)}"</strong></span>
-              <span>${uiText("Cuell", "Neck")}: <strong class="text-white">${escapeHtml(m.neck || '--')}"</strong></span>
+              <span>${uiText("Cint", "Waist")}: <strong class="text-white">${escapeHtml(formatLength(m.waist,1))}</strong></span>
+              <span>${uiText("Pech", "Chest")}: <strong class="text-white">${escapeHtml(formatLength(m.chest,1))}</strong></span>
+              <span>${uiText("Cad", "Hips")}: <strong class="text-white">${escapeHtml(formatLength(m.hips,1))}</strong></span>
+              <span>${uiText("Cuell", "Neck")}: <strong class="text-white">${m.neck?escapeHtml(formatLength(m.neck,1)):'--'}</strong></span>
             </div>
           `;
           mList.appendChild(r);
@@ -3848,6 +4046,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
       renderChartJs();
       applyStaticTranslations();
+      applyUnitLabels();
       lucide.createIcons();
     }
 
@@ -3855,11 +4054,18 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!targetDate) return;
       if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
       if (!state.deletedRecords.weights) state.deletedRecords.weights = {};
+      const removed=state.weights.find(w=>w.date===targetDate);
+      if(!removed)return;
+      const removedCopy=JSON.parse(JSON.stringify(removed));
       state.deletedRecords.weights[targetDate] = Date.now();
       state.weights = state.weights.filter(w => w.date !== targetDate);
       persistState();
       renderToolsView();
-      showToast(isEnglish() ? `Weight entry for ${targetDate} deleted.` : `Pesaje del ${targetDate} eliminado.`);
+      showUndoToast(isEnglish() ? `Weight entry for ${targetDate} deleted.` : `Pesaje del ${targetDate} eliminado.`,()=>{
+        state.weights.push(removedCopy); state.weights.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+        if(state.deletedRecords?.weights)delete state.deletedRecords.weights[targetDate];
+        persistState(); renderToolsView();
+      });
     }
 
     function renderChartJs() {
@@ -3872,7 +4078,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         const p = w.date.split('-');
         return `${p[2]}/${p[1]}`;
       });
-      const dataPoints = sortedW.map(w => w.weight);
+      const dataPoints = sortedW.map(w => displayWeight(w.weight));
 
       const movingAvgPoints = sortedW.map((w) => {
         const currentDate = new Date(w.date + "T12:00:00");
@@ -3882,7 +4088,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           return diffDays >= 0 && diffDays < 7;
         });
         const avg = windowWeights.reduce((sum, item) => sum + Number(item.weight), 0) / windowWeights.length;
-        return Number(avg.toFixed(1));
+        return Number(displayWeight(avg).toFixed(1));
       });
 
       if (weightChartInstance) {
@@ -3895,7 +4101,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           labels: labels.length ? labels : ['Inicio'],
           datasets: [
             {
-              label: uiText('Peso real (lbs)', 'Actual weight (lbs)'),
+              label: `${uiText('Peso real','Actual weight')} (${weightUnit()})`,
               data: dataPoints.length ? dataPoints : [0],
               borderColor: '#06b6d4',
               backgroundColor: 'rgba(6, 182, 212, 0.08)',
@@ -3932,7 +4138,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
             },
             tooltip: {
               callbacks: {
-                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} lbs`
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} ${weightUnit()}`
               }
             }
           },
@@ -3966,10 +4172,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function saveWeightEntry() {
       const date = document.getElementById('weight-input-date').value || state.selectedDate;
-      const weight = parseFloat(document.getElementById('weight-input-val').value);
-
-      if (isNaN(weight) || !isFinite(weight) || weight <= 0) {
-        showToast(uiText("Ingresa un número de peso válido.", "Enter a valid weight."));
+      const shownWeight = parseFloat(document.getElementById('weight-input-val').value);
+      const weight = storageWeight(shownWeight);
+      if (!Number.isFinite(weight) || weight < 50 || weight > 1000) {
+        showToast(isMetric()?uiText('Ingresa un peso válido entre 22 y 454 kg.','Enter a valid weight between 22 and 454 kg.'):uiText('Ingresa un peso válido entre 50 y 1000 lb.','Enter a valid weight between 50 and 1000 lb.'));
         return;
       }
 
@@ -3990,7 +4196,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       closeWeightModal();
       renderToolsView();
-      showToast(isEnglish() ? `Weight saved: ${weight} lbs` : `Peso guardado: ${weight} lbs`);
+      showToast(isEnglish() ? `Weight saved: ${formatWeight(weight,1)}` : `Peso guardado: ${formatWeight(weight,1)}`);
     }
 
     function openMeasurementModal() {
@@ -4006,10 +4212,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function saveMeasurementEntry() {
       const date = document.getElementById('meas-date').value || state.selectedDate;
-      const waist = parseFloat(document.getElementById('meas-waist').value) || 0;
-      const chest = parseFloat(document.getElementById('meas-chest').value) || 0;
-      const hips = parseFloat(document.getElementById('meas-hips').value) || 0;
-      const neck = parseFloat(document.getElementById('meas-neck').value) || 0;
+      const raw=[document.getElementById('meas-waist').value,document.getElementById('meas-chest').value,document.getElementById('meas-hips').value,document.getElementById('meas-neck').value].map(v=>String(v).trim());
+      const values=raw.map(v=>v===''?0:storageLength(Number(v)));
+      if(values.some(v=>!Number.isFinite(v)||v<0||v>100)||values.slice(0,3).some(v=>v>0&&v<5)){showToast(uiText('Revisa las medidas: deben ser valores positivos y razonables.','Check the measurements: values must be positive and within a reasonable range.'));return;}
+      const [waist,chest,hips,neck]=values;
 
       if (state.deletedRecords && state.deletedRecords.measurements) {
         delete state.deletedRecords.measurements[date];
@@ -4027,7 +4233,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       closeMeasurementModal();
       renderToolsView();
-      showToast("Medidas corporales guardadas.");
+      showToast(uiText("Medidas corporales guardadas.", "Body measurements saved."));
     }
 
     function playGentleChime(freq = 587.33) {
@@ -4242,23 +4448,23 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       lines.push(`${tx('Periodo','Period')}: ${rangeLabel}`); lines.push(`${tx('Medicamento registrado','Medication')}: ${medication}`); lines.push('');
 
       lines.push(tx('CAMBIOS IMPORTANTES DEL PERIODO','IMPORTANT CHANGES DURING THIS PERIOD'));
-      if(weights.length>=2){const delta=Number(weights.at(-1).weight)-Number(weights[0].weight);lines.push(`• ${tx('Cambio de peso','Weight change')}: ${delta>0?'+':''}${delta.toFixed(1)} lb`);} else lines.push(`• ${tx('Cambio de peso','Weight change')}: --`);
+      if(weights.length>=2){const delta=Number(weights.at(-1).weight)-Number(weights[0].weight);lines.push(`• ${tx('Cambio de peso','Weight change')}: ${delta>0?'+':delta<0?'-':''}${formatWeight(Math.abs(delta),1)}`);} else lines.push(`• ${tx('Cambio de peso','Weight change')}: --`);
       if(injections.length){const doseValues=[...new Set(injections.map(i=>i.dose).filter(Boolean))];lines.push(`• ${tx('Dosis registradas','Recorded doses')}: ${doseValues.join(' → ') || '--'}`);} else lines.push(`• ${tx('Dosis registradas','Recorded doses')}: --`);
       lines.push(`• ${tx('Días con síntomas digestivos','Days with digestive symptoms')}: ${patterns.symptomDays}`);
       lines.push(`• ${tx('Evacuaciones registradas','Recorded bowel movements')}: ${bowelTotal}`); lines.push('');
 
       lines.push(tx('PESO Y MEDIDAS','WEIGHT AND MEASUREMENTS'));
-      if(weights.length){const first=weights[0],last=weights.at(-1);lines.push(`• ${tx('Primer peso del periodo','First weight in period')}: ${Number(first.weight).toFixed(1)} lb (${first.date})`);lines.push(`• ${tx('Peso más reciente','Most recent weight')}: ${Number(last.weight).toFixed(1)} lb (${last.date})`);} else lines.push(`• ${tx('Sin pesajes registrados en este periodo.','No weights recorded in this period.')}`);
-      if(measurements.length){const latest=measurements.at(-1);lines.push(`• ${tx('Últimas medidas','Latest measurements')} (${latest.date}): ${tx('cintura','waist')} ${Number(latest.waist||0).toFixed(1)} in · ${tx('pecho','chest')} ${Number(latest.chest||0).toFixed(1)} in · ${tx('cadera','hips')} ${Number(latest.hips||0).toFixed(1)} in · ${tx('cuello','neck')} ${Number(latest.neck||0).toFixed(1)} in`);} lines.push('');
+      if(weights.length){const first=weights[0],last=weights.at(-1);lines.push(`• ${tx('Primer peso del periodo','First weight in period')}: ${formatWeight(Number(first.weight),1)} (${first.date})`);lines.push(`• ${tx('Peso más reciente','Most recent weight')}: ${formatWeight(Number(last.weight),1)} (${last.date})`);} else lines.push(`• ${tx('Sin pesajes registrados en este periodo.','No weights recorded in this period.')}`);
+      if(measurements.length){const latest=measurements.at(-1);lines.push(`• ${tx('Últimas medidas','Latest measurements')} (${latest.date}): ${tx('cintura','waist')} ${formatLength(Number(latest.waist||0),1)} · ${tx('pecho','chest')} ${formatLength(Number(latest.chest||0),1)} · ${tx('cadera','hips')} ${formatLength(Number(latest.hips||0),1)} · ${tx('cuello','neck')} ${formatLength(Number(latest.neck||0),1)}`);} lines.push('');
 
       lines.push(tx('TRATAMIENTO Y RESPUESTA A DOSIS','TREATMENT AND DOSE RESPONSE'));
       lines.push(`• ${tx('Inyecciones registradas','Logged injections')}: ${injections.length}`);
-      if(injections.length){const last=injections.at(-1);lines.push(`• ${tx('Última dosis','Last dose')}: ${last.dose||'--'} · ${last.date}${last.site?` · ${en ? ({'Abdomen derecho':'Right abdomen','Abdomen izquierdo':'Left abdomen','Muslo derecho':'Right thigh','Muslo izquierdo':'Left thigh','Brazo derecho':'Right upper arm','Brazo izquierdo':'Left upper arm','Oral':'Oral'}[last.site]||last.site) : ({'Oral':'Vía oral'}[last.site]||last.site)}`:''}`); const resp=getInjectionResponse(last); resp.forEach((m,idx)=>{const label=['0–24 h','24–48 h','48–72 h'][idx]; const sx=m.symptoms.length?m.symptoms.join(', '):tx('sin síntomas digestivos registrados','no digestive symptoms recorded'); lines.push(`  ${label}: ${m.exists?sx:tx('sin datos','no records')} · ${tx('agua','water')} ${Math.round(m.water)} oz · ${tx('proteína','protein')} ${Math.round(m.protein)} g`);});}
+      if(injections.length){const last=injections.at(-1);lines.push(`• ${tx('Última dosis','Last dose')}: ${last.dose||'--'} · ${last.date}${last.site?` · ${en ? ({'Abdomen derecho':'Right abdomen','Abdomen izquierdo':'Left abdomen','Muslo derecho':'Right thigh','Muslo izquierdo':'Left thigh','Brazo derecho':'Right upper arm','Brazo izquierdo':'Left upper arm','Oral':'Oral'}[last.site]||last.site) : ({'Oral':'Vía oral'}[last.site]||last.site)}`:''}`); const resp=getInjectionResponse(last); resp.forEach((m,idx)=>{const label=['0–24 h','24–48 h','48–72 h'][idx]; const sx=m.symptoms.length?m.symptoms.join(', '):tx('sin síntomas digestivos registrados','no digestive symptoms recorded'); lines.push(`  ${label}: ${m.exists?sx:tx('sin datos','no records')} · ${tx('agua','water')} ${Math.round(displayWater(m.water))} ${waterUnit()} · ${tx('proteína','protein')} ${Math.round(m.protein)} g`);});}
       lines.push('');
 
       lines.push(tx('NUTRICIÓN E HIDRATACIÓN','NUTRITION AND HYDRATION'));
       lines.push(`• ${tx('Días con seguimiento','Tracked days')}: ${trackedDays}`);
-      lines.push(`• ${tx('Agua promedio','Average water')}: ${waterDays?Math.round(waterTotal/waterDays)+' oz/'+tx('día','day'):'--'}`);
+      lines.push(`• ${tx('Agua promedio','Average water')}: ${waterDays?formatWater(waterTotal/waterDays)+'/'+tx('día','day'):'--'}`);
       lines.push(`• ${tx('Proteína promedio','Average protein')}: ${proteinDays?Math.round(proteinTotal/proteinDays)+' g/'+tx('día','day'):'--'}`); lines.push('');
 
       lines.push(tx('SÍNTOMAS Y TOLERANCIA','SYMPTOMS AND TOLERANCE'));
@@ -4332,7 +4538,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function openAppleHealthModal() {
       const curW = state.weights.length ? state.weights[state.weights.length - 1].weight : 214.8;
-      document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
+      document.getElementById('apple-health-weight-val').innerText = formatWeight(curW,1);
       document.getElementById('btn-run-health-shortcut').href = `shortcuts://run-shortcut?name=LogWeight&input=${encodeURIComponent(curW)}`;
       document.getElementById('modal-apple-health').classList.remove('hidden');
       document.getElementById('modal-apple-health').classList.add('flex');
@@ -4386,24 +4592,30 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function saveNutritionalSettings() {
-      state.settings.goalWeight = Number(document.getElementById('setting-goal-weight').value) || 180;
-      state.settings.calGoal = Number(document.getElementById('setting-cal-goal').value) || 1400;
-      state.settings.tdee = Number(document.getElementById('setting-tdee').value) || 2000;
-      state.settings.proteinGoal = Number(document.getElementById('setting-protein-goal').value) || 110;
-      state.settings.waterGoal = Number(document.getElementById('setting-water-goal').value) || 96;
-      const maintenanceInput = document.getElementById('maintenance-range-input');
-      if (maintenanceInput) { const mr=Number(maintenanceInput.value); if (Number.isFinite(mr)&&mr>=1&&mr<=15) state.settings.maintenanceRangeLb=mr; }
-
-      persistState();
-      updateDashboardView();
-      renderToolsView();
+      const shownGoal=Number(document.getElementById('setting-goal-weight').value);
+      const goalWeight=storageWeight(shownGoal);
+      const calGoal=Number(document.getElementById('setting-cal-goal').value);
+      const tdee=Number(document.getElementById('setting-tdee').value);
+      const proteinGoal=Number(document.getElementById('setting-protein-goal').value);
+      const shownWater=Number(document.getElementById('setting-water-goal').value);
+      const waterGoal=storageWater(shownWater);
+      const errors=[];
+      if(!Number.isFinite(goalWeight)||goalWeight<50||goalWeight>1000)errors.push(uiText('peso objetivo','goal weight'));
+      if(!Number.isFinite(calGoal)||calGoal<500||calGoal>10000)errors.push(uiText('meta de calorías','calorie goal'));
+      if(!Number.isFinite(tdee)||tdee<500||tdee>10000)errors.push('TDEE');
+      if(!Number.isFinite(proteinGoal)||proteinGoal<10||proteinGoal>500)errors.push(uiText('meta de proteína','protein goal'));
+      if(!Number.isFinite(waterGoal)||waterGoal<8||waterGoal>305)errors.push(uiText('meta de agua','water goal'));
+      if(errors.length){showToast(`${uiText('Revisa estos valores','Check these values')}: ${errors.join(', ')}.`);return;}
+      state.settings.goalWeight=goalWeight; state.settings.calGoal=calGoal; state.settings.tdee=tdee; state.settings.proteinGoal=proteinGoal; state.settings.waterGoal=waterGoal;
+      const maintenanceInput=document.getElementById('maintenance-range-input');if(maintenanceInput){const mr=storageWeight(Number(maintenanceInput.value));if(Number.isFinite(mr)&&mr>=.5&&mr<=15)state.settings.maintenanceRangeLb=mr;}
+      persistState(); updateDashboardView(); renderToolsView(); applyUnitLabels();
       showToast(uiText("Configuración guardada.", "Settings saved."));
     }
 
     function saveApiKeySetting() {
       const val = document.getElementById('setting-api-key').value.trim();
       setStoredApiKey(val);
-      showToast("Clave de API Gemini guardada localmente.");
+      showToast(uiText("Clave de API Gemini guardada localmente.", "Gemini API key saved locally."));
     }
 
     function exportDataJSON() {
@@ -4418,7 +4630,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      showToast("Copia de seguridad descargada (sin credenciales privadas).");
+      showToast(uiText("Copia de seguridad descargada (sin credenciales privadas).", "Backup downloaded (private credentials excluded)."));
     }
 
     /* Validación interna exhaustiva de daysData, weights, injections y measurements */
@@ -4440,6 +4652,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
             state.settings = Object.assign(state.settings, imported.settings);
             if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
             if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
+            if (!['imperial','metric'].includes(state.settings.units)) state.settings.units = 'imperial';
             const importedRange = Number(state.settings.maintenanceRangeLb);
             state.settings.maintenanceRangeLb = Number.isFinite(importedRange) && importedRange >= 1 && importedRange <= 15 ? importedRange : 3;
           }
@@ -4624,6 +4837,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         fastingStart: null,
         isFasting: false,
         language: "es",
+        units: "imperial",
         maintenanceEnabled: false,
         maintenanceRangeLb: 3
       };
@@ -4638,18 +4852,19 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     let toastTimer = null;
-    function showToast(msg) {
+    function showToast(msg, duration=3500, preserveUndo=false) {
       const toast = document.getElementById('toast');
+      const undoBtn=document.getElementById('toast-undo-btn');
       document.getElementById('toast-msg').innerText = msg;
-
+      if(undoBtn&&!preserveUndo){undoBtn.classList.add('hidden');pendingUndoAction=null;}
       toast.classList.remove('opacity-0', 'translate-y-12', 'pointer-events-none');
       toast.classList.add('opacity-100', 'translate-y-0');
-
       if (toastTimer) clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none');
-      }, 3500);
+        if(undoBtn)undoBtn.classList.add('hidden');
+      }, duration);
     }
 
     function handleAppResume() {
@@ -4786,13 +5001,16 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         }
       });
 
-      document.getElementById('setting-goal-weight').value = state.settings.goalWeight || 180;
+      document.getElementById('setting-goal-weight').value = displayWeight(state.settings.goalWeight || 180).toFixed(1);
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
       document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
-      document.getElementById('setting-water-goal').value = state.settings.waterGoal || 96;
+      document.getElementById('setting-water-goal').value = Math.round(displayWater(state.settings.waterGoal || 96));
       const languageSelector = document.getElementById('setting-language');
       if (languageSelector) languageSelector.value = state.settings.language || 'es';
+      const unitSelector = document.getElementById('setting-units');
+      if (unitSelector) unitSelector.value = state.settings.units || 'imperial';
+      applyUnitLabels();
       
       const storedKey = getStoredApiKey();
       if (storedKey) {
