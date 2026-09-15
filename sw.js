@@ -31,6 +31,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // Navegación: red primero para recibir cambios nuevos; caché como respaldo offline.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -51,11 +52,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Recursos estáticos: caché primero; si faltan, descargar y guardar una copia válida.
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+      if (cachedResponse) return cachedResponse;
 
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status >= 400) {
