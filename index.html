@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mounjaro Companion &bull; Salud GLP-1/GIP</title>
+  <title>GLP-1 Companion &bull; Salud metabólica</title>
 
   <!-- PWA and Mobile Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MounjaroApp">
-  <meta name="application-name" content="MounjaroApp">
+  <meta name="apple-mobile-web-app-title" content="GLP1Tracker">
+  <meta name="application-name" content="GLP1Tracker">
   <meta name="theme-color" content="#090d16">
-  <meta name="description" content="Aplicación web progresiva para el control integral de pérdida de peso con Mounjaro (tirzepatide), análisis visual de platos con IA, monitoreo de hidratación y seguridad digestiva.">
+  <meta name="description" content="Aplicación web progresiva para el control clínico integral de Mounjaro y Ozempic, análisis de platos con IA, hidratación y seguridad digestiva.">
 
   <!-- External CDNs: Tailwind, Chart.js, Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -122,7 +122,7 @@
           </div>
           <div>
             <div class="flex items-center space-x-1.5">
-              <h1 class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
+              <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
@@ -205,9 +205,7 @@
             <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
               <div id="dash-halflife-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <p id="dash-halflife-expl" class="text-[10px] text-slate-400 leading-snug">
-              Vida media de ~5 días. En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito.
-            </p>
+            <p id="dash-halflife-expl" class="text-[10px] text-slate-400 leading-snug"></p>
           </div>
         </div>
 
@@ -360,13 +358,13 @@
 
       </section>
 
-      <!-- TAB 2: MOUNJARO Y SALUD -->
+      <!-- TAB 2: MEDICAMENTO Y SALUD -->
       <section id="tab-mounjaro" class="tab-content hidden space-y-4">
         
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-bold text-white">Control de inyecciones</h3>
+              <h3 id="hub-card-title" class="text-sm font-bold text-white">Control de inyecciones</h3>
               <p class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
             </div>
             <button onclick="openLogInjectionModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-all">
@@ -377,7 +375,7 @@
           <div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-2 text-xs">
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Última dosis administrada:</span>
-              <span id="hub-last-dose" class="font-bold text-emerald-400">2.5 mg</span>
+              <span id="hub-last-dose" class="font-bold text-emerald-400">--</span>
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Fecha de aplicación:</span>
@@ -385,7 +383,7 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Sitio utilizado:</span>
-              <span id="hub-last-site" class="font-bold text-cyan-300">Abdomen derecho</span>
+              <span id="hub-last-site" class="font-bold text-cyan-300">--</span>
             </div>
           </div>
 
@@ -419,7 +417,7 @@
                 21 días máx.
               </span>
             </div>
-            <p class="text-[10px] text-slate-400 leading-tight">
+            <p id="room-temp-expl-text" class="text-[10px] text-slate-400 leading-tight">
               Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).
             </p>
             <div class="p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-xs flex items-center justify-between">
@@ -570,11 +568,12 @@
           </div>
         </div>
 
+        <!-- Curva de peso y lista para borrar pesajes -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-sm font-bold text-white">Curva de peso (lbs)</h3>
-              <p class="text-[10px] text-slate-400">Evolución y tendencia en el tiempo</p>
+              <h3 class="text-sm font-bold text-white">Control y curva de peso (lbs)</h3>
+              <p class="text-[10px] text-slate-400">Evolución, tendencia e historial editable</p>
             </div>
             <button onclick="openWeightModal()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors">
               + Anotar peso
@@ -583,6 +582,12 @@
 
           <div class="relative w-full h-56">
             <canvas id="weightChart"></canvas>
+          </div>
+
+          <!-- Historial de pesajes con botón para eliminar -->
+          <div class="pt-2 border-t border-[#223455]">
+            <span class="text-[11px] font-bold text-slate-300 block mb-1.5">Historial de pesajes registrados:</span>
+            <div id="weights-history-list" class="space-y-1.5 max-h-36 overflow-y-auto hide-scrollbar text-xs"></div>
           </div>
         </div>
 
@@ -673,9 +678,19 @@
           </div>
         </div>
 
+        <!-- Metas y selector de medicamento activo -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
-          <div class="grid grid-cols-2 gap-3 text-xs">
+          
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
+            <select id="setting-medication" class="w-full p-2.5 bg-[#111a2e] border border-emerald-500/40 rounded-xl text-emerald-400 font-bold text-xs" onchange="handleMedicationChange(this.value)">
+              <option value="mounjaro">Mounjaro (tirzepatide &bull; vida media 5 días &bull; 21 días temp. ambiente)</option>
+              <option value="ozempic">Ozempic (semaglutide &bull; vida media 7 días &bull; 56 días temp. ambiente)</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs pt-1">
             <div>
               <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
               <input id="setting-cal-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
@@ -694,7 +709,7 @@
             </div>
           </div>
           <button onclick="saveNutritionalSettings()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
-            Guardar metas
+            Guardar configuración
           </button>
         </div>
 
@@ -746,7 +761,7 @@
 
       <button onclick="switchTab('mounjaro')" id="nav-mounjaro" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all">
         <i data-lucide="syringe" class="w-5 h-5 transition-transform"></i>
-        <span class="text-[10px] mt-1 font-bold">Mounjaro y salud</span>
+        <span id="nav-label-med" class="text-[10px] mt-1 font-bold">Mounjaro y salud</span>
       </button>
 
       <button onclick="switchTab('tools')" id="nav-tools" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all">
@@ -776,7 +791,7 @@
             <div id="scanner-placeholder-content" class="text-center p-4">
               <i data-lucide="camera" class="w-8 h-8 text-emerald-400 mx-auto mb-2"></i>
               <p class="text-xs font-semibold text-slate-200">Tomar foto o subir imagen del plato</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Calcula porción, calorías, grasa y advertencias para Mounjaro</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Calcula porción, calorías, grasa y tolerancia digestiva</p>
             </div>
             <input type="file" id="scanner-file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageSelected(event)">
           </div>
@@ -836,7 +851,7 @@
 
           <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs space-y-1">
             <span class="font-bold text-emerald-400 flex items-center gap-1">
-              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Advertencia digestiva Mounjaro:
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Advertencia digestiva:
             </span>
             <p id="res-glp1-tip" class="text-slate-300 leading-snug">
               Retira la piel tostada para reducir grasa concentrada y evitar reflujo o eructos de azufre.
@@ -905,11 +920,11 @@
       </div>
     </div>
 
-    <!-- Modal 3: Inyecciones -->
+    <!-- Modal 3: Inyecciones (Dosis dinámicas) -->
     <div id="modal-injection" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Registrar dosis de Mounjaro</h3>
+          <h3 id="modal-inj-title" class="text-sm font-bold text-white">Registrar dosis</h3>
           <button onclick="closeLogInjectionModal()" class="text-slate-400 hover:text-white p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
@@ -923,14 +938,7 @@
 
           <div>
             <label class="block font-semibold text-slate-300 mb-1">Dosis aplicada:</label>
-            <select id="inj-dose" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl font-bold text-emerald-400">
-              <option value="2.5 mg">2.5 mg (Dosis inicial / starter)</option>
-              <option value="5.0 mg">5.0 mg (Dosis terapéutica)</option>
-              <option value="7.5 mg">7.5 mg</option>
-              <option value="10.0 mg">10.0 mg</option>
-              <option value="12.5 mg">12.5 mg</option>
-              <option value="15.0 mg">15.0 mg (Dosis máxima)</option>
-            </select>
+            <select id="inj-dose" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl font-bold text-emerald-400"></select>
           </div>
 
           <div>
@@ -947,7 +955,7 @@
 
           <div>
             <label class="block font-semibold text-slate-300 mb-1">Observaciones:</label>
-            <input id="inj-notes" type="text" placeholder="Ej: Buena tolerancia, sin dolor..." class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+            <input id="inj-notes" type="text" placeholder="Ej: Buena tolerancia, sin molestias..." class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
           </div>
 
           <button onclick="saveInjectionRecord()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition-colors">
@@ -1037,7 +1045,7 @@
             </div>
             <div>
               <h3 class="text-sm font-bold text-white">Guía rápida de alivio (SOS)</h3>
-              <p class="text-[10px] text-slate-400">Protocolos inmediatos para efectos secundarios de Mounjaro</p>
+              <p class="text-[10px] text-slate-400">Protocolos inmediatos para efectos secundarios digestivos</p>
             </div>
           </div>
           <button onclick="closeSosModal()" class="text-slate-400 hover:text-white p-1">
@@ -1198,6 +1206,7 @@
     let state = {
       selectedDate: getFormattedDate(new Date()),
       settings: {
+        medication: "mounjaro", // 'mounjaro' o 'ozempic'
         calGoal: 1400,
         tdee: 2000,
         proteinGoal: 110,
@@ -1244,6 +1253,7 @@
         if (raw) {
           const parsed = JSON.parse(raw);
           state = Object.assign(state, parsed);
+          if (!state.settings.medication) state.settings.medication = "mounjaro";
           ensureInjectionIds();
         } else {
           setupInitialDemoData();
@@ -1329,6 +1339,7 @@
                 if (cloud.measurements && Array.isArray(cloud.measurements)) state.measurements = cloud.measurements;
 
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                applyMedicationTheme();
                 renderCurrentDay();
                 if (activeTab === 'tools') renderToolsView();
               }
@@ -1368,6 +1379,71 @@
           console.error("Error al autenticar:", err);
           showToast("Error de conexión: " + err.message);
         }
+      }
+    }
+
+    /* ==========================================================================
+       ADAPTACIÓN DINÁMICA: MOUNJARO VS OZEMPIC
+       ========================================================================== */
+    function handleMedicationChange(selectedMed) {
+      state.settings.medication = selectedMed;
+      persistState();
+      applyMedicationTheme();
+      updateHalfLifeAndNextDose();
+      renderMounjaroView();
+      showToast(`Medicamento configurado: ${selectedMed === 'ozempic' ? 'Ozempic (semaglutide)' : 'Mounjaro (tirzepatide)'}`);
+    }
+
+    function applyMedicationTheme() {
+      const isOz = state.settings.medication === 'ozempic';
+      const medName = isOz ? "Ozempic" : "Mounjaro";
+      const activeMolecule = isOz ? "semaglutide" : "tirzepatide";
+
+      document.getElementById('header-app-title').innerText = `${medName} Companion`;
+      document.getElementById('nav-label-med').innerText = `${medName} y salud`;
+      document.getElementById('hub-card-title').innerText = `Control de ${medName}`;
+      document.getElementById('modal-inj-title').innerText = `Registrar dosis de ${medName}`;
+
+      const medSelector = document.getElementById('setting-medication');
+      if (medSelector) medSelector.value = state.settings.medication;
+
+      // Adaptación de dosis en el selector modal
+      const doseSelect = document.getElementById('inj-dose');
+      if (doseSelect) {
+        doseSelect.innerHTML = '';
+        const doses = isOz 
+          ? [
+              { val: "0.25 mg", label: "0.25 mg (Iniciación / 4 semanas)" },
+              { val: "0.5 mg", label: "0.5 mg (Mantenimiento inicial)" },
+              { val: "1.0 mg", label: "1.0 mg (Dosis terapéutica)" },
+              { val: "2.0 mg", label: "2.0 mg (Dosis máxima)" }
+            ]
+          : [
+              { val: "2.5 mg", label: "2.5 mg (Dosis inicial / starter)" },
+              { val: "5.0 mg", label: "5.0 mg (Dosis terapéutica)" },
+              { val: "7.5 mg", label: "7.5 mg" },
+              { val: "10.0 mg", label: "10.0 mg" },
+              { val: "12.5 mg", label: "12.5 mg" },
+              { val: "15.0 mg", label: "15.0 mg (Dosis máxima)" }
+            ];
+
+        doses.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.val;
+          opt.innerText = d.label;
+          doseSelect.appendChild(opt);
+        });
+      }
+
+      // Parámetros de temperatura ambiente (21 días Mounjaro vs 56 días Ozempic)
+      const roomBadge = document.getElementById('room-temp-status-badge');
+      const roomExpl = document.getElementById('room-temp-expl-text');
+      if (isOz) {
+        roomBadge.innerText = "56 días máx.";
+        roomExpl.innerHTML = `Ozempic puede permanecer hasta 56 días (8 semanas) a temperatura ambiente (&lt;86°F/30°C).`;
+      } else {
+        roomBadge.innerText = "21 días máx.";
+        roomExpl.innerHTML = `Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).`;
       }
     }
 
@@ -1438,7 +1514,7 @@
     }
 
     /* ==========================================================================
-       DASHBOARD METRICS & CURVA DE CONCENTRACIÓN PROTEGIDA
+       DASHBOARD METRICS & CURVA BIOLÓGICA CALIBRADA
        ========================================================================== */
     function updateDashboardView() {
       const day = getSelectedDay();
@@ -1504,10 +1580,13 @@
         `;
         document.getElementById('dash-halflife-pct').innerText = "0%";
         document.getElementById('dash-halflife-bar').style.width = "0%";
-        document.getElementById('dash-halflife-expl').innerText = "Registra una inyección para calcular la concentración de tirzepatide.";
+        document.getElementById('dash-halflife-expl').innerText = "Registra una inyección para calcular la concentración en sangre.";
         lucide.createIcons();
         return;
       }
+
+      const isOz = state.settings.medication === 'ozempic';
+      const halfLifeDays = isOz ? 7 : 5; // Vida media: 7 días semaglutide, 5 días tirzepatide
 
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       const latest = sorted[0];
@@ -1549,18 +1628,17 @@
         <span>Rotación sugerida: <strong>${nextSite}</strong> (Última: ${latest.site})</span>
       `;
 
+      // Curva matemática adaptada al fármaco
       const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
-      const remainingPct = Math.round(Math.pow(0.5, daysSince / 5) * 100);
+      const remainingPct = Math.round(Math.pow(0.5, daysSince / halfLifeDays) * 100);
       document.getElementById('dash-halflife-pct').innerText = `${remainingPct}%`;
       document.getElementById('dash-halflife-bar').style.width = `${Math.min(100, remainingPct)}%`;
 
       let expl = "";
-      if (daysSince <= 2) {
-        expl = "Pico plasmático (días 1-2): Apetito en su mínimo. Evita comidas con grasa concentrada para prevenir náuseas.";
-      } else if (daysSince <= 4) {
-        expl = "Concentración terapéutica óptima (días 3-4): Buena saciedad sostenida.";
+      if (isOz) {
+        expl = `Vida media de ~7 días (semaglutide). Mantiene niveles plasmáticos más planos y uniformes a lo largo de la semana.`;
       } else {
-        expl = `Día ${Math.round(daysSince)} del ciclo: Concentración en descenso biológico (~5 días de vida media). Es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`;
+        expl = `Vida media de ~5 días (tirzepatide). En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`;
       }
       document.getElementById('dash-halflife-expl').innerText = expl;
       lucide.createIcons();
@@ -1745,6 +1823,9 @@
         return;
       }
 
+      const isOz = state.settings.medication === 'ozempic';
+      const medLabel = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
+
       const btn = document.getElementById('btn-run-analysis');
       const btnText = document.getElementById('btn-run-analysis-text');
       btn.disabled = true;
@@ -1753,7 +1834,7 @@
       const apiKey = state.settings.apiKey || "";
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-      const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con tirzepatide/Mounjaro (agonista dual GLP-1/GIP).
+      const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con ${medLabel}.
 Analiza el plato de comida en la imagen o el texto.
 Debes responder obligatoriamente con un JSON válido con este formato:
 {
@@ -1762,7 +1843,7 @@ Debes responder obligatoriamente con un JSON válido con este formato:
   "protein": 33,
   "carbs": 27,
   "fat": 16,
-  "mounjaroTip": "Advertencia específica para tirzepatide: Si contiene piel de pollo, frituras o grasas concentradas, advierte sobre náuseas, acidez y eructos de azufre por vaciamiento gástrico enlentecido. Recomienda comer la proteína primero."
+  "mounjaroTip": "Advertencia para ${medLabel}: Si contiene piel de pollo, frituras o grasas concentradas, advierte sobre náuseas, acidez y reflujo por vaciamiento gástrico enlentecido. Recomienda comer la proteína primero."
 }
 Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
@@ -1770,7 +1851,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (textQuery) {
         parts.push({ text: `Detalles del usuario: ${textQuery}` });
       } else {
-        parts.push({ text: "Analiza los alimentos en este plato y calcula calorías, macronutrientes y tolerancia digestiva para Mounjaro." });
+        parts.push({ text: `Analiza los alimentos en este plato y calcula calorías, macronutrientes y tolerancia digestiva para ${medLabel}.` });
       }
 
       if (selectedImageBase64) {
@@ -1975,15 +2056,18 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.settings.roomTempPenStart = Date.now();
       persistState();
       renderMounjaroView();
-      showToast("Conteo de 21 días iniciado para la pluma en uso.");
+      showToast("Conteo de temperatura ambiente iniciado para la pluma en uso.");
     }
 
     function renderMounjaroView() {
       ensureInjectionIds();
+      const isOz = state.settings.medication === 'ozempic';
+      const maxDays = isOz ? 56 : 21;
+
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       if (sorted.length > 0) {
         const latest = sorted[0];
-        document.getElementById('hub-last-dose').innerText = latest.dose || "2.5 mg";
+        document.getElementById('hub-last-dose').innerText = latest.dose || (isOz ? "0.25 mg" : "2.5 mg");
         document.getElementById('hub-last-date').innerText = (typeof latest.date === 'string' ? latest.date.split('T')[0] : latest.date) || "--";
         document.getElementById('hub-last-site').innerText = latest.site || "Abdomen derecho";
       } else {
@@ -2002,12 +2086,12 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
       if (state.settings.roomTempPenStart) {
         const elapsedDays = (Date.now() - state.settings.roomTempPenStart) / (1000 * 60 * 60 * 24);
-        const daysLeft = Math.max(0, Math.ceil(21 - elapsedDays));
+        const daysLeft = Math.max(0, Math.ceil(maxDays - elapsedDays));
         const badge = document.getElementById('room-temp-status-badge');
         const textEl = document.getElementById('room-temp-days-left');
 
         textEl.innerText = `${daysLeft} días`;
-        if (daysLeft <= 3) {
+        if (daysLeft <= 4) {
           badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
           badge.innerText = "Por vencer";
         } else {
@@ -2031,7 +2115,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
               <span class="font-bold text-white">${inj.dose} &bull; ${inj.site}</span>
               <p class="text-[10px] text-slate-500">${cleanDate} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
             </div>
-            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
+            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar registro">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           `;
@@ -2093,7 +2177,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     /* ==========================================================================
-       HERRAMIENTAS, PESO Y CRONÓMETROS
+       HERRAMIENTAS, PESO Y GESTIÓN DE PESAJES (ELIMINACIÓN)
        ========================================================================== */
     function renderToolsView() {
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -2107,8 +2191,36 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('prog-cur-w').innerText = curW.toFixed(1);
         document.getElementById('prog-lost-w').innerText = `${totalLost > 0 ? '-' : ''}${Math.abs(totalLost)}`;
         document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
+      } else {
+        document.getElementById('prog-start-w').innerText = "--";
+        document.getElementById('prog-cur-w').innerText = "--";
+        document.getElementById('prog-lost-w').innerText = "0.0";
+        document.getElementById('apple-health-weight-val').innerText = "-- lbs";
       }
 
+      // Lista interactiva para consultar y eliminar pesajes
+      const wList = document.getElementById('weights-history-list');
+      wList.innerHTML = '';
+      if (state.weights.length === 0) {
+        wList.innerHTML = `<p class="text-slate-500 italic">No hay pesajes registrados aún.</p>`;
+      } else {
+        [...state.weights].reverse().forEach(w => {
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center p-2 rounded-xl bg-[#111a2e] border border-[#223455]";
+          row.innerHTML = `
+            <span class="text-slate-300 font-medium">${w.date}</span>
+            <div class="flex items-center space-x-3">
+              <strong class="text-cyan-400 font-black">${w.weight.toFixed(1)} lbs</strong>
+              <button onclick="removeWeightEntry('${w.date}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar este pesaje">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          `;
+          wList.appendChild(row);
+        });
+      }
+
+      // Lista de medidas
       const mList = document.getElementById('measurements-history-list');
       mList.innerHTML = '';
       if (state.measurements.length === 0) {
@@ -2131,6 +2243,15 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       }
 
       renderChartJs();
+      lucide.createIcons();
+    }
+
+    function removeWeightEntry(targetDate) {
+      if (!targetDate) return;
+      state.weights = state.weights.filter(w => w.date !== targetDate);
+      persistState();
+      renderToolsView();
+      showToast(`Pesaje del ${targetDate} eliminado.`);
     }
 
     function renderChartJs() {
@@ -2154,7 +2275,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           labels: labels.length ? labels : ['Inicio'],
           datasets: [{
             label: 'Peso (lbs)',
-            data: dataPoints.length ? dataPoints : [215],
+            data: dataPoints.length ? dataPoints : [0],
             borderColor: '#06b6d4',
             backgroundColor: 'rgba(6, 182, 212, 0.12)',
             borderWidth: 2.5,
@@ -2392,6 +2513,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function copyDoctorSummary() {
+      const isOz = state.settings.medication === 'ozempic';
+      const medName = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
+
       const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
       const startW = sortedW.length > 0 ? sortedW[0].weight : '--';
       const curW = sortedW.length > 0 ? sortedW[sortedW.length - 1].weight : '--';
@@ -2409,7 +2533,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         totalProtein += Number(m.protein || 0);
       });
 
-      const report = `📋 REPORTE DE SEGUIMIENTO CLÍNICO - MOUNJARO (TIRZEPATIDE)
+      const report = `📋 REPORTE DE SEGUIMIENTO CLÍNICO - ${medName.toUpperCase()}
 Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 
 ⚖️ EVOLUCIÓN DE PESO & METAS:
@@ -2418,6 +2542,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Pérdida acumulada: ${totalLost} lbs
 
 💉 TRATAMIENTO & DOSIS FARMACOLÓGICA:
+• Fármaco activo: ${medName}
 • Dosis actual: ${lastInj ? `${lastInj.dose} (${lastInj.site}) administrada el ${lastInj.date.split('T')[0]}` : 'Sin registrar'}
 • Plumas en inventario refrigerado: ${state.settings.pensInStock || 0}
 • Frecuencia: Cada 7 días
@@ -2435,7 +2560,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con Mounjaro Companion Web App.`;
+Generado con GLP-1 Companion Web App.`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -2465,7 +2590,7 @@ Generado con Mounjaro Companion Web App.`;
 
       persistState();
       updateDashboardView();
-      showToast("Metas nutricionales guardadas.");
+      showToast("Configuración guardada.");
     }
 
     function saveApiKeySetting() {
@@ -2478,7 +2603,7 @@ Generado con Mounjaro Companion Web App.`;
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `mounjaro_backup_${state.selectedDate}.json`);
+      a.setAttribute("download", `glp1_backup_${state.selectedDate}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -2501,6 +2626,7 @@ Generado con Mounjaro Companion Web App.`;
 
           ensureInjectionIds();
           persistState();
+          applyMedicationTheme();
           renderCurrentDay();
           if (activeTab === 'tools') renderToolsView();
           showToast("Datos restaurados exitosamente.");
@@ -2529,6 +2655,7 @@ Generado con Mounjaro Companion Web App.`;
       state.measurements = [];
       initData();
       closeResetModal();
+      applyMedicationTheme();
       renderCurrentDay();
       showToast("Todos los datos han sido reiniciados.");
     }
@@ -2552,6 +2679,7 @@ Generado con Mounjaro Companion Web App.`;
       initData();
       setupFirebaseAuthListener();
       initFastingUI();
+      applyMedicationTheme();
 
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
