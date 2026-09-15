@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es" class="dark">
 <head>
@@ -1375,6 +1376,21 @@
       return `${year}-${month}-${day}`;
     }
 
+    function isValidDateKey(value) {
+      if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const [year, month, day] = value.split('-').map(Number);
+      const parsed = new Date(Date.UTC(year, month - 1, day));
+      return parsed.getUTCFullYear() === year &&
+             parsed.getUTCMonth() === month - 1 &&
+             parsed.getUTCDate() === day;
+    }
+
+    function normalizeDateKey(value) {
+      if (typeof value !== 'string') return null;
+      const dateKey = value.split('T')[0];
+      return isValidDateKey(dateKey) ? dateKey : null;
+    }
+
     function cleanupTombstones() {
       if (!state.deletedRecords) {
         state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
@@ -1471,15 +1487,31 @@
       persistState();
     }
 
+    function getCloudSafeStateSnapshot() {
+      const cleanCopy = JSON.parse(JSON.stringify(state));
+      if (cleanCopy.settings && cleanCopy.settings.apiKey) {
+        delete cleanCopy.settings.apiKey;
+      }
+      return cleanCopy;
+    }
+
+    function stableStringify(value) {
+      if (value === null || typeof value !== 'object') {
+        return JSON.stringify(value);
+      }
+      if (Array.isArray(value)) {
+        return `[${value.map(stableStringify).join(',')}]`;
+      }
+      const keys = Object.keys(value).sort();
+      return `{${keys.map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+    }
+
     function persistState() {
       cleanupTombstones();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       if (currentUser) {
         try {
-          const cleanCopy = JSON.parse(JSON.stringify(state));
-          if (cleanCopy.settings && cleanCopy.settings.apiKey) {
-            delete cleanCopy.settings.apiKey;
-          }
+          const cleanCopy = getCloudSafeStateSnapshot();
           db.collection("trackers").doc(currentUser.uid).set(cleanCopy)
             .catch(err => console.error("Error sincronizando en Firestore:", err));
         } catch (e) {
@@ -1488,62 +1520,92 @@
       }
     }
 
+    function syncMergedStateToCloudIfNeeded(incomingCloud) {
+      if (!currentUser) return;
+      try {
+        const mergedCopy = getCloudSafeStateSnapshot();
+        const incomingCopy = JSON.parse(JSON.stringify(incomingCloud || {}));
+        if (incomingCopy.settings && incomingCopy.settings.apiKey) {
+          delete incomingCopy.settings.apiKey;
+        }
+
+        if (stableStringify(mergedCopy) === stableStringify(incomingCopy)) return;
+
+        db.collection("trackers").doc(currentUser.uid).set(mergedCopy)
+          .catch(err => console.error("Error guardando fusión en Firestore:", err));
+      } catch (err) {
+        console.error("Error comparando la fusión con Firestore:", err);
+      }
+    }
+
     /* Fusión bidireccional profunda con timestamps y tombstones */
     function applyCloudDataMerge(cloud) {
-      if (!cloud) return;
-      if (cloud.settings) {
-        delete cloud.settings.apiKey;
-        state.settings = Object.assign(state.settings, cloud.settings);
+      if (!cloud || typeof cloud !== 'object' || Array.isArray(cloud)) return;
+      if (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) {
+        const cloudSettings = Object.assign({}, cloud.settings);
+        delete cloudSettings.apiKey;
+        state.settings = Object.assign(state.settings, cloudSettings);
       }
 
       // Fusión de registros eliminados (tombstones)
-      if (cloud.deletedRecords) {
+      if (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) {
         ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
           if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
-          const cloudDeletes = cloud.deletedRecords[type] || {};
+          const cloudDeletes = (cloud.deletedRecords[type] && typeof cloud.deletedRecords[type] === 'object')
+            ? cloud.deletedRecords[type]
+            : {};
           Object.keys(cloudDeletes).forEach(id => {
-            const localDelTime = state.deletedRecords[type][id] || 0;
-            state.deletedRecords[type][id] = Math.max(localDelTime, cloudDeletes[id]);
+            const cloudDelTime = Number(cloudDeletes[id]);
+            if (!Number.isFinite(cloudDelTime) || cloudDelTime <= 0) return;
+            const localDelTime = Number(state.deletedRecords[type][id]) || 0;
+            state.deletedRecords[type][id] = Math.max(localDelTime, cloudDelTime);
           });
         });
       }
       cleanupTombstones();
 
       // Fusión profunda de días
-      if (cloud.daysData && typeof cloud.daysData === 'object') {
+      if (cloud.daysData && typeof cloud.daysData === 'object' && !Array.isArray(cloud.daysData)) {
         Object.keys(cloud.daysData).forEach(dateKey => {
-          if (!state.daysData[dateKey]) {
-            const candidateDay = cloud.daysData[dateKey];
-            if (candidateDay && Array.isArray(candidateDay.meals)) {
-              candidateDay.meals = candidateDay.meals.filter(m => {
-                const delTime = state.deletedRecords.meals[m.id] || 0;
-                return delTime <= (m.updatedAt || 0);
-              });
-            }
-            state.daysData[dateKey] = candidateDay;
+          if (!isValidDateKey(dateKey)) return;
+          const rawCloudDay = cloud.daysData[dateKey];
+          if (!rawCloudDay || typeof rawCloudDay !== 'object' || Array.isArray(rawCloudDay)) return;
+
+          const cloudDay = JSON.parse(JSON.stringify(rawCloudDay));
+          const cloudMeals = Array.isArray(cloudDay.meals) ? cloudDay.meals : [];
+          const cloudBowelMovements = Array.isArray(cloudDay.bowelMovements) ? cloudDay.bowelMovements : [];
+
+          if (!state.daysData[dateKey] || typeof state.daysData[dateKey] !== 'object' || Array.isArray(state.daysData[dateKey])) {
+            cloudDay.meals = cloudMeals.filter(m => {
+              if (!m || typeof m !== 'object' || !m.id) return false;
+              const delTime = Number(state.deletedRecords.meals[m.id]) || 0;
+              return delTime <= (Number(m.updatedAt) || 0);
+            });
+            cloudDay.bowelMovements = cloudBowelMovements.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
+            state.daysData[dateKey] = cloudDay;
           } else {
             const localDay = state.daysData[dateKey];
-            const cloudDay = cloud.daysData[dateKey];
+            const localMeals = Array.isArray(localDay.meals) ? localDay.meals : [];
 
             // Fusión de comidas por ID respetando tombstones y updatedAt
             const mealMap = new Map();
-            (cloudDay.meals || []).forEach(m => {
-              if (m && m.id) {
-                const delTime = state.deletedRecords.meals[m.id] || 0;
-                if (delTime <= (m.updatedAt || 0)) {
+            cloudMeals.forEach(m => {
+              if (m && typeof m === 'object' && m.id) {
+                const delTime = Number(state.deletedRecords.meals[m.id]) || 0;
+                if (delTime <= (Number(m.updatedAt) || 0)) {
                   mealMap.set(m.id, m);
                 }
               }
             });
-            (localDay.meals || []).forEach(m => {
-              if (m && m.id) {
-                const delTime = state.deletedRecords.meals[m.id] || 0;
-                if (delTime <= (m.updatedAt || 0)) {
+            localMeals.forEach(m => {
+              if (m && typeof m === 'object' && m.id) {
+                const delTime = Number(state.deletedRecords.meals[m.id]) || 0;
+                if (delTime <= (Number(m.updatedAt) || 0)) {
                   if (!mealMap.has(m.id)) {
                     mealMap.set(m.id, m);
                   } else {
                     const existing = mealMap.get(m.id);
-                    if ((m.updatedAt || 0) >= (existing.updatedAt || 0)) {
+                    if ((Number(m.updatedAt) || 0) >= (Number(existing.updatedAt) || 0)) {
                       mealMap.set(m.id, m);
                     }
                   }
@@ -1553,36 +1615,56 @@
             localDay.meals = Array.from(mealMap.values());
 
             // Fusión de agua mediante timestamp
-            if (localDay.waterUpdatedAt && cloudDay.waterUpdatedAt) {
-              if (cloudDay.waterUpdatedAt > localDay.waterUpdatedAt) {
-                localDay.water = cloudDay.water;
-                localDay.waterUpdatedAt = cloudDay.waterUpdatedAt;
+            const localWaterTs = Number(localDay.waterUpdatedAt) || 0;
+            const cloudWaterTs = Number(cloudDay.waterUpdatedAt) || 0;
+            if (localWaterTs && cloudWaterTs) {
+              if (cloudWaterTs > localWaterTs) {
+                localDay.water = Number(cloudDay.water) || 0;
+                localDay.waterUpdatedAt = cloudWaterTs;
               }
-            } else if (cloudDay.waterUpdatedAt && !localDay.waterUpdatedAt) {
-              localDay.water = cloudDay.water;
-              localDay.waterUpdatedAt = cloudDay.waterUpdatedAt;
-            } else if (!localDay.waterUpdatedAt && !cloudDay.waterUpdatedAt) {
+            } else if (cloudWaterTs && !localWaterTs) {
+              localDay.water = Number(cloudDay.water) || 0;
+              localDay.waterUpdatedAt = cloudWaterTs;
+            } else if (!localWaterTs && !cloudWaterTs) {
               localDay.water = Math.max(Number(localDay.water || 0), Number(cloudDay.water || 0));
             }
 
-            // Fusión de evacuaciones sin duplicados
-            const bmSet = new Set([...(localDay.bowelMovements || []), ...(cloudDay.bowelMovements || [])]);
-            localDay.bowelMovements = Array.from(bmSet);
+            // Fusión de evacuaciones sin duplicados y descartando timestamps inválidos
+            const localBM = Array.isArray(localDay.bowelMovements) ? localDay.bowelMovements : [];
+            const validBM = [...localBM, ...cloudBowelMovements]
+              .filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
+            localDay.bowelMovements = Array.from(new Set(validBM));
 
             // Fusión de síntomas mediante timestamp
-            if (cloudDay.symptomsUpdatedAt && (!localDay.symptomsUpdatedAt || cloudDay.symptomsUpdatedAt > localDay.symptomsUpdatedAt)) {
-              localDay.symptoms = cloudDay.symptoms;
-              localDay.symptomsUpdatedAt = cloudDay.symptomsUpdatedAt;
-            } else if (!localDay.symptomsUpdatedAt && !cloudDay.symptomsUpdatedAt) {
-              localDay.symptoms = Object.assign({}, cloudDay.symptoms || {}, localDay.symptoms || {});
+            const localSymptomsTs = Number(localDay.symptomsUpdatedAt) || 0;
+            const cloudSymptomsTs = Number(cloudDay.symptomsUpdatedAt) || 0;
+            if (cloudSymptomsTs && (!localSymptomsTs || cloudSymptomsTs > localSymptomsTs)) {
+              localDay.symptoms = (cloudDay.symptoms && typeof cloudDay.symptoms === 'object' && !Array.isArray(cloudDay.symptoms))
+                ? cloudDay.symptoms
+                : {};
+              localDay.symptomsUpdatedAt = cloudSymptomsTs;
+            } else if (!localSymptomsTs && !cloudSymptomsTs) {
+              localDay.symptoms = Object.assign(
+                {},
+                (cloudDay.symptoms && typeof cloudDay.symptoms === 'object' && !Array.isArray(cloudDay.symptoms)) ? cloudDay.symptoms : {},
+                (localDay.symptoms && typeof localDay.symptoms === 'object' && !Array.isArray(localDay.symptoms)) ? localDay.symptoms : {}
+              );
             }
 
             // Fusión de electrolitos mediante timestamp
-            if (cloudDay.electrolytesUpdatedAt && (!localDay.electrolytesUpdatedAt || cloudDay.electrolytesUpdatedAt > localDay.electrolytesUpdatedAt)) {
-              localDay.electrolytes = cloudDay.electrolytes;
-              localDay.electrolytesUpdatedAt = cloudDay.electrolytesUpdatedAt;
-            } else if (!localDay.electrolytesUpdatedAt && !cloudDay.electrolytesUpdatedAt) {
-              localDay.electrolytes = Object.assign({}, cloudDay.electrolytes || {}, localDay.electrolytes || {});
+            const localElectrolytesTs = Number(localDay.electrolytesUpdatedAt) || 0;
+            const cloudElectrolytesTs = Number(cloudDay.electrolytesUpdatedAt) || 0;
+            if (cloudElectrolytesTs && (!localElectrolytesTs || cloudElectrolytesTs > localElectrolytesTs)) {
+              localDay.electrolytes = (cloudDay.electrolytes && typeof cloudDay.electrolytes === 'object' && !Array.isArray(cloudDay.electrolytes))
+                ? cloudDay.electrolytes
+                : {};
+              localDay.electrolytesUpdatedAt = cloudElectrolytesTs;
+            } else if (!localElectrolytesTs && !cloudElectrolytesTs) {
+              localDay.electrolytes = Object.assign(
+                {},
+                (cloudDay.electrolytes && typeof cloudDay.electrolytes === 'object' && !Array.isArray(cloudDay.electrolytes)) ? cloudDay.electrolytes : {},
+                (localDay.electrolytes && typeof localDay.electrolytes === 'object' && !Array.isArray(localDay.electrolytes)) ? localDay.electrolytes : {}
+              );
             }
           }
         });
@@ -1591,23 +1673,30 @@
       // Fusión de pesajes con tombstones y updatedAt
       if (Array.isArray(cloud.weights)) {
         const weightMap = new Map();
-        state.weights.forEach(w => {
+        (Array.isArray(state.weights) ? state.weights : []).forEach(w => {
+          if (!w || typeof w !== 'object' || Array.isArray(w)) return;
+          const date = normalizeDateKey(w.date);
           const num = parseFloat(w.weight);
-          const delTime = state.deletedRecords.weights[w.date] || 0;
-          if (w.date && !isNaN(num) && delTime <= (w.updatedAt || 0)) {
-            weightMap.set(w.date, w);
+          if (!date || !Number.isFinite(num) || num <= 0) return;
+          const delTime = Number(state.deletedRecords.weights[date]) || 0;
+          if (delTime <= (Number(w.updatedAt) || 0)) {
+            weightMap.set(date, Object.assign({}, w, { date, weight: num }));
           }
         });
         cloud.weights.forEach(w => {
+          if (!w || typeof w !== 'object' || Array.isArray(w)) return;
+          const date = normalizeDateKey(w.date);
           const num = parseFloat(w.weight);
-          const delTime = state.deletedRecords.weights[w.date] || 0;
-          if (w && w.date && !isNaN(num) && delTime <= (w.updatedAt || 0)) {
-            if (!weightMap.has(w.date)) {
-              weightMap.set(w.date, w);
+          if (!date || !Number.isFinite(num) || num <= 0) return;
+          const delTime = Number(state.deletedRecords.weights[date]) || 0;
+          if (delTime <= (Number(w.updatedAt) || 0)) {
+            const normalized = Object.assign({}, w, { date, weight: num });
+            if (!weightMap.has(date)) {
+              weightMap.set(date, normalized);
             } else {
-              const existing = weightMap.get(w.date);
-              if ((w.updatedAt || 0) > (existing.updatedAt || 0)) {
-                weightMap.set(w.date, w);
+              const existing = weightMap.get(date);
+              if ((Number(normalized.updatedAt) || 0) > (Number(existing.updatedAt) || 0)) {
+                weightMap.set(date, normalized);
               }
             }
           }
@@ -1618,21 +1707,22 @@
       // Fusión de inyecciones con tombstones y updatedAt
       if (Array.isArray(cloud.injections)) {
         const injMap = new Map();
-        state.injections.forEach(i => {
-          const delTime = state.deletedRecords.injections[i.id] || 0;
-          if (delTime <= (i.updatedAt || 0)) {
+        (Array.isArray(state.injections) ? state.injections : []).forEach(i => {
+          if (!i || typeof i !== 'object' || !i.id) return;
+          const delTime = Number(state.deletedRecords.injections[i.id]) || 0;
+          if (delTime <= (Number(i.updatedAt) || 0)) {
             injMap.set(i.id, i);
           }
         });
         cloud.injections.forEach(i => {
-          if (i && i.id) {
-            const delTime = state.deletedRecords.injections[i.id] || 0;
-            if (delTime <= (i.updatedAt || 0)) {
+          if (i && typeof i === 'object' && i.id) {
+            const delTime = Number(state.deletedRecords.injections[i.id]) || 0;
+            if (delTime <= (Number(i.updatedAt) || 0)) {
               if (!injMap.has(i.id)) {
                 injMap.set(i.id, i);
               } else {
                 const existing = injMap.get(i.id);
-                if ((i.updatedAt || 0) > (existing.updatedAt || 0)) {
+                if ((Number(i.updatedAt) || 0) > (Number(existing.updatedAt) || 0)) {
                   injMap.set(i.id, i);
                 }
               }
@@ -1646,23 +1736,28 @@
       // Fusión de medidas corporales con tombstones y updatedAt
       if (Array.isArray(cloud.measurements)) {
         const measMap = new Map();
-        state.measurements.forEach(m => {
-          const delTime = state.deletedRecords.measurements[m.date] || 0;
-          if (delTime <= (m.updatedAt || 0)) {
-            measMap.set(m.date, m);
+        (Array.isArray(state.measurements) ? state.measurements : []).forEach(m => {
+          if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+          const date = normalizeDateKey(m.date);
+          if (!date) return;
+          const delTime = Number(state.deletedRecords.measurements[date]) || 0;
+          if (delTime <= (Number(m.updatedAt) || 0)) {
+            measMap.set(date, Object.assign({}, m, { date }));
           }
         });
         cloud.measurements.forEach(m => {
-          if (m && m.date) {
-            const delTime = state.deletedRecords.measurements[m.date] || 0;
-            if (delTime <= (m.updatedAt || 0)) {
-              if (!measMap.has(m.date)) {
-                measMap.set(m.date, m);
-              } else {
-                const existing = measMap.get(m.date);
-                if ((m.updatedAt || 0) > (existing.updatedAt || 0)) {
-                  measMap.set(m.date, m);
-                }
+          if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+          const date = normalizeDateKey(m.date);
+          if (!date) return;
+          const delTime = Number(state.deletedRecords.measurements[date]) || 0;
+          if (delTime <= (Number(m.updatedAt) || 0)) {
+            const normalized = Object.assign({}, m, { date });
+            if (!measMap.has(date)) {
+              measMap.set(date, normalized);
+            } else {
+              const existing = measMap.get(date);
+              if ((Number(normalized.updatedAt) || 0) > (Number(existing.updatedAt) || 0)) {
+                measMap.set(date, normalized);
               }
             }
           }
@@ -1670,10 +1765,15 @@
         state.measurements = Array.from(measMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
       }
 
+      cleanupTombstones();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       applyMedicationTheme();
       renderCurrentDay();
       if (activeTab === 'tools') renderToolsView();
+
+      // Si la fusión produjo datos que aún no estaban en Firestore, súbelos una sola vez.
+      // La comparación estable evita un ciclo infinito con onSnapshot.
+      syncMergedStateToCloudIfNeeded(cloud);
     }
 
     function setupFirebaseAuthListener() {
@@ -1918,9 +2018,17 @@
       if (!alertBox || !alertText) return;
 
       const day = getSelectedDay();
-      const s = day.symptoms || {};
-      const hasDigestiveSymptoms = (s.nausea && s.nausea !== 'none') || 
-                                   (s.heartburn && s.heartburn !== 'none') || 
+      const savedSymptoms = (day.symptoms && typeof day.symptoms === 'object') ? day.symptoms : {};
+      const nauseaInput = document.getElementById('input-symptom-nausea');
+      const heartburnInput = document.getElementById('input-symptom-heartburn');
+      const sulfurInput = document.getElementById('input-symptom-sulfur');
+      const s = {
+        nausea: nauseaInput ? nauseaInput.value : (savedSymptoms.nausea || 'none'),
+        heartburn: heartburnInput ? heartburnInput.value : (savedSymptoms.heartburn || 'none'),
+        sulfur: sulfurInput ? sulfurInput.value : (savedSymptoms.sulfur || 'none')
+      };
+      const hasDigestiveSymptoms = (s.nausea && s.nausea !== 'none') ||
+                                   (s.heartburn && s.heartburn !== 'none') ||
                                    (s.sulfur && s.sulfur !== 'none');
 
       let highFatMeals = [];
@@ -3295,7 +3403,7 @@ Generado con GLP-1 Companion Web App (v3.0).`;
       reader.onload = function(evt) {
         try {
           const imported = JSON.parse(evt.target.result);
-          
+
           if (!imported || typeof imported !== 'object' || Array.isArray(imported)) {
             throw new Error("Formato inválido");
           }
@@ -3305,12 +3413,11 @@ Generado con GLP-1 Companion Web App (v3.0).`;
             state.settings = Object.assign(state.settings, imported.settings);
           }
 
-          // Validación estricta día por día
+          // Validación estricta día por día, incluyendo fechas reales de calendario.
           if (imported.daysData && typeof imported.daysData === 'object' && !Array.isArray(imported.daysData)) {
             const cleanDays = {};
-            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
             Object.keys(imported.daysData).forEach(dateKey => {
-              if (!dateRegex.test(dateKey)) return;
+              if (!isValidDateKey(dateKey)) return;
               const rawDay = imported.daysData[dateKey];
               if (!rawDay || typeof rawDay !== 'object' || Array.isArray(rawDay)) return;
 
@@ -3323,16 +3430,16 @@ Generado con GLP-1 Companion Web App (v3.0).`;
                   const c = parseFloat(m.carbs);
                   const f = parseFloat(m.fat);
                   validMeals.push({
-                    id: (typeof m.id === 'string' && m.id) ? m.id : ("meal_" + Date.now() + "_" + idx),
-                    name: escapeHtml(m.name || "Comida"),
-                    slot: typeof m.slot === 'string' ? escapeHtml(m.slot) : 'Comida',
-                    calories: (!isNaN(cal) && isFinite(cal) && cal >= 0) ? cal : 0,
-                    protein: (!isNaN(p) && isFinite(p) && p >= 0) ? p : 0,
-                    carbs: (!isNaN(c) && isFinite(c) && c >= 0) ? c : 0,
-                    fat: (!isNaN(f) && isFinite(f) && f >= 0) ? f : 0,
-                    tip: typeof m.tip === 'string' ? escapeHtml(m.tip) : '',
-                    time: typeof m.time === 'string' ? escapeHtml(m.time) : '',
-                    updatedAt: typeof m.updatedAt === 'number' ? m.updatedAt : Date.now()
+                    id: (typeof m.id === 'string' && m.id.trim()) ? m.id.trim() : (`meal_${Date.now()}_${dateKey}_${idx}`),
+                    name: String(m.name || "Comida"),
+                    slot: typeof m.slot === 'string' ? m.slot : 'Comida',
+                    calories: Number.isFinite(cal) && cal >= 0 ? cal : 0,
+                    protein: Number.isFinite(p) && p >= 0 ? p : 0,
+                    carbs: Number.isFinite(c) && c >= 0 ? c : 0,
+                    fat: Number.isFinite(f) && f >= 0 ? f : 0,
+                    tip: typeof m.tip === 'string' ? m.tip : '',
+                    time: typeof m.time === 'string' ? m.time : '',
+                    updatedAt: (typeof m.updatedAt === 'number' && Number.isFinite(m.updatedAt) && m.updatedAt > 0) ? m.updatedAt : Date.now()
                   });
                 });
               }
@@ -3347,17 +3454,18 @@ Generado con GLP-1 Companion Web App (v3.0).`;
               }
 
               const rawWater = parseFloat(rawDay.water);
-              const waterVal = (!isNaN(rawWater) && isFinite(rawWater) && rawWater >= 0) ? rawWater : 0;
+              const waterVal = Number.isFinite(rawWater) && rawWater >= 0 ? rawWater : 0;
+              const now = Date.now();
 
               cleanDays[dateKey] = {
                 water: waterVal,
-                waterUpdatedAt: typeof rawDay.waterUpdatedAt === 'number' ? rawDay.waterUpdatedAt : Date.now(),
+                waterUpdatedAt: (typeof rawDay.waterUpdatedAt === 'number' && Number.isFinite(rawDay.waterUpdatedAt) && rawDay.waterUpdatedAt > 0) ? rawDay.waterUpdatedAt : now,
                 meals: validMeals,
                 bowelMovements: validBM,
                 symptoms: (rawDay.symptoms && typeof rawDay.symptoms === 'object' && !Array.isArray(rawDay.symptoms)) ? rawDay.symptoms : { hunger: 3, nausea: "none", heartburn: "none", sulfur: "none", fatigue: "none", notes: "" },
-                symptomsUpdatedAt: typeof rawDay.symptomsUpdatedAt === 'number' ? rawDay.symptomsUpdatedAt : Date.now(),
+                symptomsUpdatedAt: (typeof rawDay.symptomsUpdatedAt === 'number' && Number.isFinite(rawDay.symptomsUpdatedAt) && rawDay.symptomsUpdatedAt > 0) ? rawDay.symptomsUpdatedAt : now,
                 electrolytes: (rawDay.electrolytes && typeof rawDay.electrolytes === 'object' && !Array.isArray(rawDay.electrolytes)) ? rawDay.electrolytes : {},
-                electrolytesUpdatedAt: typeof rawDay.electrolytesUpdatedAt === 'number' ? rawDay.electrolytesUpdatedAt : Date.now()
+                electrolytesUpdatedAt: (typeof rawDay.electrolytesUpdatedAt === 'number' && Number.isFinite(rawDay.electrolytesUpdatedAt) && rawDay.electrolytesUpdatedAt > 0) ? rawDay.electrolytesUpdatedAt : now
               };
             });
             state.daysData = cleanDays;
@@ -3366,12 +3474,14 @@ Generado con GLP-1 Companion Web App (v3.0).`;
           if (Array.isArray(imported.weights)) {
             const validWeights = [];
             imported.weights.forEach(w => {
+              if (!w || typeof w !== 'object' || Array.isArray(w)) return;
+              const date = normalizeDateKey(w.date);
               const num = parseFloat(w.weight);
-              if (w && typeof w.date === 'string' && !isNaN(num) && isFinite(num) && num > 0) {
+              if (date && Number.isFinite(num) && num > 0) {
                 validWeights.push({
-                  date: w.date.split('T')[0],
+                  date,
                   weight: num,
-                  updatedAt: typeof w.updatedAt === 'number' ? w.updatedAt : Date.now()
+                  updatedAt: (typeof w.updatedAt === 'number' && Number.isFinite(w.updatedAt) && w.updatedAt > 0) ? w.updatedAt : Date.now()
                 });
               }
             });
@@ -3381,14 +3491,16 @@ Generado con GLP-1 Companion Web App (v3.0).`;
           if (Array.isArray(imported.injections)) {
             const validInjections = [];
             imported.injections.forEach(i => {
-              if (i && typeof i.date === 'string' && typeof i.dose === 'string') {
+              if (!i || typeof i !== 'object' || Array.isArray(i)) return;
+              const date = normalizeDateKey(i.date);
+              if (date && typeof i.dose === 'string') {
                 validInjections.push({
-                  id: typeof i.id === 'string' ? i.id : "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-                  date: i.date.split('T')[0],
+                  id: (typeof i.id === 'string' && i.id.trim()) ? i.id.trim() : "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+                  date,
                   dose: i.dose,
                   site: typeof i.site === 'string' ? i.site : 'Abdomen derecho',
                   notes: typeof i.notes === 'string' ? i.notes : '',
-                  updatedAt: typeof i.updatedAt === 'number' ? i.updatedAt : Date.now()
+                  updatedAt: (typeof i.updatedAt === 'number' && Number.isFinite(i.updatedAt) && i.updatedAt > 0) ? i.updatedAt : Date.now()
                 });
               }
             });
@@ -3398,25 +3510,36 @@ Generado con GLP-1 Companion Web App (v3.0).`;
           if (Array.isArray(imported.measurements)) {
             const validMeasurements = [];
             imported.measurements.forEach(m => {
-              if (m && typeof m.date === 'string') {
-                validMeasurements.push({
-                  date: m.date.split('T')[0],
-                  waist: parseFloat(m.waist) || 0,
-                  chest: parseFloat(m.chest) || 0,
-                  hips: parseFloat(m.hips) || 0,
-                  neck: parseFloat(m.neck) || 0,
-                  updatedAt: typeof m.updatedAt === 'number' ? m.updatedAt : Date.now()
-                });
-              }
+              if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+              const date = normalizeDateKey(m.date);
+              if (!date) return;
+              const waist = parseFloat(m.waist);
+              const chest = parseFloat(m.chest);
+              const hips = parseFloat(m.hips);
+              const neck = parseFloat(m.neck);
+              validMeasurements.push({
+                date,
+                waist: Number.isFinite(waist) && waist >= 0 ? waist : 0,
+                chest: Number.isFinite(chest) && chest >= 0 ? chest : 0,
+                hips: Number.isFinite(hips) && hips >= 0 ? hips : 0,
+                neck: Number.isFinite(neck) && neck >= 0 ? neck : 0,
+                updatedAt: (typeof m.updatedAt === 'number' && Number.isFinite(m.updatedAt) && m.updatedAt > 0) ? m.updatedAt : Date.now()
+              });
             });
             state.measurements = validMeasurements;
           }
 
           if (imported.deletedRecords && typeof imported.deletedRecords === 'object' && !Array.isArray(imported.deletedRecords)) {
             ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
-              if (imported.deletedRecords[type] && typeof imported.deletedRecords[type] === 'object') {
-                state.deletedRecords[type] = imported.deletedRecords[type];
-              }
+              const importedType = imported.deletedRecords[type];
+              if (!importedType || typeof importedType !== 'object' || Array.isArray(importedType)) return;
+              if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
+              Object.keys(importedType).forEach(id => {
+                const ts = Number(importedType[id]);
+                if (Number.isFinite(ts) && ts > 0) {
+                  state.deletedRecords[type][id] = ts;
+                }
+              });
             });
           }
           cleanupTombstones();
@@ -3429,6 +3552,7 @@ Generado con GLP-1 Companion Web App (v3.0).`;
           if (activeTab === 'tools') renderToolsView();
           showToast("Datos verificados y restaurados exitosamente.");
         } catch (err) {
+          console.error("Error importando backup:", err);
           showToast("Error: Archivo dañado o estructura incompatible.");
         }
       };
