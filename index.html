@@ -876,7 +876,7 @@
       </button>
     </nav>
 
-    <!-- Modals -->
+    <!-- Modales únicos -->
     <div id="modal-scanner" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -972,7 +972,7 @@
       </div>
     </div>
 
-    <!-- Modal 2: Manual Meal -->
+    <!-- Modal Manual Meal -->
     <div id="modal-manual-meal" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1026,7 +1026,7 @@
       </div>
     </div>
 
-    <!-- Modal 3: Inyecciones -->
+    <!-- Modal Inyecciones -->
     <div id="modal-injection" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1071,7 +1071,7 @@
       </div>
     </div>
 
-    <!-- Modal 4: Peso -->
+    <!-- Modal Peso -->
     <div id="modal-weight" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1099,7 +1099,7 @@
       </div>
     </div>
 
-    <!-- Modal 5: Medidas -->
+    <!-- Modal Medidas -->
     <div id="modal-measurement" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1141,7 +1141,7 @@
       </div>
     </div>
 
-    <!-- Modal 6: SOS -->
+    <!-- Modal SOS -->
     <div id="modal-sos" class="fixed inset-0 z-50 bg-[#090d16]/90 backdrop-blur-md hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-rose-500/30 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1224,7 +1224,7 @@
       </div>
     </div>
 
-    <!-- Modal 7: Apple Health -->
+    <!-- Modal Apple Health -->
     <div id="modal-apple-health" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-sm rounded-3xl p-5 space-y-3 shadow-2xl text-center">
         <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -1241,7 +1241,7 @@
           <p id="apple-health-weight-val" class="font-black text-cyan-400 text-base">214.8 lbs</p>
         </div>
         <div class="flex flex-col gap-2 pt-1">
-          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+          <a id="btn-run-health-shortcut" href="#" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
             <span>Abrir atajo en iOS</span>
           </a>
@@ -1252,7 +1252,7 @@
       </div>
     </div>
 
-    <!-- Modal 8: Reset -->
+    <!-- Modal Reset -->
     <div id="modal-reset" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-rose-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
         <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -2825,7 +2825,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     function openAppleHealthModal() {
       const curW = state.weights.length ? state.weights[state.weights.length - 1].weight : 214.8;
       document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
-      document.getElementById('btn-run-health-shortcut').href = `shortcuts://run-shortcut?name=LogWeight&input=${curW}`;
+      document.getElementById('btn-run-health-shortcut').href = `shortcuts://run-shortcut?name=LogWeight&input=${encodeURIComponent(curW)}`;
       document.getElementById('modal-apple-health').classList.remove('hidden');
       document.getElementById('modal-apple-health').classList.add('flex');
     }
@@ -3016,7 +3016,7 @@ Generado con GLP-1 Companion Web App (v2.6).`;
       }
     });
 
-    window.addEventListener('pageshow', (event) => {
+    window.addEventListener('pageshow', () => {
       handleAppResume();
     });
 
