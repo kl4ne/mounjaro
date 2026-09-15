@@ -166,7 +166,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.9</p>
+          <p id="print-app-version">Versión: v3.0</p>
         </div>
       </div>
     </div>
@@ -183,7 +183,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.9</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.0</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -388,13 +388,13 @@
               -8 oz
             </button>
             <button onclick="addWater(8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 8 oz
+              <i data-lucide="plus" class="w-3 h-3"></i> 8 oz
             </button>
             <button onclick="addWater(16)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 16 oz
+              <i data-lucide="plus" class="w-3 h-3"></i> 16 oz
             </button>
             <button onclick="addWater(32)" class="py-2 px-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 32 oz
+              <i data-lucide="plus" class="w-3 h-3"></i> 32 oz
             </button>
           </div>
 
@@ -925,8 +925,9 @@
 
         <div id="ai-results-container" class="hidden p-4 bg-[#090d16] border border-emerald-500/30 rounded-2xl space-y-3">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Análisis listo (Ajustable)
+            <span id="ai-source-badge" class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span id="ai-source-text">Análisis listo (Ajustable)</span>
             </span>
             <span class="text-[10px] text-slate-400">Verifica antes de guardar</span>
           </div>
@@ -1287,7 +1288,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.9";
+    const APP_VERSION = "v3.0";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1352,7 +1353,13 @@
       daysData: {},
       injections: [],
       weights: [],
-      measurements: []
+      measurements: [],
+      deletedRecords: {
+        meals: {},
+        weights: {},
+        injections: {},
+        measurements: {}
+      }
     };
 
     let activeTab = 'dashboard';
@@ -1366,6 +1373,22 @@
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
+    }
+
+    function cleanupTombstones() {
+      if (!state.deletedRecords) {
+        state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
+        return;
+      }
+      const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
+        if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
+        Object.keys(state.deletedRecords[type]).forEach(id => {
+          if (state.deletedRecords[type][id] < ninetyDaysAgo) {
+            delete state.deletedRecords[type][id];
+          }
+        });
+      });
     }
 
     function ensureInjectionIds() {
@@ -1391,6 +1414,10 @@
           state = Object.assign(state, parsed);
           if (!state.settings.medication) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
+          if (!state.deletedRecords) {
+            state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
+          }
+          cleanupTombstones();
           ensureInjectionIds();
         } else {
           setupInitialDemoData();
@@ -1409,26 +1436,35 @@
       oneWeekAgo.setDate(today.getDate() - 7);
 
       state.injections = [
-        { id: "inj_demo_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio" },
-        { id: "inj_demo_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia" }
+        { id: "inj_demo_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio", updatedAt: Date.now() },
+        { id: "inj_demo_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia", updatedAt: Date.now() }
       ];
 
       state.weights = [
-        { date: getFormattedDate(twoWeeksAgo), weight: 216.0 },
-        { date: getFormattedDate(oneWeekAgo), weight: 215.2 },
-        { date: getFormattedDate(today), weight: 214.8 }
+        { date: getFormattedDate(twoWeeksAgo), weight: 216.0, updatedAt: Date.now() },
+        { date: getFormattedDate(oneWeekAgo), weight: 215.2, updatedAt: Date.now() },
+        { date: getFormattedDate(today), weight: 214.8, updatedAt: Date.now() }
       ];
 
       state.measurements = [
-        { date: getFormattedDate(twoWeeksAgo), waist: 40.0, chest: 43.0, hips: 42.0, neck: 16.5 },
-        { date: getFormattedDate(today), waist: 39.0, chest: 42.5, hips: 41.5, neck: 16.2 }
+        { date: getFormattedDate(twoWeeksAgo), waist: 40.0, chest: 43.0, hips: 42.0, neck: 16.5, updatedAt: Date.now() },
+        { date: getFormattedDate(today), waist: 39.0, chest: 42.5, hips: 41.5, neck: 16.2, updatedAt: Date.now() }
       ];
 
       const yesterday = new Date(today);
       yesterday.setDate(today.getDate() - 1);
       const yDate = getFormattedDate(yesterday);
       if (!state.daysData[yDate]) {
-        state.daysData[yDate] = { water: 80, meals: [], bowelMovements: [yesterday.toISOString()], symptoms: {}, electrolytes: {} };
+        state.daysData[yDate] = {
+          water: 80,
+          waterUpdatedAt: Date.now(),
+          meals: [],
+          bowelMovements: [yesterday.toISOString()],
+          symptoms: {},
+          symptomsUpdatedAt: Date.now(),
+          electrolytes: {},
+          electrolytesUpdatedAt: Date.now()
+        };
       }
 
       state.settings.roomTempPenStart = Date.now() - (3 * 24 * 60 * 60 * 1000);
@@ -1436,6 +1472,7 @@
     }
 
     function persistState() {
+      cleanupTombstones();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       if (currentUser) {
         try {
@@ -1451,7 +1488,7 @@
       }
     }
 
-    /* Fusión bidireccional profunda para evitar sobreescritura de datos offline */
+    /* Fusión bidireccional profunda con timestamps y tombstones */
     function applyCloudDataMerge(cloud) {
       if (!cloud) return;
       if (cloud.settings) {
@@ -1459,71 +1496,178 @@
         state.settings = Object.assign(state.settings, cloud.settings);
       }
 
-      // Fusión profunda por fecha para no perder comidas o agua añadidas offline
+      // Fusión de registros eliminados (tombstones)
+      if (cloud.deletedRecords) {
+        ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
+          if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
+          const cloudDeletes = cloud.deletedRecords[type] || {};
+          Object.keys(cloudDeletes).forEach(id => {
+            const localDelTime = state.deletedRecords[type][id] || 0;
+            state.deletedRecords[type][id] = Math.max(localDelTime, cloudDeletes[id]);
+          });
+        });
+      }
+      cleanupTombstones();
+
+      // Fusión profunda de días
       if (cloud.daysData && typeof cloud.daysData === 'object') {
         Object.keys(cloud.daysData).forEach(dateKey => {
           if (!state.daysData[dateKey]) {
-            state.daysData[dateKey] = cloud.daysData[dateKey];
+            const candidateDay = cloud.daysData[dateKey];
+            if (candidateDay && Array.isArray(candidateDay.meals)) {
+              candidateDay.meals = candidateDay.meals.filter(m => {
+                const delTime = state.deletedRecords.meals[m.id] || 0;
+                return delTime <= (m.updatedAt || 0);
+              });
+            }
+            state.daysData[dateKey] = candidateDay;
           } else {
             const localDay = state.daysData[dateKey];
             const cloudDay = cloud.daysData[dateKey];
 
-            // Fusión de comidas por ID
+            // Fusión de comidas por ID respetando tombstones y updatedAt
             const mealMap = new Map();
-            (cloudDay.meals || []).forEach(m => { if (m && m.id) mealMap.set(m.id, m); });
-            (localDay.meals || []).forEach(m => { if (m && m.id) mealMap.set(m.id, m); });
+            (cloudDay.meals || []).forEach(m => {
+              if (m && m.id) {
+                const delTime = state.deletedRecords.meals[m.id] || 0;
+                if (delTime <= (m.updatedAt || 0)) {
+                  mealMap.set(m.id, m);
+                }
+              }
+            });
+            (localDay.meals || []).forEach(m => {
+              if (m && m.id) {
+                const delTime = state.deletedRecords.meals[m.id] || 0;
+                if (delTime <= (m.updatedAt || 0)) {
+                  if (!mealMap.has(m.id)) {
+                    mealMap.set(m.id, m);
+                  } else {
+                    const existing = mealMap.get(m.id);
+                    if ((m.updatedAt || 0) >= (existing.updatedAt || 0)) {
+                      mealMap.set(m.id, m);
+                    }
+                  }
+                }
+              }
+            });
             localDay.meals = Array.from(mealMap.values());
 
-            // Conservar el valor mayor de hidratación
-            localDay.water = Math.max(Number(localDay.water || 0), Number(cloudDay.water || 0));
+            // Fusión de agua mediante timestamp
+            if (localDay.waterUpdatedAt && cloudDay.waterUpdatedAt) {
+              if (cloudDay.waterUpdatedAt > localDay.waterUpdatedAt) {
+                localDay.water = cloudDay.water;
+                localDay.waterUpdatedAt = cloudDay.waterUpdatedAt;
+              }
+            } else if (cloudDay.waterUpdatedAt && !localDay.waterUpdatedAt) {
+              localDay.water = cloudDay.water;
+              localDay.waterUpdatedAt = cloudDay.waterUpdatedAt;
+            } else if (!localDay.waterUpdatedAt && !cloudDay.waterUpdatedAt) {
+              localDay.water = Math.max(Number(localDay.water || 0), Number(cloudDay.water || 0));
+            }
 
-            // Fusión sin duplicados de evacuaciones
+            // Fusión de evacuaciones sin duplicados
             const bmSet = new Set([...(localDay.bowelMovements || []), ...(cloudDay.bowelMovements || [])]);
             localDay.bowelMovements = Array.from(bmSet);
 
-            // Fusión de síntomas
-            localDay.symptoms = Object.assign({}, cloudDay.symptoms || {}, localDay.symptoms || {});
-            localDay.electrolytes = Object.assign({}, cloudDay.electrolytes || {}, localDay.electrolytes || {});
+            // Fusión de síntomas mediante timestamp
+            if (cloudDay.symptomsUpdatedAt && (!localDay.symptomsUpdatedAt || cloudDay.symptomsUpdatedAt > localDay.symptomsUpdatedAt)) {
+              localDay.symptoms = cloudDay.symptoms;
+              localDay.symptomsUpdatedAt = cloudDay.symptomsUpdatedAt;
+            } else if (!localDay.symptomsUpdatedAt && !cloudDay.symptomsUpdatedAt) {
+              localDay.symptoms = Object.assign({}, cloudDay.symptoms || {}, localDay.symptoms || {});
+            }
+
+            // Fusión de electrolitos mediante timestamp
+            if (cloudDay.electrolytesUpdatedAt && (!localDay.electrolytesUpdatedAt || cloudDay.electrolytesUpdatedAt > localDay.electrolytesUpdatedAt)) {
+              localDay.electrolytes = cloudDay.electrolytes;
+              localDay.electrolytesUpdatedAt = cloudDay.electrolytesUpdatedAt;
+            } else if (!localDay.electrolytesUpdatedAt && !cloudDay.electrolytesUpdatedAt) {
+              localDay.electrolytes = Object.assign({}, cloudDay.electrolytes || {}, localDay.electrolytes || {});
+            }
           }
         });
       }
 
-      // Fusión de pesajes por fecha
+      // Fusión de pesajes con tombstones y updatedAt
       if (Array.isArray(cloud.weights)) {
         const weightMap = new Map();
         state.weights.forEach(w => {
           const num = parseFloat(w.weight);
-          if (w.date && !isNaN(num)) weightMap.set(w.date, num);
+          const delTime = state.deletedRecords.weights[w.date] || 0;
+          if (w.date && !isNaN(num) && delTime <= (w.updatedAt || 0)) {
+            weightMap.set(w.date, w);
+          }
         });
         cloud.weights.forEach(w => {
           const num = parseFloat(w.weight);
-          if (w && w.date && !isNaN(num)) weightMap.set(w.date, num);
+          const delTime = state.deletedRecords.weights[w.date] || 0;
+          if (w && w.date && !isNaN(num) && delTime <= (w.updatedAt || 0)) {
+            if (!weightMap.has(w.date)) {
+              weightMap.set(w.date, w);
+            } else {
+              const existing = weightMap.get(w.date);
+              if ((w.updatedAt || 0) > (existing.updatedAt || 0)) {
+                weightMap.set(w.date, w);
+              }
+            }
+          }
         });
-        state.weights = Array.from(weightMap.entries())
-          .map(([date, weight]) => ({ date, weight }))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        state.weights = Array.from(weightMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
       }
 
-      // Fusión de inyecciones por ID
+      // Fusión de inyecciones con tombstones y updatedAt
       if (Array.isArray(cloud.injections)) {
         const injMap = new Map();
-        state.injections.forEach(i => injMap.set(i.id, i));
+        state.injections.forEach(i => {
+          const delTime = state.deletedRecords.injections[i.id] || 0;
+          if (delTime <= (i.updatedAt || 0)) {
+            injMap.set(i.id, i);
+          }
+        });
         cloud.injections.forEach(i => {
-          if (i && i.id) injMap.set(i.id, i);
+          if (i && i.id) {
+            const delTime = state.deletedRecords.injections[i.id] || 0;
+            if (delTime <= (i.updatedAt || 0)) {
+              if (!injMap.has(i.id)) {
+                injMap.set(i.id, i);
+              } else {
+                const existing = injMap.get(i.id);
+                if ((i.updatedAt || 0) > (existing.updatedAt || 0)) {
+                  injMap.set(i.id, i);
+                }
+              }
+            }
+          }
         });
         state.injections = Array.from(injMap.values());
         ensureInjectionIds();
       }
 
-      // Fusión de medidas corporales por fecha
+      // Fusión de medidas corporales con tombstones y updatedAt
       if (Array.isArray(cloud.measurements)) {
         const measMap = new Map();
-        state.measurements.forEach(m => measMap.set(m.date, m));
-        cloud.measurements.forEach(m => {
-          if (m && m.date) measMap.set(m.date, m);
+        state.measurements.forEach(m => {
+          const delTime = state.deletedRecords.measurements[m.date] || 0;
+          if (delTime <= (m.updatedAt || 0)) {
+            measMap.set(m.date, m);
+          }
         });
-        state.measurements = Array.from(measMap.values())
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        cloud.measurements.forEach(m => {
+          if (m && m.date) {
+            const delTime = state.deletedRecords.measurements[m.date] || 0;
+            if (delTime <= (m.updatedAt || 0)) {
+              if (!measMap.has(m.date)) {
+                measMap.set(m.date, m);
+              } else {
+                const existing = measMap.get(m.date);
+                if ((m.updatedAt || 0) > (existing.updatedAt || 0)) {
+                  measMap.set(m.date, m);
+                }
+              }
+            }
+          }
+        });
+        state.measurements = Array.from(measMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1802,6 +1946,7 @@
       if (!state.daysData[state.selectedDate]) {
         state.daysData[state.selectedDate] = {
           water: 0,
+          waterUpdatedAt: Date.now(),
           meals: [],
           symptoms: {
             hunger: 3,
@@ -1811,8 +1956,10 @@
             fatigue: "none",
             notes: ""
           },
+          symptomsUpdatedAt: Date.now(),
           bowelMovements: [],
-          electrolytes: { mg: false, k: false, na: false, multi: false }
+          electrolytes: { mg: false, k: false, na: false, multi: false },
+          electrolytesUpdatedAt: Date.now()
         };
       }
       return state.daysData[state.selectedDate];
@@ -2001,6 +2148,7 @@
     function addWater(oz) {
       const day = getSelectedDay();
       day.water = Math.max(0, (day.water || 0) + oz);
+      day.waterUpdatedAt = Date.now();
       persistState();
       updateDashboardView();
       showToast(`${oz > 0 ? '+' : ''}${oz} oz de agua registradas (Total: ${day.water} oz)`);
@@ -2131,6 +2279,12 @@
     function removeMealItem(idx) {
       const day = getSelectedDay();
       if (day.meals && day.meals[idx]) {
+        const meal = day.meals[idx];
+        if (meal.id) {
+          if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
+          if (!state.deletedRecords.meals) state.deletedRecords.meals = {};
+          state.deletedRecords.meals[meal.id] = Date.now();
+        }
         day.meals.splice(idx, 1);
         persistState();
         updateDashboardView();
@@ -2140,7 +2294,7 @@
     }
 
     /* ==========================================================================
-       AI SCANNER (ACTUALIZADO A GEMINI 3.5 FLASH)
+       AI SCANNER (ACTUALIZADO CON GEMINI 3.5 FLASH & CONTROL DE ESTIMACIONES)
        ========================================================================== */
     function resetScannerState() {
       selectedImageBase64 = null;
@@ -2195,6 +2349,20 @@
         return;
       }
 
+      const apiKey = getStoredApiKey();
+
+      // Validación previa de API key
+      if (!apiKey) {
+        if (textQuery) {
+          simulateSmartEstimate(textQuery, "Estimación local basada en descripción");
+          return;
+        } else {
+          showToast("Se requiere una clave de API de Gemini para analizar fotografías. Ingrésala en Ajustes o describe el plato.");
+          document.getElementById('ai-results-container').classList.add('hidden');
+          return;
+        }
+      }
+
       const isOz = state.settings.medication === 'ozempic';
       const medLabel = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
 
@@ -2203,10 +2371,10 @@
       btn.disabled = true;
       btnText.innerText = "Analizando plato con IA Gemini...";
 
-      const apiKey = getStoredApiKey();
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`;
 
-      const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con ${medLabel}.
+      // Prompt neutral de asistente nutricional
+      const systemPrompt = `Eres un asistente de análisis nutricional para una aplicación de seguimiento de pacientes que utilizan ${medLabel}.
 Analiza el plato de comida en la imagen o el texto.
 Debes responder obligatoriamente con un JSON válido con este formato:
 {
@@ -2246,10 +2414,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       };
 
       try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (apiKey) {
-          headers['x-goog-api-key'] = apiKey;
-        }
+        const headers = {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        };
 
         const res = await fetch(apiUrl, {
           method: 'POST',
@@ -2264,18 +2432,24 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         if (!rawJson) throw new Error("Respuesta vacía");
 
         const parsed = JSON.parse(rawJson);
-        populateAiResults(parsed);
+        populateAiResults(parsed, "Analizado con Gemini");
 
       } catch (err) {
-        console.warn("Fallo de API o sin clave; usando estimación inteligente asistida:", err);
-        simulateSmartEstimate(textQuery);
+        console.warn("Fallo de API:", err);
+        if (textQuery) {
+          simulateSmartEstimate(textQuery, "Estimación local basada en descripción");
+          showToast("Fallo de conexión con Gemini. Usando estimación local por texto.");
+        } else {
+          document.getElementById('ai-results-container').classList.add('hidden');
+          showToast("No se pudo analizar la fotografía con Gemini. Verifica tu conexión y la clave de API, o escribe una descripción del plato para obtener una estimación local.");
+        }
       } finally {
         btn.disabled = false;
         btnText.innerText = "Analizar nutrientes y tolerancia gástrica";
       }
     }
 
-    function simulateSmartEstimate(query) {
+    function simulateSmartEstimate(query, sourceLabel) {
       const q = (query || "").toLowerCase();
       let est = {
         foodName: query || "Plato combinado",
@@ -2302,17 +2476,22 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         est.mounjaroTip = "Proteína suave y de digestión ligera. Ideal para romper el ayuno sin generar distensión abdominal.";
       }
 
-      populateAiResults(est);
-      showToast("Estimado asistido completado.");
+      populateAiResults(est, sourceLabel || "Estimación local basada en descripción");
+      showToast(sourceLabel || "Estimado asistido completado.");
     }
 
-    function populateAiResults(data) {
+    function populateAiResults(data, sourceLabel) {
       document.getElementById('res-food-name').value = data.foodName || "Plato analizado";
       document.getElementById('res-cal').value = data.calories || 350;
       document.getElementById('res-protein').value = data.protein || 30;
       document.getElementById('res-carbs').value = data.carbs || 25;
       document.getElementById('res-fat').value = data.fat || 12;
       document.getElementById('res-glp1-tip').innerText = data.mounjaroTip || "Prioriza la proteína y mastica despacio para no saturar el estómago.";
+
+      const badgeText = document.getElementById('ai-source-text');
+      if (badgeText) {
+        badgeText.innerText = sourceLabel || "Análisis listo (Ajustable)";
+      }
 
       document.getElementById('ai-results-container').classList.remove('hidden');
       lucide.createIcons();
@@ -2328,8 +2507,12 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const slot = document.getElementById('scanner-meal-slot').value;
 
       const day = getSelectedDay();
+      const mealId = "meal_" + Date.now();
+      if (state.deletedRecords && state.deletedRecords.meals) {
+        delete state.deletedRecords.meals[mealId];
+      }
       day.meals.push({
-        id: "meal_" + Date.now(),
+        id: mealId,
         name,
         calories,
         protein,
@@ -2337,7 +2520,8 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         fat,
         tip,
         slot,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        updatedAt: Date.now()
       });
 
       persistState();
@@ -2366,15 +2550,20 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const fat = Number(document.getElementById('manual-fat').value) || 0;
 
       const day = getSelectedDay();
+      const mealId = "meal_" + Date.now();
+      if (state.deletedRecords && state.deletedRecords.meals) {
+        delete state.deletedRecords.meals[mealId];
+      }
       day.meals.push({
-        id: "meal_" + Date.now(),
+        id: mealId,
         name,
         calories,
         protein,
         carbs,
         fat,
         slot,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        updatedAt: Date.now()
       });
 
       persistState();
@@ -2405,12 +2594,16 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const notes = document.getElementById('inj-notes').value.trim();
 
       const newId = "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+      if (state.deletedRecords && state.deletedRecords.injections) {
+        delete state.deletedRecords.injections[newId];
+      }
       state.injections.push({
         id: newId,
         date,
         dose,
         site,
-        notes
+        notes,
+        updatedAt: Date.now()
       });
 
       if (state.settings.pensInStock > 0) {
@@ -2519,6 +2712,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function removeInjection(id) {
       if (!id || id === 'undefined') return;
+      if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
+      if (!state.deletedRecords.injections) state.deletedRecords.injections = {};
+      state.deletedRecords.injections[id] = Date.now();
       state.injections = state.injections.filter(i => i.id !== id);
       persistState();
       renderMounjaroView();
@@ -2547,6 +2743,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         fatigue: document.getElementById('input-symptom-fatigue').value,
         notes: document.getElementById('input-symptom-notes').value.trim()
       };
+      day.symptomsUpdatedAt = Date.now();
       persistState();
       checkFoodSymptomCorrelation();
       showToast("Tolerancia y síntomas guardados.");
@@ -2654,6 +2851,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function removeWeightEntry(targetDate) {
       if (!targetDate) return;
+      if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
+      if (!state.deletedRecords.weights) state.deletedRecords.weights = {};
+      state.deletedRecords.weights[targetDate] = Date.now();
       state.weights = state.weights.filter(w => w.date !== targetDate);
       persistState();
       renderToolsView();
@@ -2771,9 +2971,17 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         return;
       }
 
+      if (state.deletedRecords && state.deletedRecords.weights) {
+        delete state.deletedRecords.weights[date];
+      }
+
       const idx = state.weights.findIndex(w => w.date === date);
-      if (idx >= 0) state.weights[idx].weight = weight;
-      else state.weights.push({ date, weight });
+      if (idx >= 0) {
+        state.weights[idx].weight = weight;
+        state.weights[idx].updatedAt = Date.now();
+      } else {
+        state.weights.push({ date, weight, updatedAt: Date.now() });
+      }
 
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -2801,9 +3009,16 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const hips = parseFloat(document.getElementById('meas-hips').value) || 0;
       const neck = parseFloat(document.getElementById('meas-neck').value) || 0;
 
+      if (state.deletedRecords && state.deletedRecords.measurements) {
+        delete state.deletedRecords.measurements[date];
+      }
+
       const idx = state.measurements.findIndex(m => m.date === date);
-      if (idx >= 0) state.measurements[idx] = { date, waist, chest, hips, neck };
-      else state.measurements.push({ date, waist, chest, hips, neck });
+      if (idx >= 0) {
+        state.measurements[idx] = { date, waist, chest, hips, neck, updatedAt: Date.now() };
+      } else {
+        state.measurements.push({ date, waist, chest, hips, neck, updatedAt: Date.now() });
+      }
 
       state.measurements.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -3015,7 +3230,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.9).`;
+Generado con GLP-1 Companion Web App (v3.0).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -3071,6 +3286,7 @@ Generado con GLP-1 Companion Web App (v2.9).`;
       showToast("Copia de seguridad descargada (sin credenciales privadas).");
     }
 
+    /* Validación interna exhaustiva de daysData, weights, injections y measurements */
     function importDataJSON(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3080,16 +3296,71 @@ Generado con GLP-1 Companion Web App (v2.9).`;
         try {
           const imported = JSON.parse(evt.target.result);
           
-          if (!imported || typeof imported !== 'object') {
+          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) {
             throw new Error("Formato inválido");
           }
 
-          if (imported.settings && typeof imported.settings === 'object') {
+          if (imported.settings && typeof imported.settings === 'object' && !Array.isArray(imported.settings)) {
             delete imported.settings.apiKey;
             state.settings = Object.assign(state.settings, imported.settings);
           }
-          if (imported.daysData && typeof imported.daysData === 'object') {
-            state.daysData = imported.daysData;
+
+          // Validación estricta día por día
+          if (imported.daysData && typeof imported.daysData === 'object' && !Array.isArray(imported.daysData)) {
+            const cleanDays = {};
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            Object.keys(imported.daysData).forEach(dateKey => {
+              if (!dateRegex.test(dateKey)) return;
+              const rawDay = imported.daysData[dateKey];
+              if (!rawDay || typeof rawDay !== 'object' || Array.isArray(rawDay)) return;
+
+              const validMeals = [];
+              if (Array.isArray(rawDay.meals)) {
+                rawDay.meals.forEach((m, idx) => {
+                  if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+                  const cal = parseFloat(m.calories);
+                  const p = parseFloat(m.protein);
+                  const c = parseFloat(m.carbs);
+                  const f = parseFloat(m.fat);
+                  validMeals.push({
+                    id: (typeof m.id === 'string' && m.id) ? m.id : ("meal_" + Date.now() + "_" + idx),
+                    name: escapeHtml(m.name || "Comida"),
+                    slot: typeof m.slot === 'string' ? escapeHtml(m.slot) : 'Comida',
+                    calories: (!isNaN(cal) && isFinite(cal) && cal >= 0) ? cal : 0,
+                    protein: (!isNaN(p) && isFinite(p) && p >= 0) ? p : 0,
+                    carbs: (!isNaN(c) && isFinite(c) && c >= 0) ? c : 0,
+                    fat: (!isNaN(f) && isFinite(f) && f >= 0) ? f : 0,
+                    tip: typeof m.tip === 'string' ? escapeHtml(m.tip) : '',
+                    time: typeof m.time === 'string' ? escapeHtml(m.time) : '',
+                    updatedAt: typeof m.updatedAt === 'number' ? m.updatedAt : Date.now()
+                  });
+                });
+              }
+
+              const validBM = [];
+              if (Array.isArray(rawDay.bowelMovements)) {
+                rawDay.bowelMovements.forEach(bm => {
+                  if (typeof bm === 'string' && !isNaN(new Date(bm).getTime())) {
+                    validBM.push(bm);
+                  }
+                });
+              }
+
+              const rawWater = parseFloat(rawDay.water);
+              const waterVal = (!isNaN(rawWater) && isFinite(rawWater) && rawWater >= 0) ? rawWater : 0;
+
+              cleanDays[dateKey] = {
+                water: waterVal,
+                waterUpdatedAt: typeof rawDay.waterUpdatedAt === 'number' ? rawDay.waterUpdatedAt : Date.now(),
+                meals: validMeals,
+                bowelMovements: validBM,
+                symptoms: (rawDay.symptoms && typeof rawDay.symptoms === 'object' && !Array.isArray(rawDay.symptoms)) ? rawDay.symptoms : { hunger: 3, nausea: "none", heartburn: "none", sulfur: "none", fatigue: "none", notes: "" },
+                symptomsUpdatedAt: typeof rawDay.symptomsUpdatedAt === 'number' ? rawDay.symptomsUpdatedAt : Date.now(),
+                electrolytes: (rawDay.electrolytes && typeof rawDay.electrolytes === 'object' && !Array.isArray(rawDay.electrolytes)) ? rawDay.electrolytes : {},
+                electrolytesUpdatedAt: typeof rawDay.electrolytesUpdatedAt === 'number' ? rawDay.electrolytesUpdatedAt : Date.now()
+              };
+            });
+            state.daysData = cleanDays;
           }
 
           if (Array.isArray(imported.weights)) {
@@ -3097,7 +3368,11 @@ Generado con GLP-1 Companion Web App (v2.9).`;
             imported.weights.forEach(w => {
               const num = parseFloat(w.weight);
               if (w && typeof w.date === 'string' && !isNaN(num) && isFinite(num) && num > 0) {
-                validWeights.push({ date: w.date.split('T')[0], weight: num });
+                validWeights.push({
+                  date: w.date.split('T')[0],
+                  weight: num,
+                  updatedAt: typeof w.updatedAt === 'number' ? w.updatedAt : Date.now()
+                });
               }
             });
             state.weights = validWeights;
@@ -3112,7 +3387,8 @@ Generado con GLP-1 Companion Web App (v2.9).`;
                   date: i.date.split('T')[0],
                   dose: i.dose,
                   site: typeof i.site === 'string' ? i.site : 'Abdomen derecho',
-                  notes: typeof i.notes === 'string' ? i.notes : ''
+                  notes: typeof i.notes === 'string' ? i.notes : '',
+                  updatedAt: typeof i.updatedAt === 'number' ? i.updatedAt : Date.now()
                 });
               }
             });
@@ -3128,12 +3404,22 @@ Generado con GLP-1 Companion Web App (v2.9).`;
                   waist: parseFloat(m.waist) || 0,
                   chest: parseFloat(m.chest) || 0,
                   hips: parseFloat(m.hips) || 0,
-                  neck: parseFloat(m.neck) || 0
+                  neck: parseFloat(m.neck) || 0,
+                  updatedAt: typeof m.updatedAt === 'number' ? m.updatedAt : Date.now()
                 });
               }
             });
             state.measurements = validMeasurements;
           }
+
+          if (imported.deletedRecords && typeof imported.deletedRecords === 'object' && !Array.isArray(imported.deletedRecords)) {
+            ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
+              if (imported.deletedRecords[type] && typeof imported.deletedRecords[type] === 'object') {
+                state.deletedRecords[type] = imported.deletedRecords[type];
+              }
+            });
+          }
+          cleanupTombstones();
 
           ensureInjectionIds();
           state.selectedDate = getFormattedDate(new Date());
@@ -3170,6 +3456,7 @@ Generado con GLP-1 Companion Web App (v2.9).`;
       state.injections = [];
       state.weights = [];
       state.measurements = [];
+      state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
       state.settings = {
         medication: "mounjaro",
         goalWeight: 180,
