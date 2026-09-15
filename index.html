@@ -166,7 +166,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.8</p>
+          <p id="print-app-version">Versión: v2.9</p>
         </div>
       </div>
     </div>
@@ -183,7 +183,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.8</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.9</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -388,13 +388,13 @@
               -8 oz
             </button>
             <button onclick="addWater(8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 8 oz
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 8 oz
             </button>
             <button onclick="addWater(16)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 16 oz
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 16 oz
             </button>
             <button onclick="addWater(32)" class="py-2 px-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 32 oz
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> 32 oz
             </button>
           </div>
 
@@ -1287,7 +1287,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.8";
+    const APP_VERSION = "v2.9";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1308,11 +1308,10 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn("SW error:", err));
       });
     }
 
-    // Sanitize user inputs to prevent XSS
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -1323,7 +1322,6 @@
         .replace(/'/g, '&#039;');
     }
 
-    // Isolated API Key storage outside of State and Firestore
     function getStoredApiKey() {
       return localStorage.getItem("gemini_api_key_vault") || "";
     }
@@ -1453,18 +1451,44 @@
       }
     }
 
-    /* Unification of synchronization and bidirectional merging */
+    /* Fusión bidireccional profunda para evitar sobreescritura de datos offline */
     function applyCloudDataMerge(cloud) {
       if (!cloud) return;
       if (cloud.settings) {
         delete cloud.settings.apiKey;
         state.settings = Object.assign(state.settings, cloud.settings);
       }
-      if (cloud.daysData) {
-        state.daysData = Object.assign(state.daysData, cloud.daysData);
+
+      // Fusión profunda por fecha para no perder comidas o agua añadidas offline
+      if (cloud.daysData && typeof cloud.daysData === 'object') {
+        Object.keys(cloud.daysData).forEach(dateKey => {
+          if (!state.daysData[dateKey]) {
+            state.daysData[dateKey] = cloud.daysData[dateKey];
+          } else {
+            const localDay = state.daysData[dateKey];
+            const cloudDay = cloud.daysData[dateKey];
+
+            // Fusión de comidas por ID
+            const mealMap = new Map();
+            (cloudDay.meals || []).forEach(m => { if (m && m.id) mealMap.set(m.id, m); });
+            (localDay.meals || []).forEach(m => { if (m && m.id) mealMap.set(m.id, m); });
+            localDay.meals = Array.from(mealMap.values());
+
+            // Conservar el valor mayor de hidratación
+            localDay.water = Math.max(Number(localDay.water || 0), Number(cloudDay.water || 0));
+
+            // Fusión sin duplicados de evacuaciones
+            const bmSet = new Set([...(localDay.bowelMovements || []), ...(cloudDay.bowelMovements || [])]);
+            localDay.bowelMovements = Array.from(bmSet);
+
+            // Fusión de síntomas
+            localDay.symptoms = Object.assign({}, cloudDay.symptoms || {}, localDay.symptoms || {});
+            localDay.electrolytes = Object.assign({}, cloudDay.electrolytes || {}, localDay.electrolytes || {});
+          }
+        });
       }
 
-      // Merge weights by date
+      // Fusión de pesajes por fecha
       if (Array.isArray(cloud.weights)) {
         const weightMap = new Map();
         state.weights.forEach(w => {
@@ -1480,7 +1504,7 @@
           .sort((a, b) => new Date(a.date) - new Date(b.date));
       }
 
-      // Merge injections by ID
+      // Fusión de inyecciones por ID
       if (Array.isArray(cloud.injections)) {
         const injMap = new Map();
         state.injections.forEach(i => injMap.set(i.id, i));
@@ -1491,7 +1515,7 @@
         ensureInjectionIds();
       }
 
-      // Merge measurements by date
+      // Fusión de medidas corporales por fecha
       if (Array.isArray(cloud.measurements)) {
         const measMap = new Map();
         state.measurements.forEach(m => measMap.set(m.date, m));
@@ -1628,7 +1652,6 @@
       }
     }
 
-    /* Cálculo exacto de semanas cumplidas en titulación */
     function updateTitrationStatus() {
       const banner = document.getElementById('titration-banner-dash');
       const textEl = document.getElementById('titration-status-text');
@@ -2117,7 +2140,7 @@
     }
 
     /* ==========================================================================
-       AI SCANNER (AUTENTICACIÓN POR HEADER X-GOOG-API-KEY)
+       AI SCANNER (ACTUALIZADO A GEMINI 3.5 FLASH)
        ========================================================================== */
     function resetScannerState() {
       selectedImageBase64 = null;
@@ -2181,7 +2204,7 @@
       btnText.innerText = "Analizando plato con IA Gemini...";
 
       const apiKey = getStoredApiKey();
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`;
 
       const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con ${medLabel}.
 Analiza el plato de comida en la imagen o el texto.
@@ -2992,7 +3015,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.8).`;
+Generado con GLP-1 Companion Web App (v2.9).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -3048,7 +3071,6 @@ Generado con GLP-1 Companion Web App (v2.8).`;
       showToast("Copia de seguridad descargada (sin credenciales privadas).");
     }
 
-    /* Validación profunda de tipos al importar JSON */
     function importDataJSON(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3070,7 +3092,6 @@ Generado con GLP-1 Companion Web App (v2.8).`;
             state.daysData = imported.daysData;
           }
 
-          // Strict per-item validation of weights
           if (Array.isArray(imported.weights)) {
             const validWeights = [];
             imported.weights.forEach(w => {
@@ -3082,7 +3103,6 @@ Generado con GLP-1 Companion Web App (v2.8).`;
             state.weights = validWeights;
           }
 
-          // Strict per-item validation of injections
           if (Array.isArray(imported.injections)) {
             const validInjections = [];
             imported.injections.forEach(i => {
@@ -3099,7 +3119,6 @@ Generado con GLP-1 Companion Web App (v2.8).`;
             state.injections = validInjections;
           }
 
-          // Strict per-item validation of measurements
           if (Array.isArray(imported.measurements)) {
             const validMeasurements = [];
             imported.measurements.forEach(m => {
@@ -3293,7 +3312,6 @@ Generado con GLP-1 Companion Web App (v2.8).`;
       applyMedicationTheme();
       setupPullToRefresh();
 
-      // Delegated event listeners to prevent inline onclick vulnerabilities
       document.getElementById('hub-injections-list').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-delete-inj]');
         if (btn) {
