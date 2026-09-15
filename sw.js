@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glp1-cache-v2.9';
+const CACHE_NAME = 'glp1-cache-v3.0';
 
 const CORE_ASSETS = [
   './',
@@ -10,6 +10,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(CORE_ASSETS))
   );
+
   self.skipWaiting();
 });
 
@@ -23,29 +24,33 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
+
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Para navegación: intenta la red primero para traer cambios de GitHub; si no hay señal, usa la caché.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => cache.put('./index.html', copy))
-            .catch(() => {});
+          if (response.ok) {
+            const copy = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then((cache) => cache.put('./index.html', copy))
+              .catch(() => {});
+          }
+
           return response;
         })
         .catch(() => caches.match('./index.html'))
     );
+
     return;
   }
 
-  // Para scripts externos, iconos y estilos: caché primero; si no está, descarga de internet y guarda.
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -58,6 +63,7 @@ self.addEventListener('fetch', (event) => {
         }
 
         const copy = networkResponse.clone();
+
         caches.open(CACHE_NAME)
           .then((cache) => cache.put(event.request, copy))
           .catch(() => {});
