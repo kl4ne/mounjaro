@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glp1-cache-v3.1';
+const CACHE_NAME = 'glp1-cache-v3.2';
 
 const CORE_ASSETS = [
   './',
@@ -31,7 +31,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Navegación: red primero para recibir cambios nuevos; caché como respaldo offline.
+  // Navigation requests: network first, cache as offline fallback.
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -52,10 +52,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Recursos estáticos: caché primero; si faltan, descargar y guardar una copia válida.
+  // Static resources: cache first, then network.
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
       return fetch(event.request).then((networkResponse) => {
         if (!networkResponse || networkResponse.status >= 400) {
