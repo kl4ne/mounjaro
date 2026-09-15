@@ -70,6 +70,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       background-color: #090d16;
+      overscroll-behavior-y: contain;
     }
     input, textarea, select {
       user-select: text;
@@ -126,7 +127,7 @@
         box-shadow: none !important;
         background: #ffffff !important;
       }
-      header, nav, #bowel-alert-banner, button, .modal-backdrop, #toast, .hide-on-print {
+      header, nav, #bowel-alert-banner, button, .modal-backdrop, #toast, .hide-on-print, #pull-refresh-container {
         display: none !important;
       }
       .glass-panel {
@@ -165,7 +166,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.5</p>
+          <p id="print-app-version">Versión: v2.6</p>
         </div>
       </div>
     </div>
@@ -182,7 +183,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.5</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.6</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -228,6 +229,14 @@
         <button onclick="logBowelMovementNow()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[10px] shrink-0 transition-colors">
           Evacuó hoy
         </button>
+      </div>
+
+      <!-- Pull to refresh visual indicator container -->
+      <div id="pull-refresh-container" class="w-full flex items-center justify-center overflow-hidden transition-all duration-200 h-0 opacity-0 pointer-events-none text-cyan-400">
+        <div class="flex items-center gap-1.5 py-1.5 text-xs font-bold">
+          <i id="pull-refresh-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 transition-transform duration-200"></i>
+          <span id="pull-refresh-text" class="text-[11px]">Desliza para actualizar</span>
+        </div>
       </div>
     </header>
 
@@ -1232,7 +1241,7 @@
           <p id="apple-health-weight-val" class="font-black text-cyan-400 text-base">214.8 lbs</p>
         </div>
         <div class="flex flex-col gap-2 pt-1">
-          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight&input=${curW}" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
             <span>Abrir atajo en iOS</span>
           </a>
@@ -1278,7 +1287,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.5";
+    const APP_VERSION = "v2.6";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1368,7 +1377,6 @@
       } catch (err) {
         console.error("Error loading LocalStorage:", err);
       }
-      // Garantizar que la fecha activa al abrir siempre sea la fecha real de hoy
       state.selectedDate = getFormattedDate(new Date());
     }
 
@@ -2876,7 +2884,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.5).`;
+Generado con GLP-1 Companion Web App (v2.6).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -2994,7 +3002,6 @@ Generado con GLP-1 Companion Web App (v2.5).`;
       }, 3500);
     }
 
-    // Detector de retorno a primer plano para iPhone y navegadores móviles
     function handleAppResume() {
       const realToday = getFormattedDate(new Date());
       if (state.selectedDate !== realToday) {
@@ -3013,11 +3020,100 @@ Generado con GLP-1 Companion Web App (v2.5).`;
       handleAppResume();
     });
 
+    /* ==========================================================================
+       GESTO PULL-TO-REFRESH PARA IPHONE / NAVEGADOR
+       ========================================================================== */
+    let touchStartY = 0;
+    let isPulling = false;
+
+    function setupPullToRefresh() {
+      const pullContainer = document.getElementById('pull-refresh-container');
+      const pullIcon = document.getElementById('pull-refresh-icon');
+      const pullText = document.getElementById('pull-refresh-text');
+      const mainEl = document.querySelector('main');
+
+      if (!pullContainer || !pullIcon || !pullText || !mainEl) return;
+
+      window.addEventListener('touchstart', (e) => {
+        if (mainEl.scrollTop <= 0) {
+          touchStartY = e.touches[0].clientY;
+          isPulling = true;
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - touchStartY;
+        if (diff > 0 && mainEl.scrollTop <= 0) {
+          const pullHeight = Math.min(50, diff * 0.4);
+          pullContainer.style.height = `${pullHeight}px`;
+          pullContainer.style.opacity = `${Math.min(1, pullHeight / 35)}`;
+          if (pullHeight >= 40) {
+            pullText.innerText = "Suelta para actualizar";
+            pullIcon.style.transform = "rotate(180deg)";
+          } else {
+            pullText.innerText = "Desliza para actualizar";
+            pullIcon.style.transform = `rotate(${pullHeight * 4.5}deg)`;
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', async () => {
+        if (!isPulling) return;
+        isPulling = false;
+        const currentHeight = parseFloat(pullContainer.style.height || "0");
+        if (currentHeight >= 40) {
+          pullText.innerText = "Actualizando...";
+          pullIcon.classList.add('animate-spin');
+          await triggerAppRefresh();
+          setTimeout(() => {
+            pullContainer.style.height = "0px";
+            pullContainer.style.opacity = "0";
+            pullIcon.classList.remove('animate-spin');
+            pullIcon.style.transform = "rotate(0deg)";
+          }, 500);
+        } else {
+          pullContainer.style.height = "0px";
+          pullContainer.style.opacity = "0";
+          pullIcon.style.transform = "rotate(0deg)";
+        }
+      });
+    }
+
+    async function triggerAppRefresh() {
+      state.selectedDate = getFormattedDate(new Date());
+      if (currentUser) {
+        try {
+          const docSnap = await db.collection("trackers").doc(currentUser.uid).get();
+          if (docSnap.exists) {
+            const cloud = docSnap.data();
+            if (cloud) {
+              if (cloud.settings) state.settings = Object.assign(state.settings, cloud.settings);
+              if (cloud.daysData) state.daysData = Object.assign(state.daysData, cloud.daysData);
+              if (cloud.injections && Array.isArray(cloud.injections)) state.injections = cloud.injections;
+              if (cloud.weights && Array.isArray(cloud.weights)) state.weights = cloud.weights;
+              if (cloud.measurements && Array.isArray(cloud.measurements)) state.measurements = cloud.measurements;
+              ensureInjectionIds();
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+          }
+        } catch (err) {
+          console.error("Error al sincronizar con Firestore:", err);
+        }
+      }
+      updateDateBadge();
+      renderCurrentDay();
+      if (activeTab === 'tools') renderToolsView();
+      showToast("App actualizada al día de hoy.");
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       initData();
       setupFirebaseAuthListener();
       initFastingUI();
       applyMedicationTheme();
+      setupPullToRefresh();
 
       document.getElementById('setting-goal-weight').value = state.settings.goalWeight || 180;
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
