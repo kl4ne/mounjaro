@@ -165,12 +165,12 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.4</p>
+          <p id="print-app-version">Versión: v2.5</p>
         </div>
       </div>
     </div>
 
-    <!-- Top Sticky Header con soporte para Dynamic Island -->
+    <!-- Top Sticky Header con Dynamic Island Safe Area -->
     <header class="sticky top-0 z-30 bg-[#090d16]/92 backdrop-blur-md border-b border-[#223455] px-4 py-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -182,7 +182,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.4</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.5</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -542,7 +542,7 @@
           </div>
         </div>
 
-        <!-- Síntomas y motor de correlación de comidas -->
+        <!-- Síntomas y motor de correlación -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -554,7 +554,6 @@
             </button>
           </div>
 
-          <!-- Alerta de correlación inteligente de grasa y síntomas -->
           <div id="correlation-alert-box" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs space-y-1 text-amber-200">
             <div class="flex items-center gap-1.5 font-bold text-amber-300">
               <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i>
@@ -648,7 +647,7 @@
           </div>
         </div>
 
-        <!-- Tarjeta de proyección hacia el peso meta -->
+        <!-- Tarjeta de proyección de peso meta -->
         <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-1.5">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1">
@@ -1233,7 +1232,7 @@
           <p id="apple-health-weight-val" class="font-black text-cyan-400 text-base">214.8 lbs</p>
         </div>
         <div class="flex flex-col gap-2 pt-1">
-          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight&input=${curW}" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
             <span>Abrir atajo en iOS</span>
           </a>
@@ -1279,7 +1278,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.4";
+    const APP_VERSION = "v2.5";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1369,6 +1368,8 @@
       } catch (err) {
         console.error("Error loading LocalStorage:", err);
       }
+      // Garantizar que la fecha activa al abrir siempre sea la fecha real de hoy
+      state.selectedDate = getFormattedDate(new Date());
     }
 
     function setupInitialDemoData() {
@@ -2448,7 +2449,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('prog-lost-w').innerText = `${totalLost > 0 ? '-' : ''}${Math.abs(totalLost)}`;
         document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
 
-        // Cálculo de proyección hacia la meta
         const remainingToGoal = curW - goalW;
         if (remainingToGoal <= 0) {
           document.getElementById('proj-summary-text').innerText = `¡Meta alcanzada o superada! (${curW.toFixed(1)} lbs vs meta de ${goalW} lbs)`;
@@ -2484,7 +2484,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('proj-summary-text').innerText = "Anota tu primer peso para iniciar el cálculo.";
       }
 
-      // Historial interactivo de pesajes
       const wList = document.getElementById('weights-history-list');
       wList.innerHTML = '';
       if (state.weights.length === 0) {
@@ -2506,7 +2505,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         });
       }
 
-      // Historial de medidas
       const mList = document.getElementById('measurements-history-list');
       mList.innerHTML = '';
       if (state.measurements.length === 0) {
@@ -2552,7 +2550,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       });
       const dataPoints = sortedW.map(w => w.weight);
 
-      // Cálculo de media móvil (7 días)
       const movingAvgPoints = sortedW.map((w) => {
         const currentDate = new Date(w.date + "T12:00:00");
         const windowWeights = sortedW.filter(item => {
@@ -2879,7 +2876,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.4).`;
+Generado con GLP-1 Companion Web App (v2.5).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -2946,6 +2943,7 @@ Generado con GLP-1 Companion Web App (v2.4).`;
           if (imported.measurements) state.measurements = imported.measurements;
 
           ensureInjectionIds();
+          state.selectedDate = getFormattedDate(new Date());
           persistState();
           applyMedicationTheme();
           renderCurrentDay();
@@ -2995,6 +2993,25 @@ Generado con GLP-1 Companion Web App (v2.4).`;
         toast.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none');
       }, 3500);
     }
+
+    // Detector de retorno a primer plano para iPhone y navegadores móviles
+    function handleAppResume() {
+      const realToday = getFormattedDate(new Date());
+      if (state.selectedDate !== realToday) {
+        state.selectedDate = realToday;
+        updateDateBadge();
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        handleAppResume();
+      }
+    });
+
+    window.addEventListener('pageshow', (event) => {
+      handleAppResume();
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
       initData();
