@@ -110,13 +110,65 @@
     .glow-cyan {
       box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
     }
+
+    /* Reglas de impresión médica limpia (AirPrint / PDF) */
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding-bottom: 0 !important;
+      }
+      #app-container {
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+      }
+      header, nav, #bowel-alert-banner, button, .modal-backdrop, #toast, .hide-on-print {
+        display: none !important;
+      }
+      .glass-panel {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        color: #0f172a !important;
+        page-break-inside: avoid;
+        margin-bottom: 12px !important;
+      }
+      .text-white, .text-slate-200, .text-slate-300 {
+        color: #0f172a !important;
+      }
+      .text-slate-400, .text-slate-500 {
+        color: #475569 !important;
+      }
+      .print-header {
+        display: block !important;
+      }
+    }
+    .print-header {
+      display: none;
+    }
   </style>
 </head>
 
 <body class="text-slate-200 antialiased min-h-screen pb-28 flex flex-col items-center">
   <div id="app-container" class="w-full max-w-lg min-h-screen bg-[#090d16] shadow-2xl flex flex-col relative border-x border-[#1e293b]">
     
-    <!-- Top Sticky Header -->
+    <!-- Encabezado de impresión médica exclusiva -->
+    <div class="print-header p-4 border-b border-slate-300 mb-4 text-slate-900">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-black">Reporte clínico de evolución GLP-1</h1>
+          <p class="text-xs text-slate-600" id="print-patient-info">Registro consolidado para consulta médica</p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p id="print-date">Fecha: --</p>
+          <p id="print-app-version">Versión: v2.3</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Sticky Header con soporte para iPhone 16 Pro Max -->
     <header class="sticky top-0 z-30 bg-[#090d16]/92 backdrop-blur-md border-b border-[#223455] px-4 py-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -124,11 +176,14 @@
             <i data-lucide="shield-plus" class="w-5 h-5 text-white"></i>
           </div>
           <div>
-            <div class="flex items-center space-x-1.5">
+            <div class="flex items-center space-x-2">
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
+              <div class="flex flex-col items-center leading-none">
+                <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.3</span>
+              </div>
             </div>
-            <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
               <span id="sync-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
               <span id="sync-text">Local storage</span>
             </p>
@@ -179,6 +234,7 @@
       <!-- TAB 1: PANEL Y DIARIO -->
       <section id="tab-dashboard" class="tab-content space-y-4">
         
+        <!-- Próxima inyección con recordatorio Apple Calendar integrado -->
         <div class="glass-panel rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10 mb-2.5">
             <div>
@@ -192,11 +248,23 @@
                 <span>Rotación sugerida: Abdomen derecho</span>
               </p>
             </div>
-            <button onclick="switchTab('mounjaro')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-500/40 transition-all flex items-center gap-1">
-              <i data-lucide="syringe" class="w-3.5 h-3.5"></i> Hub
-            </button>
+            <div class="flex flex-col gap-1.5 items-end">
+              <button onclick="switchTab('mounjaro')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-500/40 transition-all flex items-center gap-1">
+                <i data-lucide="syringe" class="w-3.5 h-3.5"></i> Hub
+              </button>
+              <button onclick="addToAppleCalendar()" class="px-2 py-1 rounded-lg bg-cyan-600/25 hover:bg-cyan-600/40 text-cyan-300 text-[10px] font-bold border border-cyan-500/30 transition-all flex items-center gap-1" title="Sincronizar con Apple Calendar">
+                <i data-lucide="calendar-plus" class="w-3 h-3"></i> Recordatorio
+              </button>
+            </div>
           </div>
 
+          <!-- Indicador de titulación de 4 semanas -->
+          <div id="titration-banner-dash" class="mb-2 p-2 bg-[#111a2e] border border-cyan-500/30 rounded-xl text-xs flex items-center justify-between">
+            <span id="titration-status-text" class="text-slate-300 font-semibold text-[11px]">Calculando titulación...</span>
+            <span id="titration-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Semana 1/4</span>
+          </div>
+
+          <!-- Barra de concentración plasmática -->
           <div class="bg-[#111a2e]/90 rounded-xl p-2.5 border border-[#223455] space-y-1 relative z-10">
             <div class="flex items-center justify-between text-xs">
               <span class="text-slate-400 flex items-center gap-1 text-[11px]">
@@ -571,7 +639,7 @@
           </div>
         </div>
 
-        <!-- Curva de peso y lista para borrar pesajes -->
+        <!-- Curva de peso y gestión de pesajes (con botón para borrar) -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -587,7 +655,6 @@
             <canvas id="weightChart"></canvas>
           </div>
 
-          <!-- Historial de pesajes con botón para eliminar -->
           <div class="pt-2 border-t border-[#223455]">
             <span class="text-[11px] font-bold text-slate-300 block mb-1.5">Historial de pesajes registrados:</span>
             <div id="weights-history-list" class="space-y-1.5 max-h-36 overflow-y-auto hide-scrollbar text-xs"></div>
@@ -659,24 +726,29 @@
           </div>
         </div>
 
+        <!-- Exportación médica: Apple Notes, Apple Health e Impresión PDF / AirPrint -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-[#162238] space-y-3">
           <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <i data-lucide="share-2" class="w-4 h-4"></i>
+              <i data-lucide="file-text" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white">Reporte clínico para Apple Notes / Médico</h3>
-              <p class="text-[10px] text-slate-300">Copia al portapapeles todos tus datos consolidados en un toque</p>
+              <h3 class="text-sm font-bold text-white">Reporte clínico médico</h3>
+              <p class="text-[10px] text-slate-300">Formatos para consulta médica, Apple Notes o impresión directa en PDF</p>
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
             <button onclick="copyDoctorSummary()" class="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/20">
               <i data-lucide="copy" class="w-4 h-4"></i>
-              <span>Copiar para Apple Notes / Consulta</span>
+              <span>Copiar para Notes</span>
+            </button>
+            <button onclick="triggerPrintReport()" class="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-cyan-600/20">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>Imprimir / PDF</span>
             </button>
             <button onclick="openAppleHealthModal()" class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
               <i data-lucide="heart" class="w-4 h-4 text-rose-400"></i>
-              <span>Apple Health shortcut</span>
+              <span>Apple Health</span>
             </button>
           </div>
         </div>
@@ -1182,8 +1254,10 @@
 
   <script>
     /* ==========================================================================
-       FIREBASE CONFIGURATION & MULTI-DEVICE SYNC
+       VERSION CONTROL & FIREBASE SYNC
        ========================================================================== */
+    const APP_VERSION = "v2.3";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
       authDomain: "mounjaro-tracker-5c1c5.firebaseapp.com",
@@ -1209,7 +1283,7 @@
     let state = {
       selectedDate: getFormattedDate(new Date()),
       settings: {
-        medication: "mounjaro", // 'mounjaro' o 'ozempic'
+        medication: "mounjaro",
         calGoal: 1400,
         tdee: 2000,
         proteinGoal: 110,
@@ -1400,7 +1474,6 @@
     function applyMedicationTheme() {
       const isOz = state.settings.medication === 'ozempic';
       const medName = isOz ? "Ozempic" : "Mounjaro";
-      const activeMolecule = isOz ? "semaglutide" : "tirzepatide";
 
       document.getElementById('header-app-title').innerText = `${medName} Companion`;
       document.getElementById('nav-label-med').innerText = `${medName} y salud`;
@@ -1410,7 +1483,6 @@
       const medSelector = document.getElementById('setting-medication');
       if (medSelector) medSelector.value = state.settings.medication;
 
-      // Adaptación de dosis en el selector modal
       const doseSelect = document.getElementById('inj-dose');
       if (doseSelect) {
         doseSelect.innerHTML = '';
@@ -1438,7 +1510,6 @@
         });
       }
 
-      // Parámetros de temperatura ambiente (21 días Mounjaro vs 56 días Ozempic)
       const roomBadge = document.getElementById('room-temp-status-badge');
       const roomExpl = document.getElementById('room-temp-expl-text');
       if (isOz) {
@@ -1448,6 +1519,127 @@
         roomBadge.innerText = "21 días máx.";
         roomExpl.innerHTML = `Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).`;
       }
+    }
+
+    /* ==========================================================================
+       TITULACIÓN CLÍNICA DE 4 SEMANAS
+       ========================================================================== */
+    function updateTitrationStatus() {
+      const banner = document.getElementById('titration-banner-dash');
+      const textEl = document.getElementById('titration-status-text');
+      const badgeEl = document.getElementById('titration-badge');
+      if (!banner || !textEl || !badgeEl) return;
+
+      if (!state.injections || state.injections.length === 0) {
+        textEl.innerText = "Sin dosis para calcular titulación.";
+        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
+        badgeEl.innerText = "0 semanas";
+        return;
+      }
+
+      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const currentDose = sorted[0].dose;
+
+      // Contar cuántas inyecciones consecutivas se han aplicado en la dosis actual
+      let consecutiveWeeks = 0;
+      for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i].dose === currentDose) {
+          consecutiveWeeks++;
+        } else {
+          break;
+        }
+      }
+
+      if (consecutiveWeeks >= 4) {
+        textEl.innerText = `${consecutiveWeeks} semanas en ${currentDose}. Lista para evaluar ajuste con tu médico.`;
+        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        badgeEl.innerText = `Semana ${consecutiveWeeks} (Completa)`;
+      } else {
+        textEl.innerText = `Fase de adaptación en ${currentDose}.`;
+        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
+        badgeEl.innerText = `Semana ${consecutiveWeeks} de 4`;
+      }
+    }
+
+    /* ==========================================================================
+       RECORDATORIO EN APPLE CALENDAR (.ICS)
+       ========================================================================== */
+    function addToAppleCalendar() {
+      if (!state.injections || state.injections.length === 0) {
+        showToast("Registra primero una inyección para generar el recordatorio.");
+        return;
+      }
+
+      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const latest = sorted[0];
+      const dateStr = typeof latest.date === 'string' ? latest.date.split('T')[0] : '';
+      const lastDate = dateStr ? new Date(dateStr + "T12:00:00") : new Date(latest.date);
+
+      const nextDate = new Date(lastDate);
+      nextDate.setDate(lastDate.getDate() + 7);
+
+      const isOz = state.settings.medication === 'ozempic';
+      const medName = isOz ? "Ozempic" : "Mounjaro";
+
+      const y = nextDate.getFullYear();
+      const m = String(nextDate.getMonth() + 1).padStart(2, '0');
+      const d = String(nextDate.getDate()).padStart(2, '0');
+      const dtStart = `${y}${m}${d}T090000`;
+      const dtEnd = `${y}${m}${d}T093000`;
+
+      const ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//GLP1 Companion//ES",
+        "CALSCALE:GREGORIAN",
+        "BEGIN:VEVENT",
+        `SUMMARY:Dosis semanal de ${medName} (${latest.dose})`,
+        `DESCRIPTION:Recordatorio de inyeccion semanal de ${medName}. Rotar sitio de puncion anatomico.`,
+        `DTSTART:${dtStart}`,
+        `DTEND:${dtEnd}`,
+        "RRULE:FREQ=WEEKLY",
+        "BEGIN:VALARM",
+        "TRIGGER:-PT15M",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:Recordatorio de dosis",
+        "END:VALARM",
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${medName.toLowerCase()}_recordatorio.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("Archivo de calendario generado. Ábrelo para agregarlo a Apple Calendar.");
+    }
+
+    /* ==========================================================================
+       VISTA DE IMPRESIÓN MÉDICA (PRINT TO PDF / AIRPRINT)
+       ========================================================================== */
+    function triggerPrintReport() {
+      const isOz = state.settings.medication === 'ozempic';
+      const medName = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
+      
+      const printDateEl = document.getElementById('print-date');
+      const printPatientEl = document.getElementById('print-patient-info');
+      
+      if (printDateEl) printDateEl.innerText = `Fecha: ${new Date().toLocaleDateString('es-ES')}`;
+      if (printPatientEl) {
+        const userTag = currentUser ? `Paciente: ${currentUser.email}` : "Paciente: Usuario activo";
+        printPatientEl.innerText = `${userTag} &bull; Fármaco: ${medName}`;
+      }
+
+      // Cambiar temporalmente a la pestaña de progreso para imprimir la gráfica y las tablas completas
+      switchTab('tools');
+      setTimeout(() => {
+        window.print();
+      }, 300);
     }
 
     function getSelectedDay() {
@@ -1570,6 +1762,7 @@
       document.getElementById('dash-water-fill-text').innerText = `${wPct}% (${curWater} oz)`;
 
       updateHalfLifeAndNextDose();
+      updateTitrationStatus();
       checkBowelMovementAlert();
       renderMealsList();
     }
@@ -1589,7 +1782,7 @@
       }
 
       const isOz = state.settings.medication === 'ozempic';
-      const halfLifeDays = isOz ? 7 : 5; // Vida media: 7 días semaglutide, 5 días tirzepatide
+      const halfLifeDays = isOz ? 7 : 5;
 
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       const latest = sorted[0];
@@ -1631,7 +1824,6 @@
         <span>Rotación sugerida: <strong>${nextSite}</strong> (Última: ${latest.site})</span>
       `;
 
-      // Curva matemática adaptada al fármaco
       const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
       const remainingPct = Math.round(Math.pow(0.5, daysSince / halfLifeDays) * 100);
       document.getElementById('dash-halflife-pct').innerText = `${remainingPct}%`;
@@ -2563,7 +2755,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App.`;
+Generado con GLP-1 Companion Web App (v2.3).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
