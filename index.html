@@ -167,7 +167,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.1</p>
+          <p id="print-app-version">Versión: v3.2</p>
         </div>
       </div>
     </div>
@@ -184,7 +184,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.1</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.2</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -453,6 +453,13 @@
             </div>
           </div>
           <p id="weekly-summary-note" class="text-[10px] text-slate-400 leading-relaxed">Se actualiza automáticamente con tus registros.</p>
+          <div class="pt-2 border-t border-violet-500/20">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-bold text-violet-300">Esta semana vs. semana anterior</span>
+              <span class="text-[9px] text-slate-500">Comparación automática</span>
+            </div>
+            <div id="weekly-comparison-grid" class="grid grid-cols-2 gap-1.5 text-[10px]"></div>
+          </div>
         </div>
 
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
@@ -588,6 +595,17 @@
           <div id="bowel-movement-status-text" class="text-xs text-slate-300 p-2.5 bg-[#111a2e] rounded-xl border border-[#223455]">
             Última evacuación registrada: Hoy
           </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-center">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Promedio 30 días</span>
+              <p id="bowel-average-interval" class="text-sm font-black text-cyan-300">--</p>
+            </div>
+            <div class="p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-center">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Evacuaciones 7 días</span>
+              <p id="bowel-seven-day-count" class="text-sm font-black text-emerald-300">--</p>
+            </div>
+          </div>
+          <p id="bowel-trend-note" class="text-[10px] text-slate-500 leading-relaxed">Estadística descriptiva basada únicamente en tus registros.</p>
         </div>
 
         <!-- Síntomas y motor de correlación -->
@@ -665,6 +683,27 @@
               <input id="input-symptom-notes" type="text" placeholder="Ej: Mareo breve al levantarme, tomé agua con sal..." class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white placeholder-slate-600 focus:ring-1 focus:ring-emerald-500">
             </div>
           </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white">Respuesta a la dosis</h3>
+              <p class="text-[10px] text-slate-400">Ventanas aproximadas de 0–24 h, 24–48 h y 48–72 h según tus registros diarios</p>
+            </div>
+            <span id="dose-response-dose" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">--</span>
+          </div>
+          <div id="dose-response-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+          <p class="text-[9px] text-slate-500 leading-relaxed">Las ventanas son aproximadas porque el registro de inyección guarda la fecha, no la hora exacta. Estas asociaciones no representan un diagnóstico.</p>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-amber-500/25 space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-white">Patrones de tolerancia</h3>
+            <p class="text-[10px] text-slate-400">Asociaciones observadas en tus últimos 30 días de alimentos, hidratación, dosis y síntomas</p>
+          </div>
+          <div id="tolerance-patterns-list" class="space-y-2 text-[11px]"></div>
+          <p class="text-[9px] text-slate-500">La app identifica coincidencias en tus registros; no determina causa ni diagnóstico.</p>
         </div>
 
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
@@ -826,6 +865,15 @@
 
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
+
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1 text-xs">Idioma de la aplicación:</label>
+            <select id="setting-language" onchange="setAppLanguage(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-violet-500/40 rounded-xl text-violet-300 font-bold text-xs">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-1">La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.</p>
+          </div>
           
           <div>
             <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
@@ -1268,6 +1316,21 @@
       </div>
     </div>
 
+    <!-- Modal detalle de inyección y respuesta posterior -->
+    <div id="modal-injection-detail" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
+          <div>
+            <h3 class="text-sm font-bold text-white">Detalle de dosis y tolerancia</h3>
+            <p id="injection-detail-subtitle" class="text-[10px] text-slate-400">--</p>
+          </div>
+          <button onclick="closeInjectionDetailModal()" class="text-slate-400 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div id="injection-detail-body" class="space-y-3 text-xs"></div>
+        <button onclick="closeInjectionDetailModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs">Cerrar</button>
+      </div>
+    </div>
+
     <!-- Modal Preparar mi cita -->
     <div id="modal-appointment-prep" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-violet-500/30 w-full max-w-lg rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
@@ -1286,13 +1349,22 @@
           </button>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Periodo del resumen</label>
-          <select id="appointment-range" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl text-white text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Periodo del resumen</label>
+            <select id="appointment-range" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl text-white text-xs">
             <option value="30">Últimos 30 días</option>
             <option value="90">Últimos 90 días</option>
             <option value="all">Desde el inicio</option>
-          </select>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Idioma del reporte</label>
+            <select id="appointment-language" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-violet-500/40 rounded-xl text-violet-200 text-xs">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+          </div>
         </div>
 
         <textarea id="appointment-summary-text" readonly class="w-full min-h-[330px] p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-[11px] leading-relaxed text-slate-200 font-mono resize-none"></textarea>
@@ -1373,8 +1445,8 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.1";
-    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_1";
+    const APP_VERSION = "v3.2";
+    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_2";
 
     function formatSyncTime(timestamp) {
       if (!timestamp) return "";
@@ -1392,13 +1464,13 @@
 
       if (mode === 'syncing') {
         syncDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
-        syncText.innerText = "Sincronizando…";
+        syncText.innerText = uiText("Sincronizando…", "Syncing…");
         return;
       }
 
       if (mode === 'error') {
         syncDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
-        syncText.innerText = "Error de sincronización";
+        syncText.innerText = uiText("Error de sincronización", "Sync error");
         return;
       }
 
@@ -1406,13 +1478,13 @@
         const ts = timestamp || Date.now();
         localStorage.setItem(LAST_SYNC_KEY, String(ts));
         syncDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]";
-        syncText.innerText = `Sincronizado · ${formatSyncTime(ts)}`;
+        syncText.innerText = `${uiText("Sincronizado", "Synced")} · ${formatSyncTime(ts)}`;
         if (currentUser && currentUser.email) syncText.title = currentUser.email;
         return;
       }
 
       syncDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
-      syncText.innerText = "Solo local";
+      syncText.innerText = uiText("Solo local", "Local only");
       syncText.removeAttribute('title');
     }
 
@@ -1449,6 +1521,312 @@
         .replace(/'/g, '&#039;');
     }
 
+    const STATIC_TRANSLATIONS = {
+      "Salud metabólica": "Metabolic health",
+      "Reporte clínico de evolución GLP-1": "GLP-1 clinical progress report",
+      "Registro consolidado para consulta médica": "Consolidated record for medical visit",
+      "Fecha: --": "Date: --",
+      "Local storage": "Local storage",
+      "Sign in": "Sign in",
+      "Hoy": "Today",
+      "Alerta preventiva de evacuación (>48h)": "Preventive bowel movement alert (>48h)",
+      "Vaciamiento lento detectado. Bebe agua tibia o citrato de magnesio.": "Slow bowel transit detected. Review hydration and your usual care plan.",
+      "Evacuó hoy": "Bowel movement today",
+      "Desliza para actualizar": "Pull to refresh",
+      "Próxima inyección": "Next injection",
+      "Calculando...": "Calculating...",
+      "Rotación sugerida: Abdomen derecho": "Suggested rotation: Right abdomen",
+      "Recordatorio": "Reminder",
+      "Calculando titulación...": "Calculating titration...",
+      "Concentración estimada en sangre:": "Estimated medication level:",
+      "Balance diario": "Daily balance",
+      "Calorías y déficit neto": "Calories and net deficit",
+      "Déficit óptimo": "Optimal deficit",
+      "Consumidas": "Consumed",
+      "Meta": "Goal",
+      "Déficit TDEE": "TDEE deficit",
+      "Progreso de ingesta calórica": "Calorie intake progress",
+      "Proteína diaria (Crítica)": "Daily protein (Priority)",
+      "Preserva masa muscular magra y previene flacidez": "Supports lean muscle preservation",
+      "Carbohidratos:": "Carbohydrates:",
+      "Grasas totales:": "Total fat:",
+      "Hidratación (Agua pura)": "Hydration (Plain water)",
+      "Previene náuseas, dolor de cabeza y sequedad": "Supports hydration during GLP-1 treatment",
+      "Guía visual de hidratación (color de orina):": "Visual hydration guide (urine color):",
+      "Ver escala": "View scale",
+      "Pálido / Casi transparente:": "Pale / Almost clear:",
+      "Hidratación ideal para evitar estreñimiento por GLP-1.": "Generally consistent with good hydration.",
+      "Amarillo oscuro / Ámbar:": "Dark yellow / Amber:",
+      "Alerta de deshidratación. Puede provocar mareos o cefaleas.": "May indicate a need to pay attention to hydration.",
+      "Resumen semanal": "Weekly summary",
+      "Tus últimos 7 días": "Your last 7 days",
+      "Peso 7d": "7d weight",
+      "Agua prom.": "Avg. water",
+      "Proteína prom.": "Avg. protein",
+      "Días registrados": "Tracked days",
+      "Con síntomas": "With symptoms",
+      "Dosis": "Doses",
+      "Se actualiza automáticamente con tus registros.": "Updates automatically from your records.",
+      "Esta semana vs. semana anterior": "This week vs. previous week",
+      "Comparación automática": "Automatic comparison",
+      "Registro de alimentos": "Food log",
+      "Analizador visual con IA o entrada manual": "AI visual analyzer or manual entry",
+      "+ Manual": "+ Manual",
+      "Analizar plato": "Analyze meal",
+      "Control de inyecciones": "Injection tracking",
+      "Ciclo semanal y rotación de sitios": "Weekly cycle and injection-site rotation",
+      "+ Registrar dosis": "+ Log dose",
+      "Última dosis administrada:": "Last administered dose:",
+      "Fecha de aplicación:": "Injection date:",
+      "Sitio utilizado:": "Site used:",
+      "Zonas de aplicación recomendadas": "Common injection areas",
+      "Abdomen": "Abdomen",
+      "Muslo": "Thigh",
+      "Brazo": "Arm",
+      "Zona frontal/alta": "Front/upper area",
+      "Tríceps posterior": "Back of upper arm",
+      "Pluma en uso": "Pen in use",
+      "Días restantes:": "Days remaining:",
+      "Iniciar hoy": "Start today",
+      "Inventario de plumas": "Pen inventory",
+      "Pedir resurtido": "Refill soon",
+      "Plumas de repuesto guardadas en refrigeración.": "Spare pens stored refrigerated.",
+      "Tránsito intestinal (Seguridad gástrica)": "Bowel transit tracking",
+      "Monitoreo obligatorio para evitar impacto intestinal": "Track bowel movements alongside your other GLP-1 records",
+      "Promedio 30 días": "30-day average",
+      "Evacuaciones 7 días": "Bowel movements 7d",
+      "Estadística descriptiva basada únicamente en tus registros.": "Descriptive statistics based only on your records.",
+      "Síntomas y tolerancia digestiva": "Symptoms and digestive tolerance",
+      "Monitorea efectos secundarios para tu consulta médica": "Track symptoms for your medical visit",
+      "Guardar": "Save",
+      "Correlación clínica detectada": "Recorded pattern detected",
+      "Nivel de apetito (\"Ruido mental de comida\"):": "Appetite level (food noise):",
+      "Náuseas:": "Nausea:",
+      "Ninguna": "None",
+      "Leve (tolerable)": "Mild (tolerable)",
+      "Moderada": "Moderate",
+      "Fuerte": "Severe",
+      "Acidez / Reflujo:": "Heartburn / Reflux:",
+      "Leve": "Mild",
+      "Eructos de azufre (*sulfur*):": "Sulfur burps:",
+      "Ninguno": "None",
+      "Leves ocasionales": "Occasional mild",
+      "Frecuentes (revisar grasa)": "Frequent (review high-fat meals)",
+      "Fatiga / Nivel de energía:": "Fatigue / Energy level:",
+      "Normal": "Normal",
+      "Cansancio leve": "Mild tiredness",
+      "Fatiga notable": "Noticeable fatigue",
+      "Mucha debilidad": "Significant weakness",
+      "Notas o preguntas para el médico:": "Notes or questions for your clinician:",
+      "Respuesta a la dosis": "Dose response",
+      "Ventanas aproximadas de 0–24 h, 24–48 h y 48–72 h según tus registros diarios": "Approximate 0–24h, 24–48h and 48–72h windows from your daily records",
+      "Las ventanas son aproximadas porque el registro de inyección guarda la fecha, no la hora exacta. Estas asociaciones no representan un diagnóstico.": "Windows are approximate because injections store a date, not an exact time. These associations are not a diagnosis.",
+      "Patrones de tolerancia": "Tolerance patterns",
+      "Asociaciones observadas en tus últimos 30 días de alimentos, hidratación, dosis y síntomas": "Associations observed in your last 30 days of food, hydration, dose and symptom records",
+      "La app identifica coincidencias en tus registros; no determina causa ni diagnóstico.": "The app identifies coincidences in your records; it does not determine cause or diagnosis.",
+      "Historial de inyecciones": "Injection history",
+      "Inicial": "Start",
+      "Actual": "Current",
+      "Total perdido": "Total lost",
+      "Proyección de peso meta": "Goal-weight projection",
+      "Calculando proyección metabólica...": "Calculating projection...",
+      "Basado en el ritmo promedio de pérdida de peso de las últimas semanas.": "Based on the average weight trend from recent weeks.",
+      "Control y curva de peso (lbs)": "Weight tracking and trend (lbs)",
+      "Incluye media móvil (7 días) para filtrar retención de agua": "Includes a 7-day moving average",
+      "+ Anotar peso": "+ Log weight",
+      "Historial de pesajes registrados:": "Weight history:",
+      "Medidas corporales (*Non-Scale Victories*)": "Body measurements (Non-Scale Victories)",
+      "Pérdida de grasa visceral en pulgadas (cintura, pecho, cadera, cuello)": "Measurements in inches (waist, chest, hips, neck)",
+      "+ Medidas": "+ Measurements",
+      "Cronómetro de ritmo (20 min)": "Meal pacing timer (20 min)",
+      "Campanillas a los 10 y 20 min para pausar y evaluar saciedad": "Cues at 10 and 20 minutes to pause and check fullness",
+      "Iniciar al comer": "Start when eating",
+      "Reiniciar": "Reset",
+      "Ventana de ayuno matutino": "Fasting window",
+      "Ideal si saltas el desayuno y comes en almuerzo y cena": "Optional timer for your personal fasting schedule",
+      "En ayuno": "Fasting",
+      "Tiempo acumulado de ayuno": "Elapsed fasting time",
+      "Iniciar ayuno": "Start fast",
+      "Reporte clínico médico": "Medical visit report",
+      "Formatos para consulta médica, Apple Notes o impresión directa en PDF": "Formats for medical visits, Notes, or PDF printing",
+      "Copiar para Notes": "Copy for Notes",
+      "Imprimir / PDF": "Print / PDF",
+      "Preparar mi cita": "Prepare my visit",
+      "Metas y cálculo metabólico": "Goals and metabolic settings",
+      "Idioma de la aplicación:": "App language:",
+      "La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.": "Use the app in Spanish or English. Visit reports can use a separate language.",
+      "Medicamento activo:": "Active medication:",
+      "Peso objetivo / Meta (lbs):": "Goal weight (lbs):",
+      "Meta calorías (kcal):": "Calorie goal (kcal):",
+      "Gasto total (TDEE):": "Total expenditure (TDEE):",
+      "Meta proteína (g):": "Protein goal (g):",
+      "Meta agua (oz):": "Water goal (oz):",
+      "Guardar configuración": "Save settings",
+      "Clave de API Gemini": "Gemini API key",
+      "Almacenamiento local en este dispositivo — no se sincroniza ni se incluye en backups.": "Stored locally on this device — not synced or included in backups.",
+      "Copia de seguridad local (Backup)": "Local backup",
+      "Descarga un archivo `.json` con todos tus pesajes, dosis e historial, o impórtalo en otro teléfono.": "Download a `.json` file with your records or import it on another device.",
+      "Exportar JSON": "Export JSON",
+      "Importar JSON": "Import JSON",
+      "Reiniciar todos los datos": "Reset all data",
+      "Panel y diario": "Dashboard & daily log",
+      "Mounjaro y salud": "Medication & health",
+      "Progreso y herramientas": "Progress & tools",
+      "Analizador de comidas con IA": "AI meal analyzer",
+      "Tomar foto o subir imagen del plato": "Take or upload a meal photo",
+      "Calcula porción, calorías, grasa y tolerancia digestiva": "Estimate portion, calories, macros and digestive tolerance",
+      "Descripción o detalles del plato (opcional):": "Meal description or details (optional):",
+      "Asignar a:": "Assign to:",
+      "Almuerzo": "Lunch",
+      "Cena": "Dinner",
+      "Merienda": "Snack",
+      "Desayuno": "Breakfast",
+      "Analizar nutrientes y tolerancia gástrica": "Analyze nutrition and tolerance",
+      "Análisis listo (Ajustable)": "Analysis ready (Editable)",
+      "Verifica antes de guardar": "Review before saving",
+      "Nombre del plato:": "Meal name:",
+      "Calorías": "Calories",
+      "Proteína": "Protein",
+      "Carbos": "Carbs",
+      "Grasas": "Fat",
+      "Advertencia digestiva:": "Digestive note:",
+      "Guardar en mi registro del día": "Save to today's log",
+      "Añadir comida manual": "Add meal manually",
+      "Nombre o descripción:": "Name or description:",
+      "Momento:": "Meal time:",
+      "Calorías (kcal):": "Calories (kcal):",
+      "Proteína (g):": "Protein (g):",
+      "Carbos (g):": "Carbs (g):",
+      "Grasas (g):": "Fat (g):",
+      "Guardar comida": "Save meal",
+      "Registrar dosis": "Log dose",
+      "Fecha de inyección:": "Injection date:",
+      "Dosis aplicada:": "Dose:",
+      "Sitio anatómico de inyección:": "Injection site:",
+      "Abdomen derecho": "Right abdomen",
+      "Abdomen izquierdo": "Left abdomen",
+      "Muslo frontal derecho": "Right front thigh",
+      "Muslo frontal izquierdo": "Left front thigh",
+      "Brazo derecho (tríceps)": "Right upper arm",
+      "Brazo izquierdo (tríceps)": "Left upper arm",
+      "Observaciones:": "Notes:",
+      "Confirmar aplicación": "Confirm injection",
+      "Registrar peso en libras": "Log weight in pounds",
+      "Fecha:": "Date:",
+      "Peso en libras (lbs):": "Weight in pounds (lbs):",
+      "Guardar pesaje": "Save weight",
+      "Anotar medidas corporales (Pulgadas)": "Log body measurements (inches)",
+      "Cintura (in):": "Waist (in):",
+      "Pecho (in):": "Chest (in):",
+      "Cadera (in):": "Hips (in):",
+      "Cuello (in):": "Neck (in):",
+      "Guardar medidas": "Save measurements",
+      "Guía rápida de alivio (SOS)": "Quick support guide (SOS)",
+      "Protocolos inmediatos para efectos secundarios digestivos": "General self-care reminders for digestive symptoms",
+      "Cerrar guía": "Close guide",
+      "Detalle de dosis y tolerancia": "Dose and tolerance details",
+      "Cerrar": "Close",
+      "Resumen de tus registros para conversar con tu profesional de salud": "Summary of your records for your healthcare visit",
+      "Periodo del resumen": "Summary period",
+      "Últimos 30 días": "Last 30 days",
+      "Últimos 90 días": "Last 90 days",
+      "Desde el inicio": "Since the beginning",
+      "Idioma del reporte": "Report language",
+      "Este resumen organiza los datos que registraste. No diagnostica ni modifica tu tratamiento.": "This summary organizes your recorded data. It does not diagnose or change treatment.",
+      "Copiar": "Copy",
+      "Apple Health Shortcuts": "Apple Health Shortcuts",
+      "Ejecuta un atajo de iOS para registrar tu peso actual en Apple Health con un solo toque.": "Run an iOS Shortcut to log your current weight in Apple Health.",
+      "Peso actual para exportar:": "Current weight to export:",
+      "Abrir atajo en iOS": "Open iOS Shortcut",
+      "¿Reiniciar todos los datos?": "Reset all data?",
+      "Se eliminarán definitivamente los registros de comidas, inyecciones, agua y pesajes tanto de este dispositivo como de Firestore.": "Food, injection, water and weight records will be permanently removed from this device and Firestore.",
+      "Cancelar": "Cancel",
+      "Sí, borrar todo": "Yes, delete everything",
+      "Notificación": "Notification"
+    };
+
+    const STATIC_ATTRIBUTE_TRANSLATIONS = {
+      "Ej: 180": "e.g. 180",
+      "Ej: Mareo breve al levantarme, tomé agua con sal...": "e.g. brief dizziness when standing...",
+      "Ej: Buena tolerancia, sin molestias...": "e.g. good tolerance, no concerns..."
+    };
+
+    function isEnglish() {
+      return (state.settings && state.settings.language) === 'en';
+    }
+
+    function uiText(es, en) {
+      return isEnglish() ? en : es;
+    }
+
+    function translateRuntimePhrase(text) {
+      if (!text) return text;
+      if (STATIC_TRANSLATIONS[text]) return STATIC_TRANSLATIONS[text];
+      const rules = [
+        [/^Semana (\d+)\/4$/, 'Week $1/4'],
+        [/^Rotación sugerida: (.+)$/, 'Suggested rotation: $1'],
+        [/^Déficit severo \(riesgo masa muscular\)$/, 'Large deficit'],
+        [/^Déficit óptimo$/, 'Optimal deficit'],
+        [/^Déficit ligero$/, 'Light deficit'],
+        [/^Superávit calórico$/, 'Calorie surplus'],
+        [/^Sin dosis$/, 'No dose'],
+        [/^Sin registro$/, 'No record'],
+        [/^(\d+) plumas$/, '$1 pens'],
+        [/^(\d+) días$/, '$1 days'],
+        [/^Por vencer$/, 'Expiring soon'],
+        [/^Vigente$/, 'Within window'],
+        [/^Meta: (.+) lbs$/, 'Goal: $1 lbs'],
+        [/^Faltan (.+) lbs para alcanzar tu meta de (.+) lbs\.$/, '$1 lbs remaining to reach your $2 lb goal.'],
+        [/^Sin alimentos registrados en esta fecha$/, 'No meals recorded for this date'],
+        [/^Usa 'Analizar plato' para fotografiar tu comida o añade manualmente\.$/, "Use 'Analyze meal' to add a photo or enter a meal manually."],
+        [/^Sin registros recientes de evacuación\.$/, 'No recent bowel movement records.'],
+        [/^Aún no hay registros suficientes en estos 7 días\.$/, 'There are not enough records in these 7 days yet.'],
+        [/^Hay pocos días registrados; el resumen será más útil con mayor continuidad\.$/, 'Only a few days are recorded; the summary improves with more consistent tracking.'],
+        [/^Resumen calculado con tus registros de los últimos 7 días\.$/, 'Summary calculated from your last 7 days of records.']
+      ];
+      for (const [rx,repl] of rules) if (rx.test(text)) return text.replace(rx,repl);
+      return text;
+    }
+
+    function applyStaticTranslations() {
+      const lang = state.settings && state.settings.language === 'en' ? 'en' : 'es';
+      document.documentElement.lang = lang;
+      document.title = lang === 'en' ? 'GLP-1 Companion • Metabolic health' : 'GLP-1 Companion • Salud metabólica';
+      const selector = document.getElementById('setting-language');
+      if (selector) selector.value = lang;
+      if (lang !== 'en') return;
+
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (!node.parentElement || ['SCRIPT','STYLE'].includes(node.parentElement.tagName)) continue;
+        const current = node.nodeValue || '';
+        if (!current.trim()) continue;
+        const trimmed = current.trim();
+        const translated = translateRuntimePhrase(trimmed);
+        if (translated === trimmed) continue;
+        const prefix = current.match(/^\s*/)?.[0] || '';
+        const suffix = current.match(/\s*$/)?.[0] || '';
+        node.nodeValue = prefix + translated + suffix;
+      }
+
+      document.querySelectorAll('[placeholder],[title]').forEach(el => {
+        ['placeholder','title'].forEach(attr => {
+          const current = el.getAttribute(attr);
+          if (current === null || current === undefined) return;
+          el.setAttribute(attr, STATIC_ATTRIBUTE_TRANSLATIONS[current] || STATIC_TRANSLATIONS[current] || current);
+        });
+      });
+    }
+
+    function setAppLanguage(lang, shouldPersist = true) {
+      const normalized = lang === 'en' ? 'en' : 'es';
+      state.settings.language = normalized;
+      if (shouldPersist) persistState();
+      // Reloading guarantees every static and dynamic label is rebuilt cleanly in the chosen language.
+      window.location.reload();
+    }
+
     function getStoredApiKey() {
       return localStorage.getItem("gemini_api_key_vault") || "";
     }
@@ -1474,7 +1852,8 @@
         pensInStock: 4,
         roomTempPenStart: null,
         fastingStart: null,
-        isFasting: false
+        isFasting: false,
+        language: "es"
       },
       daysData: {},
       injections: [],
@@ -1555,6 +1934,7 @@
           state = Object.assign(state, parsed);
           if (!state.settings.medication) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
+          if (!state.settings.language) state.settings.language = "es";
           if (!state.deletedRecords) {
             state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
           }
@@ -2237,7 +2617,7 @@
       const todayStr = getFormattedDate(new Date());
       const badge = document.getElementById('current-date-badge');
       if (state.selectedDate === todayStr) {
-        badge.innerText = 'Hoy';
+        badge.innerText = uiText('Hoy','Today');
       } else {
         const parts = state.selectedDate.split('-');
         badge.innerText = `${parts[2]}/${parts[1]}`;
@@ -2277,69 +2657,90 @@
       return false;
     }
 
-    function renderWeeklySummary() {
-      const keys = getRollingDateKeys(state.selectedDate, 7);
+    function getWeekMetrics(endDateKey) {
+      const keys = getRollingDateKeys(endDateKey, 7);
       const startKey = keys[0];
       const endKey = keys[keys.length - 1];
-      let trackedDays = 0;
-      let symptomDays = 0;
-      let waterTotal = 0;
-      let waterDays = 0;
-      let proteinTotal = 0;
-      let proteinDays = 0;
-
+      let trackedDays = 0, symptomDays = 0, waterTotal = 0, waterDays = 0, proteinTotal = 0, proteinDays = 0;
       keys.forEach(key => {
         const day = state.daysData[key];
         if (!day) return;
         if (dayHasMeaningfulTracking(day)) trackedDays++;
-
         const water = Number(day.water || 0);
-        if (water > 0) {
-          waterTotal += water;
-          waterDays++;
-        }
-
-        if (Array.isArray(day.meals) && day.meals.length > 0) {
+        if (water > 0) { waterTotal += water; waterDays++; }
+        if (Array.isArray(day.meals) && day.meals.length) {
           proteinTotal += day.meals.reduce((sum, meal) => sum + Number(meal && meal.protein || 0), 0);
           proteinDays++;
         }
-
         const s = day.symptoms || {};
         if ((s.nausea && s.nausea !== 'none') || (s.heartburn && s.heartburn !== 'none') ||
-            (s.sulfur && s.sulfur !== 'none') || (s.fatigue && s.fatigue !== 'none')) {
-          symptomDays++;
-        }
+            (s.sulfur && s.sulfur !== 'none') || (s.fatigue && s.fatigue !== 'none')) symptomDays++;
       });
-
       const rangeWeights = (Array.isArray(state.weights) ? state.weights : [])
         .filter(w => w && w.date >= startKey && w.date <= endKey && Number.isFinite(Number(w.weight)))
-        .sort((a, b) => a.date.localeCompare(b.date));
+        .sort((a,b) => a.date.localeCompare(b.date));
+      let weightDelta = null;
+      if (rangeWeights.length >= 2) weightDelta = Number(rangeWeights[rangeWeights.length-1].weight) - Number(rangeWeights[0].weight);
+      const doseCount = (Array.isArray(state.injections) ? state.injections : []).filter(i => i && i.date >= startKey && i.date <= endKey).length;
+      return {
+        startKey, endKey, trackedDays, symptomDays, doseCount,
+        waterAvg: waterDays ? waterTotal / waterDays : null,
+        proteinAvg: proteinDays ? proteinTotal / proteinDays : null,
+        weightDelta,
+        singleWeight: rangeWeights.length === 1 ? Number(rangeWeights[0].weight) : null
+      };
+    }
+
+    function comparisonText(labelEs, labelEn, current, previous, suffix = '', reverseGood = false) {
+      const label = uiText(labelEs, labelEn);
+      if (current === null || current === undefined || previous === null || previous === undefined) {
+        return `<div class="bg-[#111a2e] p-2 rounded-lg border border-[#223455]"><span class="text-slate-500">${escapeHtml(label)}</span><p class="font-bold text-slate-300">--</p></div>`;
+      }
+      const delta = current - previous;
+      const sign = delta > 0 ? '+' : '';
+      const decimals = Math.abs(delta) < 10 && !Number.isInteger(delta) ? 1 : 0;
+      let trend = 'text-slate-300';
+      if (delta !== 0) {
+        const favorable = reverseGood ? delta < 0 : delta > 0;
+        trend = favorable ? 'text-emerald-300' : 'text-amber-300';
+      }
+      return `<div class="bg-[#111a2e] p-2 rounded-lg border border-[#223455]"><span class="text-slate-500">${escapeHtml(label)}</span><p class="font-bold ${trend}">${sign}${delta.toFixed(decimals)}${suffix}</p></div>`;
+    }
+
+    function renderWeeklySummary() {
+      const cur = getWeekMetrics(state.selectedDate);
+      const prevEndDate = new Date(cur.startKey + 'T12:00:00');
+      prevEndDate.setDate(prevEndDate.getDate() - 1);
+      const prev = getWeekMetrics(getFormattedDate(prevEndDate));
 
       let weightText = '--';
-      if (rangeWeights.length >= 2) {
-        const delta = Number(rangeWeights[rangeWeights.length - 1].weight) - Number(rangeWeights[0].weight);
-        weightText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} lb`;
-      } else if (rangeWeights.length === 1) {
-        weightText = `${Number(rangeWeights[0].weight).toFixed(1)} lb`;
-      }
+      if (cur.weightDelta !== null) weightText = `${cur.weightDelta > 0 ? '+' : ''}${cur.weightDelta.toFixed(1)} lb`;
+      else if (cur.singleWeight !== null) weightText = `${cur.singleWeight.toFixed(1)} lb`;
 
-      const doseCount = (Array.isArray(state.injections) ? state.injections : [])
-        .filter(i => i && i.date >= startKey && i.date <= endKey).length;
-
-      const pStart = startKey.split('-');
-      const pEnd = endKey.split('-');
+      const pStart = cur.startKey.split('-');
+      const pEnd = cur.endKey.split('-');
       document.getElementById('weekly-summary-range').innerText = `${pStart[2]}/${pStart[1]}–${pEnd[2]}/${pEnd[1]}`;
       document.getElementById('weekly-weight-change').innerText = weightText;
-      document.getElementById('weekly-water-avg').innerText = waterDays ? `${Math.round(waterTotal / waterDays)} oz` : '--';
-      document.getElementById('weekly-protein-avg').innerText = proteinDays ? `${Math.round(proteinTotal / proteinDays)} g` : '--';
-      document.getElementById('weekly-tracked-days').innerText = `${trackedDays}/7`;
-      document.getElementById('weekly-symptom-days').innerText = String(symptomDays);
-      document.getElementById('weekly-dose-count').innerText = String(doseCount);
+      document.getElementById('weekly-water-avg').innerText = cur.waterAvg !== null ? `${Math.round(cur.waterAvg)} oz` : '--';
+      document.getElementById('weekly-protein-avg').innerText = cur.proteinAvg !== null ? `${Math.round(cur.proteinAvg)} g` : '--';
+      document.getElementById('weekly-tracked-days').innerText = `${cur.trackedDays}/7`;
+      document.getElementById('weekly-symptom-days').innerText = String(cur.symptomDays);
+      document.getElementById('weekly-dose-count').innerText = String(cur.doseCount);
 
       const note = document.getElementById('weekly-summary-note');
-      if (trackedDays === 0) note.innerText = "Aún no hay registros suficientes en estos 7 días.";
-      else if (trackedDays < 4) note.innerText = "Hay pocos días registrados; el resumen será más útil con mayor continuidad.";
-      else note.innerText = "Resumen calculado con tus registros de los últimos 7 días.";
+      if (cur.trackedDays === 0) note.innerText = uiText('Aún no hay registros suficientes en estos 7 días.', 'There are not enough records in these 7 days yet.');
+      else if (cur.trackedDays < 4) note.innerText = uiText('Hay pocos días registrados; el resumen será más útil con mayor continuidad.', 'Only a few days are recorded; this summary improves with more consistent tracking.');
+      else note.innerText = uiText('Resumen calculado con tus registros de los últimos 7 días.', 'Summary calculated from your last 7 days of records.');
+
+      const grid = document.getElementById('weekly-comparison-grid');
+      if (grid) {
+        grid.innerHTML = [
+          comparisonText('Agua prom.', 'Avg. water', cur.waterAvg, prev.waterAvg, ' oz'),
+          comparisonText('Proteína prom.', 'Avg. protein', cur.proteinAvg, prev.proteinAvg, ' g'),
+          comparisonText('Días con síntomas', 'Symptom days', cur.symptomDays, prev.symptomDays, '', true),
+          comparisonText('Días registrados', 'Tracked days', cur.trackedDays, prev.trackedDays)
+        ].join('');
+      }
     }
 
     /* ==========================================================================
@@ -2372,16 +2773,16 @@
       const defBadge = document.getElementById('dash-deficit-badge');
       if (deficit <= -800) {
         defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40";
-        defBadge.innerText = "Déficit severo (riesgo masa muscular)";
+        defBadge.innerText = uiText("Déficit severo (riesgo masa muscular)", "Large deficit");
       } else if (deficit <= -300) {
         defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
-        defBadge.innerText = "Déficit óptimo";
+        defBadge.innerText = uiText("Déficit óptimo", "Optimal deficit");
       } else if (deficit <= 0) {
         defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30";
-        defBadge.innerText = "Déficit ligero";
+        defBadge.innerText = uiText("Déficit ligero", "Light deficit");
       } else {
         defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30";
-        defBadge.innerText = "Superávit calórico";
+        defBadge.innerText = uiText("Superávit calórico", "Calorie surplus");
       }
 
       const proteinGoal = state.settings.proteinGoal || 110;
@@ -2403,18 +2804,19 @@
       updateTitrationStatus();
       checkBowelMovementAlert();
       renderMealsList();
+      applyStaticTranslations();
     }
 
     function updateHalfLifeAndNextDose() {
       if (!state.injections || state.injections.length === 0) {
-        document.getElementById('dash-next-inj-text').innerText = "Sin dosis registrada";
+        document.getElementById('dash-next-inj-text').innerText = uiText("Sin dosis registrada", "No dose recorded");
         document.getElementById('dash-rotation-hint').innerHTML = `
           <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-          <span>Toca Hub para registrar tu primera inyección</span>
+          <span>${uiText("Toca Hub para registrar tu primera inyección", "Tap Hub to log your first injection")}</span>
         `;
         document.getElementById('dash-halflife-pct').innerText = "0%";
         document.getElementById('dash-halflife-bar').style.width = "0%";
-        document.getElementById('dash-halflife-expl').innerText = "Registra una inyección para calcular la concentración en sangre.";
+        document.getElementById('dash-halflife-expl').innerText = uiText("Registra una inyección para calcular la concentración en sangre.", "Log an injection to calculate the estimated medication level.");
         lucide.createIcons();
         return;
       }
@@ -2429,7 +2831,7 @@
       const lastDate = dateStr ? new Date(dateStr + "T12:00:00") : new Date(latest.date);
 
       if (isNaN(lastDate.getTime())) {
-        document.getElementById('dash-next-inj-text').innerText = "Revisar fecha de dosis";
+        document.getElementById('dash-next-inj-text').innerText = uiText("Revisar fecha de dosis", "Review dose date");
         return;
       }
 
@@ -2441,10 +2843,10 @@
 
       const diffDays = Math.round((nextDate - now) / (1000 * 60 * 60 * 24));
       let text = "";
-      if (diffDays > 1) text = `En ${diffDays} días (${nextDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })})`;
-      else if (diffDays === 1) text = "Mañana corresponde dosis";
-      else if (diffDays === 0) text = "¡Hoy corresponde dosis!";
-      else text = `Atrasada por ${Math.abs(diffDays)} días`;
+      if (diffDays > 1) text = isEnglish() ? `In ${diffDays} days (${nextDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })})` : `En ${diffDays} días (${nextDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })})`;
+      else if (diffDays === 1) text = uiText("Mañana corresponde dosis", "Dose due tomorrow");
+      else if (diffDays === 0) text = uiText("¡Hoy corresponde dosis!", "Dose due today!");
+      else text = isEnglish() ? `Overdue by ${Math.abs(diffDays)} days` : `Atrasada por ${Math.abs(diffDays)} días`;
 
       document.getElementById('dash-next-inj-text').innerText = text;
 
@@ -2459,7 +2861,7 @@
       const nextSite = rotations[latest.site] || "Abdomen izquierdo";
       document.getElementById('dash-rotation-hint').innerHTML = `
         <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Rotación sugerida: <strong>${escapeHtml(nextSite)}</strong> (Última: ${escapeHtml(latest.site)})</span>
+        <span>${uiText("Rotación sugerida", "Suggested rotation")}: <strong>${escapeHtml(nextSite)}</strong> (${uiText("Última", "Last")}: ${escapeHtml(latest.site)})</span>
       `;
 
       const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
@@ -2469,9 +2871,9 @@
 
       let expl = "";
       if (isOz) {
-        expl = `Vida media de ~7 días (semaglutide). Mantiene niveles plasmáticos más planos y uniformes a lo largo de la semana.`;
+        expl = uiText(`Vida media de ~7 días (semaglutide). Mantiene niveles plasmáticos más planos y uniformes a lo largo de la semana.`, `~7-day half-life (semaglutide). Estimated levels remain more even across the week.`);
       } else {
-        expl = `Vida media de ~5 días (tirzepatide). En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`;
+        expl = uiText(`Vida media de ~5 días (tirzepatide). En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`, `~5-day half-life (tirzepatide). Estimated levels decline across the week; continue following your nutrition plan.`);
       }
       document.getElementById('dash-halflife-expl').innerText = expl;
       lucide.createIcons();
@@ -2483,7 +2885,7 @@
       day.waterUpdatedAt = Date.now();
       persistState();
       updateDashboardView();
-      showToast(`${oz > 0 ? '+' : ''}${oz} oz de agua registradas (Total: ${day.water} oz)`);
+      showToast(isEnglish() ? `${oz > 0 ? '+' : ''}${oz} oz water logged (Total: ${day.water} oz)` : `${oz > 0 ? '+' : ''}${oz} oz de agua registradas (Total: ${day.water} oz)`);
     }
 
     function toggleUrineGuideDetails() {
@@ -2500,7 +2902,7 @@
       day.bowelMovements.push(new Date().toISOString());
       persistState();
       checkBowelMovementAlert();
-      showToast("Evacuación registrada. Tránsito intestinal al día.");
+      showToast(uiText("Evacuación registrada. Tránsito intestinal al día.", "Bowel movement recorded."));
     }
 
     function checkBowelMovementAlert() {
@@ -2519,16 +2921,17 @@
       if (latestBMTime === 0) {
         banner.classList.add('hidden');
         banner.classList.remove('flex');
-        if (statusText) statusText.innerText = "Sin registros recientes de evacuación.";
+        if (statusText) statusText.innerText = uiText("Sin registros recientes de evacuación.", "No recent bowel movement records.");
+        renderBowelStats();
         return;
       }
 
       const diffHours = (Date.now() - latestBMTime) / (1000 * 60 * 60);
       if (statusText) {
         const diffDays = Math.floor(diffHours / 24);
-        if (diffDays === 0) statusText.innerText = "Última evacuación registrada: Hoy";
-        else if (diffDays === 1) statusText.innerText = "Última evacuación registrada: Ayer (~24h)";
-        else statusText.innerText = `Última evacuación: Hace ${diffDays} días (${Math.round(diffHours)}h)`;
+        if (diffDays === 0) statusText.innerText = uiText("Última evacuación registrada: Hoy", "Last bowel movement: Today");
+        else if (diffDays === 1) statusText.innerText = uiText("Última evacuación registrada: Ayer (~24h)", "Last bowel movement: Yesterday (~24h)");
+        else statusText.innerText = isEnglish() ? `Last bowel movement: ${diffDays} days ago (${Math.round(diffHours)}h)` : `Última evacuación: Hace ${diffDays} días (${Math.round(diffHours)}h)`;
       }
 
       if (diffHours >= 48) {
@@ -2539,6 +2942,7 @@
         banner.classList.add('hidden');
         banner.classList.remove('flex');
       }
+      renderBowelStats();
     }
 
     function renderMealsList() {
@@ -2621,7 +3025,7 @@
         persistState();
         updateDashboardView();
         checkFoodSymptomCorrelation();
-        showToast("Comida eliminada.");
+        showToast(uiText("Comida eliminada.", "Meal deleted."));
       }
     }
 
@@ -2860,7 +3264,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       closeScannerModal();
       updateDashboardView();
       checkFoodSymptomCorrelation();
-      showToast("¡Comida guardada en el diario!");
+      showToast(uiText("¡Comida guardada en el diario!", "Meal saved to your daily log!"));
     }
 
     function openManualMealModal() {
@@ -2902,7 +3306,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       closeManualMealModal();
       updateDashboardView();
       checkFoodSymptomCorrelation();
-      showToast("Comida registrada manualmente.");
+      showToast(uiText("Comida registrada manualmente.", "Meal added manually."));
     }
 
     /* ==========================================================================
@@ -2960,8 +3364,142 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.settings.roomTempPenStart = Date.now();
       persistState();
       renderMounjaroView();
-      showToast("Conteo de temperatura ambiente iniciado para la pluma en uso.");
+      showToast(uiText("Conteo de temperatura ambiente iniciado para la pluma en uso.", "Room-temperature countdown started for the pen in use."));
     }
+
+    function getDateOffsetKey(dateKey, offsetDays) {
+      const d = new Date(dateKey + "T12:00:00");
+      if (Number.isNaN(d.getTime())) return null;
+      d.setDate(d.getDate() + offsetDays);
+      return getFormattedDate(d);
+    }
+
+    function hasDigestiveSymptomsForDay(day) {
+      const s = day && day.symptoms || {};
+      return Boolean((s.nausea && s.nausea !== 'none') || (s.heartburn && s.heartburn !== 'none') || (s.sulfur && s.sulfur !== 'none'));
+    }
+
+    function getDailyInsightMetrics(dateKey) {
+      const day = state.daysData && state.daysData[dateKey];
+      if (!day) return { dateKey, exists: false, symptoms: [], water: 0, protein: 0, hunger: null, bowelCount: 0, mealCount: 0 };
+      const s = day.symptoms || {};
+      const symptoms = [];
+      if (s.nausea && s.nausea !== 'none') symptoms.push(uiText('náuseas','nausea'));
+      if (s.heartburn && s.heartburn !== 'none') symptoms.push(uiText('reflujo','reflux'));
+      if (s.sulfur && s.sulfur !== 'none') symptoms.push(uiText('eructos de azufre','sulfur burps'));
+      if (s.fatigue && s.fatigue !== 'none') symptoms.push(uiText('fatiga','fatigue'));
+      const meals = Array.isArray(day.meals) ? day.meals : [];
+      return {
+        dateKey,
+        exists: dayHasMeaningfulTracking(day),
+        symptoms,
+        water: Number(day.water || 0),
+        protein: meals.reduce((sum,m)=>sum+Number(m && m.protein || 0),0),
+        hunger: Number.isFinite(Number(s.hunger)) ? Number(s.hunger) : null,
+        bowelCount: Array.isArray(day.bowelMovements) ? day.bowelMovements.length : 0,
+        mealCount: meals.length
+      };
+    }
+
+    function getInjectionResponse(inj) {
+      if (!inj || !inj.date) return [];
+      return [0,1,2].map(offset => getDailyInsightMetrics(getDateOffsetKey(String(inj.date).split('T')[0], offset)));
+    }
+
+    function renderDoseResponseInsights() {
+      const badge = document.getElementById('dose-response-dose');
+      const grid = document.getElementById('dose-response-grid');
+      if (!badge || !grid) return;
+      const sorted = [...(state.injections || [])].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      if (!sorted.length) {
+        badge.innerText = '--';
+        grid.innerHTML = `<div class="sm:col-span-3 p-3 bg-[#111a2e] border border-[#223455] rounded-xl text-slate-400 text-[11px]">${uiText('Registra una dosis para comenzar a relacionarla con tus registros de los tres días siguientes.','Log a dose to compare it with your records from the following three days.')}</div>`;
+        return;
+      }
+      const inj = sorted[0];
+      badge.innerText = `${inj.dose || '--'} · ${String(inj.date).split('T')[0]}`;
+      const windows = getInjectionResponse(inj);
+      const labels = ['0–24 h','24–48 h','48–72 h'];
+      grid.innerHTML = windows.map((m,idx)=>{
+        if (!m.exists) return `<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><span class="text-[10px] font-black text-emerald-300">${labels[idx]}</span><p class="text-[10px] text-slate-500 mt-2">${uiText('Sin datos registrados','No records')}</p></div>`;
+        const symptomText = m.symptoms.length ? m.symptoms.join(', ') : uiText('sin síntomas digestivos registrados','no digestive symptoms recorded');
+        return `<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-1"><span class="text-[10px] font-black text-emerald-300">${labels[idx]}</span><p class="text-[10px] text-slate-300">${escapeHtml(symptomText)}</p><p class="text-[9px] text-slate-500">${uiText('Agua','Water')}: ${Math.round(m.water)} oz · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g</p><p class="text-[9px] text-slate-500">${uiText('Apetito','Appetite')}: ${m.hunger ?? '--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p></div>`;
+      }).join('');
+    }
+
+    function calculateTolerancePatterns(days = 30) {
+      const end = new Date(); end.setHours(12,0,0,0);
+      const start = new Date(end); start.setDate(end.getDate() - (days - 1));
+      const startKey = getFormattedDate(start), endKey = getFormattedDate(end);
+      let highFatDays=0, highFatSymptomDays=0, symptomDays=0, trackedDays=0, lowWaterDays=0, lowWaterSymptomDays=0;
+      const waterGoal = Number(state.settings.waterGoal || 96);
+      Object.keys(state.daysData || {}).forEach(key=>{
+        if (key < startKey || key > endKey) return;
+        const day=state.daysData[key]; if (!day) return;
+        if (dayHasMeaningfulTracking(day)) trackedDays++;
+        const digestive=hasDigestiveSymptomsForDay(day); if (digestive) symptomDays++;
+        const meals=Array.isArray(day.meals)?day.meals:[];
+        const highFat=meals.some(m=>Number(m && m.fat || 0) >= 20);
+        if (highFat) { highFatDays++; if (digestive) highFatSymptomDays++; }
+        const water=Number(day.water||0);
+        const lowWater=water>0 && water < waterGoal*0.65;
+        if (lowWater) { lowWaterDays++; if (digestive) lowWaterSymptomDays++; }
+      });
+      let postDoseTracked=0, postDoseSymptoms=0;
+      (state.injections || []).forEach(inj=>{
+        if (!inj || !inj.date || inj.date < startKey || inj.date > endKey) return;
+        getInjectionResponse(inj).forEach(m=>{ if(m.exists){ postDoseTracked++; if(m.symptoms.some(s=>['náuseas','nausea','reflujo','reflux','eructos de azufre','sulfur burps'].includes(s))) postDoseSymptoms++; } });
+      });
+      return {trackedDays,symptomDays,highFatDays,highFatSymptomDays,lowWaterDays,lowWaterSymptomDays,postDoseTracked,postDoseSymptoms};
+    }
+
+    function renderTolerancePatterns() {
+      const el=document.getElementById('tolerance-patterns-list'); if(!el) return;
+      const p=calculateTolerancePatterns(30); const items=[];
+      if (p.highFatDays >= 2) items.push(`${uiText('Comidas con ≥20 g de grasa','Meals with ≥20 g fat')}: <strong class="text-amber-300">${p.highFatSymptomDays}/${p.highFatDays}</strong> ${uiText('días coincidieron con síntomas digestivos.','days coincided with digestive symptoms.')}`);
+      if (p.lowWaterDays >= 2) items.push(`${uiText('Días por debajo de ~65% de tu meta de agua','Days below ~65% of your water goal')}: <strong class="text-cyan-300">${p.lowWaterSymptomDays}/${p.lowWaterDays}</strong> ${uiText('coincidieron con síntomas digestivos.','coincided with digestive symptoms.')}`);
+      if (p.postDoseTracked >= 3) items.push(`${uiText('Dentro de los 3 días posteriores a dosis registradas','Within the 3 days after logged doses')}: <strong class="text-emerald-300">${p.postDoseSymptoms}/${p.postDoseTracked}</strong> ${uiText('días con datos incluyeron síntomas digestivos.','tracked days included digestive symptoms.')}`);
+      if (p.trackedDays >= 4) items.push(`${uiText('En total','Overall')}: <strong class="text-violet-300">${p.symptomDays}/${p.trackedDays}</strong> ${uiText('días con seguimiento tuvieron algún síntoma digestivo.','tracked days had a digestive symptom.')}`);
+      if (!items.length) items.push(uiText('Todavía no hay suficientes registros consistentes para mostrar patrones. Continúa registrando comidas, agua y síntomas.','There are not enough consistent records to show patterns yet. Keep logging meals, water and symptoms.'));
+      el.innerHTML=items.slice(0,4).map(txt=>`<div class="p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl text-slate-300 leading-relaxed">${txt}</div>`).join('');
+    }
+
+    function getBowelStats() {
+      const all=[];
+      Object.values(state.daysData||{}).forEach(day=>{
+        (Array.isArray(day && day.bowelMovements)?day.bowelMovements:[]).forEach(ts=>{
+          const t=new Date(ts).getTime(); if(Number.isFinite(t)) all.push(t);
+        });
+      });
+      all.sort((a,b)=>a-b);
+      const now=Date.now(), thirty=now-30*86400000, seven=now-7*86400000;
+      const recent=all.filter(t=>t>=thirty);
+      const intervals=[]; for(let i=1;i<recent.length;i++) intervals.push((recent[i]-recent[i-1])/3600000);
+      return {avgHours: intervals.length?intervals.reduce((a,b)=>a+b,0)/intervals.length:null, sevenCount:all.filter(t=>t>=seven).length, lastTime:all.length?all[all.length-1]:null};
+    }
+
+    function renderBowelStats() {
+      const avgEl=document.getElementById('bowel-average-interval'), countEl=document.getElementById('bowel-seven-day-count'), note=document.getElementById('bowel-trend-note');
+      if(!avgEl||!countEl||!note) return;
+      const b=getBowelStats();
+      avgEl.innerText=b.avgHours!==null ? (b.avgHours<48 ? `${Math.round(b.avgHours)} h` : `${(b.avgHours/24).toFixed(1)} d`) : '--';
+      countEl.innerText=String(b.sevenCount);
+      if (b.avgHours===null) note.innerText=uiText('Registra al menos dos evacuaciones para calcular un intervalo promedio.','Log at least two bowel movements to calculate an average interval.');
+      else note.innerText=uiText(`Promedio descriptivo de ${Math.round(b.avgHours)} horas entre registros durante los últimos 30 días.`,`Descriptive average of ${Math.round(b.avgHours)} hours between records over the last 30 days.`);
+    }
+
+    function openInjectionDetailModal(id) {
+      const inj=(state.injections||[]).find(i=>i&&i.id===id); if(!inj) return;
+      const subtitle=document.getElementById('injection-detail-subtitle');
+      const body=document.getElementById('injection-detail-body');
+      subtitle.innerText=`${inj.dose||'--'} · ${String(inj.date).split('T')[0]} · ${inj.site||'--'}`;
+      const windows=getInjectionResponse(inj), labels=['0–24 h','24–48 h','48–72 h'];
+      const cards=windows.map((m,idx)=>`<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><div class="flex justify-between"><span class="font-black text-emerald-300">${labels[idx]}</span><span class="text-[10px] text-slate-500">${escapeHtml(m.dateKey||'')}</span></div>${m.exists?`<p class="mt-1 text-slate-300">${escapeHtml(m.symptoms.length?m.symptoms.join(', '):uiText('Sin síntomas digestivos registrados','No digestive symptoms recorded'))}</p><p class="text-[10px] text-slate-500 mt-1">${uiText('Agua','Water')}: ${Math.round(m.water)} oz · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g · ${uiText('Apetito','Appetite')}: ${m.hunger??'--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p>`:`<p class="mt-1 text-slate-500">${uiText('Sin datos registrados','No records')}</p>`}</div>`).join('');
+      body.innerHTML=`<div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"><p class="font-bold text-white">${escapeHtml(inj.dose||'--')} · ${escapeHtml(inj.site||'--')}</p><p class="text-[10px] text-slate-400">${escapeHtml(inj.notes||uiText('Sin observaciones','No notes'))}</p></div>${cards}<p class="text-[9px] text-slate-500">${uiText('Resumen aproximado por días; no sustituye evaluación médica.','Approximate day-based summary; not a substitute for medical evaluation.')}</p>`;
+      const modal=document.getElementById('modal-injection-detail'); modal.classList.remove('hidden'); modal.classList.add('flex'); lucide.createIcons();
+    }
+
+    function closeInjectionDetailModal(){ const modal=document.getElementById('modal-injection-detail'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
     function renderMounjaroView() {
       ensureInjectionIds();
@@ -2975,12 +3513,12 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('hub-last-date').innerText = (typeof latest.date === 'string' ? latest.date.split('T')[0] : latest.date) || "--";
         document.getElementById('hub-last-site').innerText = latest.site || "Abdomen derecho";
       } else {
-        document.getElementById('hub-last-dose').innerText = "Sin dosis";
+        document.getElementById('hub-last-dose').innerText = uiText("Sin dosis", "No dose");
         document.getElementById('hub-last-date').innerText = "--";
-        document.getElementById('hub-last-site').innerText = "Sin registro";
+        document.getElementById('hub-last-site').innerText = uiText("Sin registro", "No record");
       }
 
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} plumas`;
+      document.getElementById('pen-stock-val').innerText = isEnglish() ? `${state.settings.pensInStock || 0} pens` : `${state.settings.pensInStock || 0} plumas`;
       const warningEl = document.getElementById('dash-pen-warning');
       if (state.settings.pensInStock <= 2) {
         warningEl.classList.remove('hidden');
@@ -2994,13 +3532,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         const badge = document.getElementById('room-temp-status-badge');
         const textEl = document.getElementById('room-temp-days-left');
 
-        textEl.innerText = `${daysLeft} días`;
+        textEl.innerText = isEnglish() ? `${daysLeft} days` : `${daysLeft} días`;
         if (daysLeft <= 4) {
           badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
-          badge.innerText = "Por vencer";
+          badge.innerText = uiText("Por vencer", "Expiring soon");
         } else {
           badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-          badge.innerText = "Vigente";
+          badge.innerText = uiText("Vigente", "Within window");
         }
       }
 
@@ -3008,11 +3546,12 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       listEl.innerHTML = '';
 
       if (sorted.length === 0) {
-        listEl.innerHTML = `<p class="text-slate-500 italic">No hay inyecciones guardadas aún.</p>`;
+        listEl.innerHTML = `<p class="text-slate-500 italic">${uiText("No hay inyecciones guardadas aún.", "No injections recorded yet.")}</p>`;
       } else {
         sorted.forEach(inj => {
           const item = document.createElement('div');
-          item.className = "flex justify-between items-center p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]";
+          item.className = "flex justify-between items-center p-2.5 rounded-xl bg-[#111a2e] border border-[#223455] cursor-pointer hover:border-emerald-500/40 transition-colors";
+          item.setAttribute('data-open-inj', inj.id);
           const cleanDate = typeof inj.date === 'string' ? inj.date.split('T')[0] : inj.date;
           item.innerHTML = `
             <div>
@@ -3038,7 +3577,11 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.getElementById('input-symptom-notes').value = s.notes || "";
 
       checkBowelMovementAlert();
+      renderBowelStats();
       checkFoodSymptomCorrelation();
+      renderDoseResponseInsights();
+      renderTolerancePatterns();
+      applyStaticTranslations();
       lucide.createIcons();
     }
 
@@ -3051,7 +3594,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       renderMounjaroView();
       updateDashboardView();
-      showToast("Registro de inyección eliminado.");
+      showToast(uiText("Registro de inyección eliminado.", "Injection record deleted."));
     }
 
     function updateHungerLabel(val) {
@@ -3078,7 +3621,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       day.symptomsUpdatedAt = Date.now();
       persistState();
       checkFoodSymptomCorrelation();
-      showToast("Tolerancia y síntomas guardados.");
+      showToast(uiText("Tolerancia y síntomas guardados.", "Symptoms and tolerance saved."));
     }
 
     /* ==========================================================================
@@ -3088,7 +3631,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const goalW = Number(state.settings.goalWeight || 180);
-      document.getElementById('proj-goal-badge').innerText = `Meta: ${goalW} lbs`;
+      document.getElementById('proj-goal-badge').innerText = `${uiText('Meta','Goal')}: ${goalW} lbs`;
 
       if (state.weights.length > 0) {
         const startW = state.weights[0].weight;
@@ -3102,8 +3645,8 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
         const remainingToGoal = curW - goalW;
         if (remainingToGoal <= 0) {
-          document.getElementById('proj-summary-text').innerText = `¡Meta alcanzada o superada! (${curW.toFixed(1)} lbs vs meta de ${goalW} lbs)`;
-          document.getElementById('proj-subtext').innerText = "Fase de consolidación y mantenimiento clínico.";
+          document.getElementById('proj-summary-text').innerText = isEnglish() ? `Goal reached or exceeded! (${curW.toFixed(1)} lbs vs ${goalW} lb goal)` : `¡Meta alcanzada o superada! (${curW.toFixed(1)} lbs vs meta de ${goalW} lbs)`;
+          document.getElementById('proj-subtext').innerText = uiText("Fase de consolidación y mantenimiento clínico.", "Maintenance phase.");
         } else if (state.weights.length >= 2) {
           const firstDate = new Date(state.weights[0].date + "T12:00:00");
           const latestDate = new Date(state.weights[state.weights.length - 1].date + "T12:00:00");
@@ -3116,15 +3659,15 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
             const targetEstimatedDate = new Date(latestDate);
             targetEstimatedDate.setDate(targetEstimatedDate.getDate() + Math.round(weeksRemaining * 7));
 
-            document.getElementById('proj-summary-text').innerText = `Fecha estimada: ${targetEstimatedDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} semanas)`;
-            document.getElementById('proj-subtext').innerText = `Ritmo promedio: -${lossRatePerWeek.toFixed(1)} lbs/semana. Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar ${goalW} lbs.`;
+            document.getElementById('proj-summary-text').innerText = isEnglish() ? `Estimated date: ${targetEstimatedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} weeks)` : `Fecha estimada: ${targetEstimatedDate.toLocaleDateString('es-ES', { month: 'short', year: 'numeric', day: 'numeric' })} (~${Math.ceil(weeksRemaining)} semanas)`;
+            document.getElementById('proj-subtext').innerText = isEnglish() ? `Average trend: -${lossRatePerWeek.toFixed(1)} lbs/week. ${remainingToGoal.toFixed(1)} lbs remaining to reach ${goalW} lbs.` : `Ritmo promedio: -${lossRatePerWeek.toFixed(1)} lbs/semana. Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar ${goalW} lbs.`;
           } else {
-            document.getElementById('proj-summary-text').innerText = `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
-            document.getElementById('proj-subtext').innerText = "Registra más pesajes para calcular una proyección de ritmo estable.";
+            document.getElementById('proj-summary-text').innerText = isEnglish() ? `${remainingToGoal.toFixed(1)} lbs remaining to reach your ${goalW} lb goal.` : `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+            document.getElementById('proj-subtext').innerText = uiText("Registra más pesajes para calcular una proyección de ritmo estable.", "Log more weights to calculate a stable projection.");
           }
         } else {
-          document.getElementById('proj-summary-text').innerText = `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
-          document.getElementById('proj-subtext').innerText = "Anota al menos dos pesajes para estimar fecha y velocidad semanal.";
+          document.getElementById('proj-summary-text').innerText = isEnglish() ? `${remainingToGoal.toFixed(1)} lbs remaining to reach your ${goalW} lb goal.` : `Faltan ${remainingToGoal.toFixed(1)} lbs para alcanzar tu meta de ${goalW} lbs.`;
+          document.getElementById('proj-subtext').innerText = uiText("Anota al menos dos pesajes para estimar fecha y velocidad semanal.", "Log at least two weights to estimate a date and weekly trend.");
         }
 
       } else {
@@ -3132,13 +3675,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('prog-cur-w').innerText = "--";
         document.getElementById('prog-lost-w').innerText = "0.0";
         document.getElementById('apple-health-weight-val').innerText = "-- lbs";
-        document.getElementById('proj-summary-text').innerText = "Anota tu primer peso para iniciar el cálculo.";
+        document.getElementById('proj-summary-text').innerText = uiText("Anota tu primer peso para iniciar el cálculo.", "Log your first weight to begin the calculation.");
       }
 
       const wList = document.getElementById('weights-history-list');
       wList.innerHTML = '';
       if (state.weights.length === 0) {
-        wList.innerHTML = `<p class="text-slate-500 italic">No hay pesajes registrados aún.</p>`;
+        wList.innerHTML = `<p class="text-slate-500 italic">${uiText("No hay pesajes registrados aún.", "No weights recorded yet.")}</p>`;
       } else {
         [...state.weights].reverse().forEach(w => {
           const row = document.createElement('div');
@@ -3159,7 +3702,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const mList = document.getElementById('measurements-history-list');
       mList.innerHTML = '';
       if (state.measurements.length === 0) {
-        mList.innerHTML = `<p class="text-slate-500 italic">No hay medidas registradas aún.</p>`;
+        mList.innerHTML = `<p class="text-slate-500 italic">${uiText("No hay medidas registradas aún.", "No measurements recorded yet.")}</p>`;
       } else {
         [...state.measurements].reverse().forEach(m => {
           const r = document.createElement('div');
@@ -3167,10 +3710,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           r.innerHTML = `
             <span class="text-slate-300 font-medium">${escapeHtml(m.date)}</span>
             <div class="text-slate-400 space-x-2 text-[11px]">
-              <span>Cint: <strong class="text-white">${escapeHtml(m.waist)}"</strong></span>
-              <span>Pech: <strong class="text-white">${escapeHtml(m.chest)}"</strong></span>
-              <span>Cad: <strong class="text-white">${escapeHtml(m.hips)}"</strong></span>
-              <span>Cuell: <strong class="text-white">${escapeHtml(m.neck || '--')}"</strong></span>
+              <span>${uiText("Cint", "Waist")}: <strong class="text-white">${escapeHtml(m.waist)}"</strong></span>
+              <span>${uiText("Pech", "Chest")}: <strong class="text-white">${escapeHtml(m.chest)}"</strong></span>
+              <span>${uiText("Cad", "Hips")}: <strong class="text-white">${escapeHtml(m.hips)}"</strong></span>
+              <span>${uiText("Cuell", "Neck")}: <strong class="text-white">${escapeHtml(m.neck || '--')}"</strong></span>
             </div>
           `;
           mList.appendChild(r);
@@ -3178,6 +3721,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       }
 
       renderChartJs();
+      applyStaticTranslations();
       lucide.createIcons();
     }
 
@@ -3189,7 +3733,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.weights = state.weights.filter(w => w.date !== targetDate);
       persistState();
       renderToolsView();
-      showToast(`Pesaje del ${targetDate} eliminado.`);
+      showToast(isEnglish() ? `Weight entry for ${targetDate} deleted.` : `Pesaje del ${targetDate} eliminado.`);
     }
 
     function renderChartJs() {
@@ -3225,7 +3769,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           labels: labels.length ? labels : ['Inicio'],
           datasets: [
             {
-              label: 'Peso real (lbs)',
+              label: uiText('Peso real (lbs)', 'Actual weight (lbs)'),
               data: dataPoints.length ? dataPoints : [0],
               borderColor: '#06b6d4',
               backgroundColor: 'rgba(6, 182, 212, 0.08)',
@@ -3299,7 +3843,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const weight = parseFloat(document.getElementById('weight-input-val').value);
 
       if (isNaN(weight) || !isFinite(weight) || weight <= 0) {
-        showToast("Ingresa un número de peso válido.");
+        showToast(uiText("Ingresa un número de peso válido.", "Enter a valid weight."));
         return;
       }
 
@@ -3320,7 +3864,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       persistState();
       closeWeightModal();
       renderToolsView();
-      showToast(`Peso guardado: ${weight} lbs`);
+      showToast(isEnglish() ? `Weight saved: ${weight} lbs` : `Peso guardado: ${weight} lbs`);
     }
 
     function openMeasurementModal() {
@@ -3474,24 +4018,24 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!state.settings.isFasting) {
         state.settings.isFasting = true;
         state.settings.fastingStart = Date.now();
-        btn.innerText = "Detener ayuno";
+        btn.innerText = uiText("Detener ayuno", "Stop fast");
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Ayuno activo";
+        pill.innerText = uiText("Ayuno activo", "Fasting active");
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
         persistState();
         startFastingTicker();
-        showToast("Ventana de ayuno iniciada.");
+        showToast(uiText("Ventana de ayuno iniciada.", "Fasting window started."));
       } else {
         state.settings.isFasting = false;
         state.settings.fastingStart = null;
         stopFastingTicker();
-        btn.innerText = "Iniciar ayuno";
+        btn.innerText = uiText("Iniciar ayuno", "Start fast");
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Pausa / Comiendo";
+        pill.innerText = uiText("Pausa / Comiendo", "Paused / Eating");
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
         updateFastingDisplay();
         persistState();
-        showToast("Ventana de ayuno finalizada.");
+        showToast(uiText("Ventana de ayuno finalizada.", "Fasting window ended."));
       }
     }
 
@@ -3501,16 +4045,16 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!btn || !pill) return;
 
       if (state.settings.isFasting && state.settings.fastingStart) {
-        btn.innerText = "Detener ayuno";
+        btn.innerText = uiText("Detener ayuno", "Stop fast");
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Ayuno activo";
+        pill.innerText = uiText("Ayuno activo", "Fasting active");
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
         startFastingTicker();
       } else {
         stopFastingTicker();
-        btn.innerText = "Iniciar ayuno";
+        btn.innerText = uiText("Iniciar ayuno", "Start fast");
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Pausa / Comiendo";
+        pill.innerText = uiText("Pausa / Comiendo", "Paused / Eating");
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
         updateFastingDisplay();
       }
@@ -3542,112 +4086,67 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       };
     }
 
-    function buildAppointmentSummary(rangeValue) {
+    function buildAppointmentSummary(rangeValue, reportLang = null) {
+      const lang = reportLang || state.settings.language || 'es';
+      const en = lang === 'en';
+      const tx = (es,enText) => en ? enText : es;
       const bounds = getAppointmentDateBounds(rangeValue);
-      const inRange = (dateKey) => dateKey && (!bounds.startKey || dateKey >= bounds.startKey) && dateKey <= bounds.endKey;
+      const inRange = dateKey => dateKey && (!bounds.startKey || dateKey >= bounds.startKey) && dateKey <= bounds.endKey;
       const medication = state.settings.medication === 'ozempic' ? 'Ozempic (semaglutide)' : 'Mounjaro (tirzepatide)';
-
-      const weights = (Array.isArray(state.weights) ? state.weights : [])
-        .filter(w => w && inRange(w.date) && Number.isFinite(Number(w.weight)))
-        .sort((a, b) => a.date.localeCompare(b.date));
-      const injections = (Array.isArray(state.injections) ? state.injections : [])
-        .filter(i => i && inRange(i.date))
-        .sort((a, b) => a.date.localeCompare(b.date));
-      const measurements = (Array.isArray(state.measurements) ? state.measurements : [])
-        .filter(m => m && inRange(m.date))
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-      let trackedDays = 0;
-      let waterTotal = 0;
-      let waterDays = 0;
-      let proteinTotal = 0;
-      let proteinDays = 0;
-      const symptomCounts = { nausea: 0, heartburn: 0, sulfur: 0, fatigue: 0 };
-      const doctorNotes = [];
-
-      Object.keys(state.daysData || {}).sort().forEach(dateKey => {
-        if (!inRange(dateKey)) return;
-        const day = state.daysData[dateKey];
-        if (!day || typeof day !== 'object') return;
-        if (dayHasMeaningfulTracking(day)) trackedDays++;
-
-        const water = Number(day.water || 0);
-        if (water > 0) { waterTotal += water; waterDays++; }
-
-        if (Array.isArray(day.meals) && day.meals.length) {
-          proteinTotal += day.meals.reduce((sum, m) => sum + Number(m && m.protein || 0), 0);
-          proteinDays++;
-        }
-
-        const sy = day.symptoms || {};
-        if (sy.nausea && sy.nausea !== 'none') symptomCounts.nausea++;
-        if (sy.heartburn && sy.heartburn !== 'none') symptomCounts.heartburn++;
-        if (sy.sulfur && sy.sulfur !== 'none') symptomCounts.sulfur++;
-        if (sy.fatigue && sy.fatigue !== 'none') symptomCounts.fatigue++;
-        if (String(sy.notes || '').trim()) doctorNotes.push(`${dateKey}: ${String(sy.notes).trim()}`);
+      const weights=(state.weights||[]).filter(w=>w&&inRange(w.date)&&Number.isFinite(Number(w.weight))).sort((a,b)=>a.date.localeCompare(b.date));
+      const injections=(state.injections||[]).filter(i=>i&&inRange(i.date)).sort((a,b)=>a.date.localeCompare(b.date));
+      const measurements=(state.measurements||[]).filter(m=>m&&inRange(m.date)).sort((a,b)=>a.date.localeCompare(b.date));
+      let trackedDays=0, waterTotal=0, waterDays=0, proteinTotal=0, proteinDays=0, bowelTotal=0;
+      const symptomCounts={nausea:0,heartburn:0,sulfur:0,fatigue:0}; const doctorNotes=[];
+      Object.keys(state.daysData||{}).sort().forEach(dateKey=>{
+        if(!inRange(dateKey)) return; const day=state.daysData[dateKey]; if(!day||typeof day!=='object') return;
+        if(dayHasMeaningfulTracking(day)) trackedDays++;
+        const water=Number(day.water||0); if(water>0){waterTotal+=water;waterDays++;}
+        if(Array.isArray(day.meals)&&day.meals.length){proteinTotal+=day.meals.reduce((s,m)=>s+Number(m&&m.protein||0),0);proteinDays++;}
+        bowelTotal += Array.isArray(day.bowelMovements)?day.bowelMovements.length:0;
+        const sy=day.symptoms||{}; if(sy.nausea&&sy.nausea!=='none')symptomCounts.nausea++; if(sy.heartburn&&sy.heartburn!=='none')symptomCounts.heartburn++; if(sy.sulfur&&sy.sulfur!=='none')symptomCounts.sulfur++; if(sy.fatigue&&sy.fatigue!=='none')symptomCounts.fatigue++;
+        if(String(sy.notes||'').trim()) doctorNotes.push(`${dateKey}: ${String(sy.notes).trim()}`);
       });
+      const patterns=calculateTolerancePatterns(rangeValue==='all'?3650:Number(rangeValue||30));
+      const bowelStats=getBowelStats();
+      const rangeLabel=rangeValue==='all'?tx('Desde el inicio de los registros','Since the beginning of the records'):tx(`Últimos ${rangeValue} días`,`Last ${rangeValue} days`);
+      const lines=[];
+      lines.push(tx('GLP-1 COMPANION — RESUMEN PARA CITA','GLP-1 COMPANION — VISIT SUMMARY'));
+      lines.push(`${tx('Generado','Generated')}: ${new Date().toLocaleString(en?'en-US':'es-US')}`);
+      lines.push(`${tx('Periodo','Period')}: ${rangeLabel}`); lines.push(`${tx('Medicamento registrado','Medication')}: ${medication}`); lines.push('');
 
-      const rangeLabel = rangeValue === 'all'
-        ? 'Desde el inicio de los registros'
-        : `Últimos ${rangeValue} días`;
-      const lines = [];
-      lines.push('GLP-1 COMPANION — RESUMEN PARA CITA');
-      lines.push(`Generado: ${new Date().toLocaleString()}`);
-      lines.push(`Periodo: ${rangeLabel}`);
-      lines.push(`Medicamento registrado: ${medication}`);
+      lines.push(tx('CAMBIOS IMPORTANTES DEL PERIODO','IMPORTANT CHANGES DURING THIS PERIOD'));
+      if(weights.length>=2){const delta=Number(weights.at(-1).weight)-Number(weights[0].weight);lines.push(`• ${tx('Cambio de peso','Weight change')}: ${delta>0?'+':''}${delta.toFixed(1)} lb`);} else lines.push(`• ${tx('Cambio de peso','Weight change')}: --`);
+      if(injections.length){const doseValues=[...new Set(injections.map(i=>i.dose).filter(Boolean))];lines.push(`• ${tx('Dosis registradas','Recorded doses')}: ${doseValues.join(' → ') || '--'}`);} else lines.push(`• ${tx('Dosis registradas','Recorded doses')}: --`);
+      lines.push(`• ${tx('Días con síntomas digestivos','Days with digestive symptoms')}: ${patterns.symptomDays}`);
+      lines.push(`• ${tx('Evacuaciones registradas','Recorded bowel movements')}: ${bowelTotal}`); lines.push('');
+
+      lines.push(tx('PESO Y MEDIDAS','WEIGHT AND MEASUREMENTS'));
+      if(weights.length){const first=weights[0],last=weights.at(-1);lines.push(`• ${tx('Primer peso del periodo','First weight in period')}: ${Number(first.weight).toFixed(1)} lb (${first.date})`);lines.push(`• ${tx('Peso más reciente','Most recent weight')}: ${Number(last.weight).toFixed(1)} lb (${last.date})`);} else lines.push(`• ${tx('Sin pesajes registrados en este periodo.','No weights recorded in this period.')}`);
+      if(measurements.length){const latest=measurements.at(-1);lines.push(`• ${tx('Últimas medidas','Latest measurements')} (${latest.date}): ${tx('cintura','waist')} ${Number(latest.waist||0).toFixed(1)} in · ${tx('pecho','chest')} ${Number(latest.chest||0).toFixed(1)} in · ${tx('cadera','hips')} ${Number(latest.hips||0).toFixed(1)} in · ${tx('cuello','neck')} ${Number(latest.neck||0).toFixed(1)} in`);} lines.push('');
+
+      lines.push(tx('TRATAMIENTO Y RESPUESTA A DOSIS','TREATMENT AND DOSE RESPONSE'));
+      lines.push(`• ${tx('Inyecciones registradas','Logged injections')}: ${injections.length}`);
+      if(injections.length){const last=injections.at(-1);lines.push(`• ${tx('Última dosis','Last dose')}: ${last.dose||'--'} · ${last.date}${last.site?` · ${last.site}`:''}`); const resp=getInjectionResponse(last); resp.forEach((m,idx)=>{const label=['0–24 h','24–48 h','48–72 h'][idx]; const sx=m.symptoms.length?m.symptoms.join(', '):tx('sin síntomas digestivos registrados','no digestive symptoms recorded'); lines.push(`  ${label}: ${m.exists?sx:tx('sin datos','no records')} · ${tx('agua','water')} ${Math.round(m.water)} oz · ${tx('proteína','protein')} ${Math.round(m.protein)} g`);});}
       lines.push('');
 
-      lines.push('PESO');
-      if (weights.length) {
-        const first = weights[0];
-        const last = weights[weights.length - 1];
-        lines.push(`• Primer peso del periodo: ${Number(first.weight).toFixed(1)} lb (${first.date})`);
-        lines.push(`• Peso más reciente: ${Number(last.weight).toFixed(1)} lb (${last.date})`);
-        if (weights.length >= 2) {
-          const delta = Number(last.weight) - Number(first.weight);
-          lines.push(`• Cambio en el periodo: ${delta > 0 ? '+' : ''}${delta.toFixed(1)} lb`);
-        }
-      } else {
-        lines.push('• Sin pesajes registrados en este periodo.');
-      }
-      lines.push('');
+      lines.push(tx('NUTRICIÓN E HIDRATACIÓN','NUTRITION AND HYDRATION'));
+      lines.push(`• ${tx('Días con seguimiento','Tracked days')}: ${trackedDays}`);
+      lines.push(`• ${tx('Agua promedio','Average water')}: ${waterDays?Math.round(waterTotal/waterDays)+' oz/'+tx('día','day'):'--'}`);
+      lines.push(`• ${tx('Proteína promedio','Average protein')}: ${proteinDays?Math.round(proteinTotal/proteinDays)+' g/'+tx('día','day'):'--'}`); lines.push('');
 
-      lines.push('DOSIS');
-      lines.push(`• Inyecciones registradas: ${injections.length}`);
-      if (injections.length) {
-        const last = injections[injections.length - 1];
-        lines.push(`• Última dosis: ${last.dose || '--'} el ${last.date}${last.site ? ` · ${last.site}` : ''}`);
-      }
-      lines.push('');
+      lines.push(tx('SÍNTOMAS Y TOLERANCIA','SYMPTOMS AND TOLERANCE'));
+      lines.push(`• ${tx('Náuseas','Nausea')}: ${symptomCounts.nausea} ${tx('día(s)','day(s)')}`);
+      lines.push(`• ${tx('Acidez / reflujo','Heartburn / reflux')}: ${symptomCounts.heartburn} ${tx('día(s)','day(s)')}`);
+      lines.push(`• ${tx('Eructos de azufre','Sulfur burps')}: ${symptomCounts.sulfur} ${tx('día(s)','day(s)')}`);
+      lines.push(`• ${tx('Fatiga','Fatigue')}: ${symptomCounts.fatigue} ${tx('día(s)','day(s)')}`);
+      if(patterns.highFatDays>=2) lines.push(`• ${tx('Comidas ≥20 g grasa + síntomas','Meals ≥20 g fat + symptoms')}: ${patterns.highFatSymptomDays}/${patterns.highFatDays}`);
+      if(patterns.postDoseTracked>=3) lines.push(`• ${tx('Síntomas digestivos dentro de 3 días de dosis','Digestive symptoms within 3 days after doses')}: ${patterns.postDoseSymptoms}/${patterns.postDoseTracked} ${tx('días con datos','tracked days')}`);
+      if(bowelStats.avgHours!==null) lines.push(`• ${tx('Intervalo promedio entre evacuaciones (30 d)','Average bowel interval (30d)')}: ${Math.round(bowelStats.avgHours)} h`); lines.push('');
 
-      lines.push('NUTRICIÓN E HIDRATACIÓN');
-      lines.push(`• Días con seguimiento: ${trackedDays}`);
-      lines.push(`• Agua promedio en días registrados: ${waterDays ? Math.round(waterTotal / waterDays) + ' oz/día' : '--'}`);
-      lines.push(`• Proteína promedio en días con comidas: ${proteinDays ? Math.round(proteinTotal / proteinDays) + ' g/día' : '--'}`);
-      lines.push('');
-
-      lines.push('SÍNTOMAS REGISTRADOS');
-      lines.push(`• Náuseas: ${symptomCounts.nausea} día(s)`);
-      lines.push(`• Acidez / reflujo: ${symptomCounts.heartburn} día(s)`);
-      lines.push(`• Eructos de azufre: ${symptomCounts.sulfur} día(s)`);
-      lines.push(`• Fatiga: ${symptomCounts.fatigue} día(s)`);
-      lines.push('');
-
-      lines.push('MEDIDAS CORPORALES');
-      if (measurements.length) {
-        const latest = measurements[measurements.length - 1];
-        lines.push(`• Últimas (${latest.date}): cintura ${Number(latest.waist || 0).toFixed(1)} in · pecho ${Number(latest.chest || 0).toFixed(1)} in · cadera ${Number(latest.hips || 0).toFixed(1)} in · cuello ${Number(latest.neck || 0).toFixed(1)} in`);
-      } else {
-        lines.push('• Sin medidas registradas en este periodo.');
-      }
-      lines.push('');
-
-      lines.push('NOTAS / PREGUNTAS REGISTRADAS');
-      if (doctorNotes.length) doctorNotes.slice(-12).forEach(note => lines.push(`• ${note}`));
-      else lines.push('• Sin notas registradas en este periodo.');
-      lines.push('');
-      lines.push('Nota: Este resumen organiza registros personales y no sustituye evaluación ni indicaciones médicas.');
-
+      lines.push(tx('NOTAS / PREGUNTAS PARA LA CONSULTA','NOTES / QUESTIONS FOR THE VISIT'));
+      if(doctorNotes.length) doctorNotes.slice(-12).forEach(note=>lines.push(`• ${note}`)); else lines.push(`• ${tx('Sin notas registradas en este periodo.','No notes recorded in this period.')}`);
+      lines.push(''); lines.push(tx('Nota: Este resumen organiza registros personales y no sustituye evaluación ni indicaciones médicas.','Note: This summary organizes personal records and does not replace medical evaluation or treatment guidance.'));
       return lines.join('\n');
     }
 
@@ -3655,13 +4154,16 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const rangeEl = document.getElementById('appointment-range');
       const textEl = document.getElementById('appointment-summary-text');
       if (!rangeEl || !textEl) return;
-      textEl.value = buildAppointmentSummary(rangeEl.value);
+      const langEl = document.getElementById('appointment-language');
+      textEl.value = buildAppointmentSummary(rangeEl.value, langEl ? langEl.value : state.settings.language);
     }
 
     function openAppointmentPrepModal() {
       const modal = document.getElementById('modal-appointment-prep');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      const reportLang = document.getElementById('appointment-language');
+      if (reportLang) reportLang.value = state.settings.language || 'es';
       refreshAppointmentSummary();
       lucide.createIcons();
     }
@@ -3677,11 +4179,11 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!textEl) return;
       try {
         await navigator.clipboard.writeText(textEl.value);
-        showToast('Resumen para la cita copiado.');
+        showToast(uiText('Resumen para la cita copiado.', 'Visit summary copied.'));
       } catch (_) {
         textEl.select();
         document.execCommand('copy');
-        showToast('Resumen para la cita copiado.');
+        showToast(uiText('Resumen para la cita copiado.', 'Visit summary copied.'));
       }
     }
 
@@ -3690,11 +4192,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (!textEl) return;
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        showToast('El navegador bloqueó la ventana de impresión.');
+        showToast(uiText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
         return;
       }
       const safe = escapeHtml(textEl.value).replace(/\n/g, '<br>');
-      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resumen para cita GLP-1</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.45;font-size:12px}h1{font-size:18px;margin-bottom:16px}</style></head><body><h1>Resumen para cita GLP-1</h1><div>${safe}</div></body></html>`);
+      const reportLangEl = document.getElementById('appointment-language');
+      const reportEnglish = reportLangEl ? reportLangEl.value === 'en' : isEnglish();
+      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${reportEnglish ? 'GLP-1 Visit Summary' : 'Resumen para cita GLP-1'}</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.45;font-size:12px}h1{font-size:18px;margin-bottom:16px}</style></head><body><h1>${reportEnglish ? 'GLP-1 Visit Summary' : 'Resumen para cita GLP-1'}</h1><div>${safe}</div></body></html>`);
       printWindow.document.close();
       printWindow.focus();
       setTimeout(() => printWindow.print(), 250);
@@ -3714,59 +4218,30 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function copyDoctorSummary() {
-      const isOz = state.settings.medication === 'ozempic';
-      const medName = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
-
-      const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
-      const startW = sortedW.length > 0 ? sortedW[0].weight : '--';
-      const curW = sortedW.length > 0 ? sortedW[sortedW.length - 1].weight : '--';
-      const totalLost = (sortedW.length > 1) ? (sortedW[0].weight - sortedW[sortedW.length - 1].weight).toFixed(1) : 0;
-
-      const sortedInj = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const lastInj = sortedInj.length > 0 ? sortedInj[0] : null;
-
-      const day = getSelectedDay();
-      const sym = day.symptoms || {};
-
-      let totalCal = 0, totalProtein = 0;
-      (day.meals || []).forEach(m => {
-        totalCal += Number(m.calories || 0);
-        totalProtein += Number(m.protein || 0);
-      });
-
-      const report = `📋 REPORTE DE SEGUIMIENTO CLÍNICO - ${medName.toUpperCase()}
-Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-
-⚖️ EVOLUCIÓN DE PESO & METAS:
-• Peso inicial: ${startW} lbs
-• Peso actual: ${curW} lbs
-• Peso objetivo meta: ${state.settings.goalWeight || 180} lbs
-• Pérdida acumulada: ${totalLost} lbs
-
-💉 TRATAMIENTO & DOSIS FARMACOLÓGICA:
-• Fármaco activo: ${medName}
-• Dosis actual: ${lastInj ? `${lastInj.dose} (${lastInj.site}) administrada el ${lastInj.date.split('T')[0]}` : 'Sin registrar'}
-• Plumas en inventario refrigerado: ${state.settings.pensInStock || 0}
-• Frecuencia: Cada 7 días
-
-🍽️ NUTRICIÓN & MACRONUTRIENTES CLAVE:
-• Calorías consumidas: ${totalCal} kcal (Meta: ${state.settings.calGoal} kcal)
-• Proteína alcanzada: ${totalProtein} g (Meta preventiva muscular: ${state.settings.proteinGoal} g)
-• Agua registrada: ${day.water || 0} oz (Meta: ${state.settings.waterGoal} oz)
-
-🩺 TOLERANCIA DIGESTIVA & EFECTOS SECUNDARIOS:
-• Nivel de apetito / Satiety: ${sym.hunger || 3}/10
-• Náuseas: ${sym.nausea || 'Ninguna'}
-• Reflujo / Acidez: ${sym.heartburn || 'Ninguna'}
-• Eructos de azufre: ${sym.sulfur || 'Ninguno'}
-• Fatiga / Energía: ${sym.fatigue || 'Normal'}
-• Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
-
-Generado con GLP-1 Companion Web App (v3.1).`;
-
+      const report = buildAppointmentSummary('all', state.settings.language || 'es');
       copyToClipboardText(report);
-      showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
+      showToast(uiText("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.", "Report copied! Ready for Notes or your medical visit."));
     }
+
+    const AppPlatform = {
+      isNative() {
+        try { return Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+        catch (_) { return false; }
+      },
+      async copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try { await navigator.clipboard.writeText(text); return true; } catch (_) {}
+        }
+        return false;
+      },
+      networkOnline() { return navigator.onLine !== false; },
+      async shareText(title, text) {
+        if (navigator.share) {
+          try { await navigator.share({ title, text }); return true; } catch (_) {}
+        }
+        return false;
+      }
+    };
 
     function copyToClipboardText(text) {
       const textarea = document.createElement("textarea");
@@ -3974,10 +4449,10 @@ Generado con GLP-1 Companion Web App (v3.1).`;
           applyMedicationTheme();
           renderCurrentDay();
           if (activeTab === 'tools') renderToolsView();
-          showToast("Datos verificados y restaurados exitosamente.");
+          showToast(uiText("Datos verificados y restaurados exitosamente.", "Data verified and restored successfully."));
         } catch (err) {
           console.error("Error importando backup:", err);
-          showToast("Error: Archivo dañado o estructura incompatible.");
+          showToast(uiText("Error: Archivo dañado o estructura incompatible.", "Error: damaged file or incompatible structure."));
         }
       };
       reader.readAsText(file);
@@ -4015,7 +4490,8 @@ Generado con GLP-1 Companion Web App (v3.1).`;
         pensInStock: 4,
         roomTempPenStart: null,
         fastingStart: null,
-        isFasting: false
+        isFasting: false,
+        language: "es"
       };
       state.selectedDate = getFormattedDate(new Date());
 
@@ -4024,7 +4500,7 @@ Generado con GLP-1 Companion Web App (v3.1).`;
       applyMedicationTheme();
       renderCurrentDay();
       if (activeTab === 'tools') renderToolsView();
-      showToast("Todos los datos han sido borrados por completo.");
+      showToast(uiText("Todos los datos han sido borrados por completo.", "All data has been deleted."));
     }
 
     let toastTimer = null;
@@ -4154,8 +4630,12 @@ Generado con GLP-1 Companion Web App (v3.1).`;
       document.getElementById('hub-injections-list').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-delete-inj]');
         if (btn) {
+          e.stopPropagation();
           removeInjection(btn.dataset.deleteInj);
+          return;
         }
+        const row = e.target.closest('[data-open-inj]');
+        if (row) openInjectionDetailModal(row.dataset.openInj);
       });
 
       document.getElementById('weights-history-list').addEventListener('click', (e) => {
@@ -4177,6 +4657,8 @@ Generado con GLP-1 Companion Web App (v3.1).`;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
       document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
       document.getElementById('setting-water-goal').value = state.settings.waterGoal || 96;
+      const languageSelector = document.getElementById('setting-language');
+      if (languageSelector) languageSelector.value = state.settings.language || 'es';
       
       const storedKey = getStoredApiKey();
       if (storedKey) {
@@ -4187,6 +4669,7 @@ Generado con GLP-1 Companion Web App (v3.1).`;
       document.getElementById('btn-next-day').addEventListener('click', () => changeDate(1));
 
       updateDateBadge();
+      applyStaticTranslations();
       lucide.createIcons();
     });
   </script>
