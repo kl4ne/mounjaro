@@ -1227,12 +1227,24 @@
       return `${year}-${month}-${day}`;
     }
 
+    function ensureInjectionIds() {
+      if (Array.isArray(state.injections)) {
+        state.injections.forEach((inj, idx) => {
+          if (!inj.id) {
+            const dateClean = inj.date ? String(inj.date).replace(/[^0-9]/g, '') : '';
+            inj.id = "inj_" + (dateClean || Date.now()) + "_" + idx + "_" + Math.random().toString(36).substring(2, 6);
+          }
+        });
+      }
+    }
+
     function initData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           state = Object.assign(state, parsed);
+          ensureInjectionIds();
         } else {
           setupInitialDemoData();
         }
@@ -1249,8 +1261,8 @@
       oneWeekAgo.setDate(today.getDate() - 7);
 
       state.injections = [
-        { id: "inj_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio" },
-        { id: "inj_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia" }
+        { id: "inj_demo_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio" },
+        { id: "inj_demo_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia" }
       ];
 
       state.weights = [
@@ -1280,7 +1292,7 @@
       if (currentUser) {
         try {
           const cleanCopy = JSON.parse(JSON.stringify(state));
-          db.collection("trackers").doc(currentUser.uid).set(cleanCopy, { merge: true })
+          db.collection("trackers").doc(currentUser.uid).set(cleanCopy)
             .catch(err => console.error("Error sincronizando en Firestore:", err));
         } catch (e) {
           console.error("Error preparando sincronización en la nube:", e);
@@ -1309,13 +1321,12 @@
               if (cloud) {
                 if (cloud.settings) state.settings = Object.assign(state.settings, cloud.settings);
                 if (cloud.daysData) state.daysData = Object.assign(state.daysData, cloud.daysData);
-                if (cloud.injections && Array.isArray(cloud.injections) && cloud.injections.length > 0) {
+                if (cloud.injections && Array.isArray(cloud.injections)) {
                   state.injections = cloud.injections;
-                } else if (state.injections && state.injections.length > 0) {
-                  persistState();
+                  ensureInjectionIds();
                 }
-                if (cloud.weights && cloud.weights.length > 0) state.weights = cloud.weights;
-                if (cloud.measurements && cloud.measurements.length > 0) state.measurements = cloud.measurements;
+                if (cloud.weights && Array.isArray(cloud.weights)) state.weights = cloud.weights;
+                if (cloud.measurements && Array.isArray(cloud.measurements)) state.measurements = cloud.measurements;
 
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
                 renderCurrentDay();
@@ -1487,9 +1498,14 @@
     function updateHalfLifeAndNextDose() {
       if (!state.injections || state.injections.length === 0) {
         document.getElementById('dash-next-inj-text').innerText = "Sin dosis registrada";
-        document.getElementById('dash-rotation-hint').innerText = "Toca Hub para registrar tu primera inyección";
+        document.getElementById('dash-rotation-hint').innerHTML = `
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Toca Hub para registrar tu primera inyección</span>
+        `;
         document.getElementById('dash-halflife-pct').innerText = "0%";
         document.getElementById('dash-halflife-bar').style.width = "0%";
+        document.getElementById('dash-halflife-expl').innerText = "Registra una inyección para calcular la concentración de tirzepatide.";
+        lucide.createIcons();
         return;
       }
 
@@ -1547,6 +1563,7 @@
         expl = `Día ${Math.round(daysSince)} del ciclo: Concentración en descenso biológico (~5 días de vida media). Es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`;
       }
       document.getElementById('dash-halflife-expl').innerText = expl;
+      lucide.createIcons();
     }
 
     function addWater(oz) {
@@ -1681,10 +1698,12 @@
 
     function removeMealItem(idx) {
       const day = getSelectedDay();
-      day.meals.splice(idx, 1);
-      persistState();
-      updateDashboardView();
-      showToast("Comida eliminada.");
+      if (day.meals && day.meals[idx]) {
+        day.meals.splice(idx, 1);
+        persistState();
+        updateDashboardView();
+        showToast("Comida eliminada.");
+      }
     }
 
     /* ==========================================================================
@@ -1906,7 +1925,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     /* ==========================================================================
-       INYECCIONES Y REFRIGERADOR
+       CONTROL DE INYECCIONES Y REFRIGERADOR
        ========================================================================== */
     function openLogInjectionModal() {
       document.getElementById('inj-date').value = state.selectedDate;
@@ -1925,8 +1944,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const site = document.getElementById('inj-site').value;
       const notes = document.getElementById('inj-notes').value.trim();
 
+      const newId = "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
       state.injections.push({
-        id: "inj_" + Date.now(),
+        id: newId,
         date,
         dose,
         site,
@@ -1959,12 +1979,17 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function renderMounjaroView() {
+      ensureInjectionIds();
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       if (sorted.length > 0) {
         const latest = sorted[0];
-        document.getElementById('hub-last-dose').innerText = latest.dose;
-        document.getElementById('hub-last-date').innerText = latest.date.split('T')[0];
-        document.getElementById('hub-last-site').innerText = latest.site;
+        document.getElementById('hub-last-dose').innerText = latest.dose || "2.5 mg";
+        document.getElementById('hub-last-date').innerText = (typeof latest.date === 'string' ? latest.date.split('T')[0] : latest.date) || "--";
+        document.getElementById('hub-last-site').innerText = latest.site || "Abdomen derecho";
+      } else {
+        document.getElementById('hub-last-dose').innerText = "Sin dosis";
+        document.getElementById('hub-last-date').innerText = "--";
+        document.getElementById('hub-last-site').innerText = "Sin registro";
       }
 
       document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} plumas`;
@@ -2000,12 +2025,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         sorted.forEach(inj => {
           const item = document.createElement('div');
           item.className = "flex justify-between items-center p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]";
+          const cleanDate = typeof inj.date === 'string' ? inj.date.split('T')[0] : inj.date;
           item.innerHTML = `
             <div>
               <span class="font-bold text-white">${inj.dose} &bull; ${inj.site}</span>
-              <p class="text-[10px] text-slate-500">${inj.date.split('T')[0]} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
+              <p class="text-[10px] text-slate-500">${cleanDate} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
             </div>
-            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1">
+            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           `;
@@ -2028,7 +2054,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function removeInjection(id) {
-      state.injections = state.injections.filter(i => i.id !== id);
+      if (!id || id === 'undefined') return;
+      state.injections = state.injections.filter(i => {
+        if (i.id && i.id === id) return false;
+        const fallback = (i.date ? String(i.date).split('T')[0] : '') + '_' + (i.site || '');
+        if (fallback === id) return false;
+        return true;
+      });
       persistState();
       renderMounjaroView();
       updateDashboardView();
@@ -2316,6 +2348,25 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
     setInterval(updateFastingDisplay, 30000);
 
+    function initFastingUI() {
+      const btn = document.getElementById('btn-toggle-fasting');
+      const pill = document.getElementById('fasting-status-pill');
+      if (!btn || !pill) return;
+      if (state.settings.isFasting && state.settings.fastingStart) {
+        btn.innerText = "Detener ayuno";
+        btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
+        pill.innerText = "Ayuno activo";
+        pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        updateFastingDisplay();
+      } else {
+        btn.innerText = "Iniciar ayuno";
+        btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
+        pill.innerText = "Pausa / Comiendo";
+        pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
+        document.getElementById('fasting-timer-display').innerText = "00h 00m";
+      }
+    }
+
     function openSosModal() {
       document.getElementById('modal-sos').classList.remove('hidden');
       document.getElementById('modal-sos').classList.add('flex');
@@ -2448,8 +2499,10 @@ Generado con Mounjaro Companion Web App.`;
           if (imported.weights) state.weights = imported.weights;
           if (imported.measurements) state.measurements = imported.measurements;
 
+          ensureInjectionIds();
           persistState();
           renderCurrentDay();
+          if (activeTab === 'tools') renderToolsView();
           showToast("Datos restaurados exitosamente.");
         } catch (err) {
           showToast("Error al importar el archivo JSON.");
@@ -2498,6 +2551,7 @@ Generado con Mounjaro Companion Web App.`;
     window.addEventListener('DOMContentLoaded', () => {
       initData();
       setupFirebaseAuthListener();
+      initFastingUI();
 
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
