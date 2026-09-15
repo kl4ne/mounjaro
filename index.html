@@ -166,12 +166,12 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v2.6</p>
+          <p id="print-app-version">Versión: v2.7</p>
         </div>
       </div>
     </div>
 
-    <!-- Top Sticky Header con Dynamic Island Safe Area -->
+    <!-- Top Sticky Header con soporte para Dynamic Island -->
     <header class="sticky top-0 z-30 bg-[#090d16]/92 backdrop-blur-md border-b border-[#223455] px-4 py-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2.5">
@@ -183,7 +183,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.6</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v2.7</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -231,7 +231,7 @@
         </button>
       </div>
 
-      <!-- Pull to refresh visual indicator container -->
+      <!-- Pull to refresh visual indicator -->
       <div id="pull-refresh-container" class="w-full flex items-center justify-center overflow-hidden transition-all duration-200 h-0 opacity-0 pointer-events-none text-cyan-400">
         <div class="flex items-center gap-1.5 py-1.5 text-xs font-bold">
           <i id="pull-refresh-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5 transition-transform duration-200"></i>
@@ -656,7 +656,7 @@
           </div>
         </div>
 
-        <!-- Tarjeta de proyección de peso meta -->
+        <!-- Proyección de peso meta -->
         <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-1.5">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1">
@@ -719,7 +719,7 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <button id="btn-start-pacing" onclick="startMealPacingTimer()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
+            <button id="btn-start-pacing" onclick="toggleMealPacingTimer()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
               <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer
             </button>
             <button id="btn-stop-pacing" onclick="resetMealPacingTimer()" class="px-3 py-2 bg-[#111a2e] border border-[#223455] hover:bg-slate-800 text-slate-400 rounded-xl text-xs transition-colors">
@@ -819,13 +819,14 @@
           </button>
         </div>
 
+        <!-- Clave API protegida fuera de Firestore/Backups -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
           <div class="flex items-center space-x-2">
             <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i>
-            <h3 class="text-xs font-bold text-white">Clave de API Gemini (Opcional)</h3>
+            <h3 class="text-xs font-bold text-white">Clave de API Gemini (Almacenamiento seguro en este dispositivo)</h3>
           </div>
           <p class="text-[10px] text-slate-400 leading-relaxed">
-            Para el escáner visual con IA. Si dejas el campo vacío, el entorno suministra la clave automáticamente o utiliza el asistente heurístico integrado.
+            Se almacena localmente de forma privada. Nunca se sincroniza en Firestore ni se exporta en backups JSON.
           </p>
           <div class="flex gap-2">
             <input id="setting-api-key" type="password" placeholder="AIzaSy..." class="flex-1 p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-xs text-white">
@@ -1261,7 +1262,7 @@
         <div>
           <h3 class="text-sm font-bold text-white">¿Reiniciar todos los datos?</h3>
           <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-            Se eliminarán los registros de comidas, inyecciones, agua y pesajes del Local storage en tu navegador.
+            Se eliminarán definitivamente los registros de comidas, inyecciones, agua y pesajes tanto de este dispositivo como de Firestore.
           </p>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2">
@@ -1287,7 +1288,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v2.6";
+    const APP_VERSION = "v2.7";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1312,6 +1313,26 @@
       });
     }
 
+    // Sanitize user inputs to prevent XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Isolated API Key storage outside of State and Firestore
+    function getStoredApiKey() {
+      return localStorage.getItem("gemini_api_key_vault") || "";
+    }
+
+    function setStoredApiKey(key) {
+      localStorage.setItem("gemini_api_key_vault", key);
+    }
+
     /* ==========================================================================
        STATE MANAGEMENT & LOCAL STORAGE ARCHITECTURE
        ========================================================================== */
@@ -1328,7 +1349,6 @@
         waterGoal: 96,
         pensInStock: 4,
         roomTempPenStart: null,
-        apiKey: "",
         fastingStart: null,
         isFasting: false
       },
@@ -1367,6 +1387,11 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          // Purge old leaked apiKey if present in loaded storage
+          if (parsed.settings && parsed.settings.apiKey) {
+            setStoredApiKey(parsed.settings.apiKey);
+            delete parsed.settings.apiKey;
+          }
           state = Object.assign(state, parsed);
           if (!state.settings.medication) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
@@ -1419,6 +1444,10 @@
       if (currentUser) {
         try {
           const cleanCopy = JSON.parse(JSON.stringify(state));
+          // Enforce that API Key is never pushed to cloud
+          if (cleanCopy.settings && cleanCopy.settings.apiKey) {
+            delete cleanCopy.settings.apiKey;
+          }
           db.collection("trackers").doc(currentUser.uid).set(cleanCopy)
             .catch(err => console.error("Error sincronizando en Firestore:", err));
         } catch (e) {
@@ -1446,14 +1475,30 @@
             if (docSnap.exists) {
               const cloud = docSnap.data();
               if (cloud) {
-                if (cloud.settings) state.settings = Object.assign(state.settings, cloud.settings);
+                if (cloud.settings) {
+                  delete cloud.settings.apiKey;
+                  state.settings = Object.assign(state.settings, cloud.settings);
+                }
                 if (cloud.daysData) state.daysData = Object.assign(state.daysData, cloud.daysData);
-                if (cloud.injections && Array.isArray(cloud.injections)) {
-                  state.injections = cloud.injections;
+                
+                // Merge weights by date safely
+                if (Array.isArray(cloud.weights)) {
+                  const weightMap = new Map();
+                  state.weights.forEach(w => weightMap.set(w.date, w.weight));
+                  cloud.weights.forEach(w => weightMap.set(w.date, w.weight));
+                  state.weights = Array.from(weightMap.entries()).map(([date, weight]) => ({ date, weight }));
+                }
+
+                // Merge injections by ID safely
+                if (Array.isArray(cloud.injections)) {
+                  const injMap = new Map();
+                  state.injections.forEach(i => injMap.set(i.id, i));
+                  cloud.injections.forEach(i => injMap.set(i.id, i));
+                  state.injections = Array.from(injMap.values());
                   ensureInjectionIds();
                 }
-                if (cloud.weights && Array.isArray(cloud.weights)) state.weights = cloud.weights;
-                if (cloud.measurements && Array.isArray(cloud.measurements)) state.measurements = cloud.measurements;
+
+                if (Array.isArray(cloud.measurements)) state.measurements = cloud.measurements;
 
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
                 applyMedicationTheme();
@@ -1577,23 +1622,29 @@
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       const currentDose = sorted[0].dose;
 
-      let consecutiveWeeks = 0;
+      const sameDoseInjs = [];
       for (let i = 0; i < sorted.length; i++) {
         if (sorted[i].dose === currentDose) {
-          consecutiveWeeks++;
+          sameDoseInjs.push(sorted[i]);
         } else {
           break;
         }
       }
 
-      if (consecutiveWeeks >= 4) {
-        textEl.innerText = `${consecutiveWeeks} semanas en ${currentDose}. Lista para evaluar ajuste con tu médico.`;
+      // Check real calendar days elapsed between first injection of this dose and today
+      const earliestDate = new Date((sameDoseInjs[sameDoseInjs.length - 1].date).split('T')[0] + "T12:00:00");
+      const elapsedDays = Math.max(0, Math.round((new Date() - earliestDate) / (1000 * 60 * 60 * 24)));
+      const weeksElapsed = Math.floor(elapsedDays / 7) + 1;
+      const injectionCount = sameDoseInjs.length;
+
+      if (elapsedDays >= 28 && injectionCount >= 4) {
+        textEl.innerText = `${weeksElapsed} semanas cumplidas en ${currentDose} (${injectionCount} dosis). Lista para evaluar ajuste con tu médico.`;
         badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-        badgeEl.innerText = `Semana ${consecutiveWeeks} (Completa)`;
+        badgeEl.innerText = `${weeksElapsed} sem. (Apta)`;
       } else {
-        textEl.innerText = `Fase de adaptación en ${currentDose}.`;
+        textEl.innerText = `Fase de adaptación: ${Math.min(4, weeksElapsed)} de 4 semanas (${injectionCount} dosis registradas).`;
         badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
-        badgeEl.innerText = `Semana ${consecutiveWeeks} de 4`;
+        badgeEl.innerText = `Semana ${Math.min(4, weeksElapsed)} de 4`;
       }
     }
 
@@ -1661,8 +1712,8 @@
       
       if (printDateEl) printDateEl.innerText = `Fecha: ${new Date().toLocaleDateString('es-ES')}`;
       if (printPatientEl) {
-        const userTag = currentUser ? `Paciente: ${currentUser.email}` : "Paciente: Usuario activo";
-        printPatientEl.innerText = `${userTag} &bull; Fármaco: ${medName}`;
+        const userTag = currentUser ? `Paciente: ${escapeHtml(currentUser.email)}` : "Paciente: Usuario activo";
+        printPatientEl.innerHTML = `${userTag} &bull; Fármaco: ${medName}`;
       }
 
       switchTab('tools');
@@ -1671,9 +1722,6 @@
       }, 300);
     }
 
-    /* ==========================================================================
-       CORRELACIÓN AUTOMÁTICA ENTRE SÍNTOMAS Y COMIDAS
-       ========================================================================== */
     function checkFoodSymptomCorrelation() {
       const alertBox = document.getElementById('correlation-alert-box');
       const alertText = document.getElementById('correlation-alert-text');
@@ -1796,8 +1844,12 @@
       document.getElementById('dash-cal-pct').innerText = `${calPct}%`;
       document.getElementById('dash-cal-bar').style.width = `${calPct}%`;
 
+      // Definición clínica estricta de déficit calórico
       const defBadge = document.getElementById('dash-deficit-badge');
-      if (deficit <= -300) {
+      if (deficit <= -800) {
+        defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40";
+        defBadge.innerText = "Déficit severo (riesgo masa muscular)";
+      } else if (deficit <= -300) {
         defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
         defBadge.innerText = "Déficit óptimo";
       } else if (deficit <= 0) {
@@ -1883,7 +1935,7 @@
       const nextSite = rotations[latest.site] || "Abdomen izquierdo";
       document.getElementById('dash-rotation-hint').innerHTML = `
         <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Rotación sugerida: <strong>${nextSite}</strong> (Última: ${latest.site})</span>
+        <span>Rotación sugerida: <strong>${escapeHtml(nextSite)}</strong> (Última: ${escapeHtml(latest.site)})</span>
       `;
 
       const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
@@ -1989,10 +2041,10 @@
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${meal.slot || 'Comida'}</span>
-                <span class="text-[10px] text-slate-500">${meal.time || ''}</span>
+                <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${escapeHtml(meal.slot || 'Comida')}</span>
+                <span class="text-[10px] text-slate-500">${escapeHtml(meal.time || '')}</span>
               </div>
-              <h4 class="text-xs font-bold text-white mt-0.5">${meal.name}</h4>
+              <h4 class="text-xs font-bold text-white mt-0.5">${escapeHtml(meal.name)}</h4>
             </div>
             <button onclick="removeMealItem(${idx})" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -2002,26 +2054,26 @@
           <div class="flex items-center gap-3 text-xs pt-1 border-t border-[#223455]">
             <div>
               <span class="text-[10px] text-slate-400 font-medium">Cal:</span>
-              <span class="font-black text-white">${meal.calories}</span>
+              <span class="font-black text-white">${Number(meal.calories || 0)}</span>
             </div>
             <div>
               <span class="text-[10px] text-amber-400 font-medium">Proteína:</span>
-              <span class="font-black text-amber-400">${meal.protein}g</span>
+              <span class="font-black text-amber-400">${Number(meal.protein || 0)}g</span>
             </div>
             <div>
               <span class="text-[10px] text-slate-400 font-medium">Carbos:</span>
-              <span class="font-semibold text-slate-300">${meal.carbs || 0}g</span>
+              <span class="font-semibold text-slate-300">${Number(meal.carbs || 0)}g</span>
             </div>
             <div>
               <span class="text-[10px] text-slate-400 font-medium">Grasas:</span>
-              <span class="font-semibold text-slate-300">${meal.fat || 0}g</span>
+              <span class="font-semibold text-slate-300">${Number(meal.fat || 0)}g</span>
             </div>
           </div>
 
           ${meal.tip ? `
             <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2 text-[10px] text-emerald-300 flex items-start gap-1.5">
               <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-              <span>${meal.tip}</span>
+              <span>${escapeHtml(meal.tip)}</span>
             </div>
           ` : ''}
         `;
@@ -2043,9 +2095,25 @@
     }
 
     /* ==========================================================================
-       AI SCANNER
+       AI SCANNER (LIMPIEZA DE IMAGEN & GEMINI 2.5 FLASH)
        ========================================================================== */
+    function resetScannerState() {
+      selectedImageBase64 = null;
+      const fileInput = document.getElementById('scanner-file-input');
+      const previewImg = document.getElementById('scanner-preview-img');
+      const placeholder = document.getElementById('scanner-placeholder-content');
+      const textInput = document.getElementById('scanner-text-input');
+      if (fileInput) fileInput.value = "";
+      if (previewImg) {
+        previewImg.src = "";
+        previewImg.classList.add('hidden');
+      }
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (textInput) textInput.value = "";
+    }
+
     function openScannerModal() {
+      resetScannerState();
       document.getElementById('modal-scanner').classList.remove('hidden');
       document.getElementById('modal-scanner').classList.add('flex');
       document.getElementById('ai-results-container').classList.add('hidden');
@@ -2055,6 +2123,7 @@
     }
 
     function closeScannerModal() {
+      resetScannerState();
       document.getElementById('modal-scanner').classList.add('hidden');
       document.getElementById('modal-scanner').classList.remove('flex');
     }
@@ -2089,8 +2158,8 @@
       btn.disabled = true;
       btnText.innerText = "Analizando plato con IA Gemini...";
 
-      const apiKey = state.settings.apiKey || "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const apiKey = getStoredApiKey();
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
       const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con ${medLabel}.
 Analiza el plato de comida en la imagen o el texto.
@@ -2200,7 +2269,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function commitScannedMeal() {
-      const name = document.getElementById('res-food-name').value.trim();
+      const name = document.getElementById('res-food-name').value.trim() || "Plato escaneado";
       const calories = Number(document.getElementById('res-cal').value) || 0;
       const protein = Number(document.getElementById('res-protein').value) || 0;
       const carbs = Number(document.getElementById('res-carbs').value) || 0;
@@ -2372,10 +2441,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           const cleanDate = typeof inj.date === 'string' ? inj.date.split('T')[0] : inj.date;
           item.innerHTML = `
             <div>
-              <span class="font-bold text-white">${inj.dose} &bull; ${inj.site}</span>
-              <p class="text-[10px] text-slate-500">${cleanDate} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
+              <span class="font-bold text-white">${escapeHtml(inj.dose)} &bull; ${escapeHtml(inj.site)}</span>
+              <p class="text-[10px] text-slate-500">${escapeHtml(cleanDate)} ${inj.notes ? `&bull; ${escapeHtml(inj.notes)}` : ''}</p>
             </div>
-            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar registro">
+            <button onclick="removeInjection('${escapeHtml(inj.id)}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar registro">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           `;
@@ -2400,12 +2469,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function removeInjection(id) {
       if (!id || id === 'undefined') return;
-      state.injections = state.injections.filter(i => {
-        if (i.id && i.id === id) return false;
-        const fallback = (i.date ? String(i.date).split('T')[0] : '') + '_' + (i.site || '');
-        if (fallback === id) return false;
-        return true;
-      });
+      state.injections = state.injections.filter(i => i.id !== id);
       persistState();
       renderMounjaroView();
       updateDashboardView();
@@ -2501,10 +2565,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           const row = document.createElement('div');
           row.className = "flex justify-between items-center p-2 rounded-xl bg-[#111a2e] border border-[#223455]";
           row.innerHTML = `
-            <span class="text-slate-300 font-medium">${w.date}</span>
+            <span class="text-slate-300 font-medium">${escapeHtml(w.date)}</span>
             <div class="flex items-center space-x-3">
               <strong class="text-cyan-400 font-black">${w.weight.toFixed(1)} lbs</strong>
-              <button onclick="removeWeightEntry('${w.date}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar este pesaje">
+              <button onclick="removeWeightEntry('${escapeHtml(w.date)}')" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar este pesaje">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -2522,7 +2586,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           const r = document.createElement('div');
           r.className = "flex justify-between items-center p-2 rounded-xl bg-[#111a2e] border border-[#223455]";
           r.innerHTML = `
-            <span class="text-slate-300 font-medium">${m.date}</span>
+            <span class="text-slate-300 font-medium">${escapeHtml(m.date)}</span>
             <div class="text-slate-400 space-x-2 text-[11px]">
               <span>Cint: <strong class="text-white">${m.waist}"</strong></span>
               <span>Pech: <strong class="text-white">${m.chest}"</strong></span>
@@ -2717,13 +2781,27 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       }
     }
 
-    function startMealPacingTimer() {
-      if (pacingTimerInterval) return;
-      playGentleChime(523.25);
-      showToast("Cronómetro de 20 min iniciado. Reposa el tenedor entre bocados.");
-
+    /* Manejo corregido de pausa, reanudación y reinicio en el cronómetro */
+    function toggleMealPacingTimer() {
       const btn = document.getElementById('btn-start-pacing');
-      btn.innerText = "Pausar";
+      
+      if (pacingTimerInterval) {
+        clearInterval(pacingTimerInterval);
+        pacingTimerInterval = null;
+        btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Reanudar`;
+        showToast("Cronómetro pausado.");
+        lucide.createIcons();
+        return;
+      }
+
+      if (pacingSecondsLeft <= 0) {
+        pacingSecondsLeft = 20 * 60;
+      }
+
+      playGentleChime(523.25);
+      btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pausar`;
+      showToast(pacingSecondsLeft === 20 * 60 ? "Cronómetro de 20 min iniciado." : "Cronómetro reanudado.");
+      lucide.createIcons();
 
       pacingTimerInterval = setInterval(() => {
         pacingSecondsLeft--;
@@ -2739,9 +2817,11 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         if (pacingSecondsLeft <= 0) {
           clearInterval(pacingTimerInterval);
           pacingTimerInterval = null;
+          pacingSecondsLeft = 20 * 60;
           playGentleChime(783.99);
           showToast("¡20 minutos completados! Excelente ritmo digestivo.");
-          btn.innerText = "Iniciar al comer";
+          btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer`;
+          lucide.createIcons();
         }
       }, 1000);
     }
@@ -2753,7 +2833,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       }
       pacingSecondsLeft = 20 * 60;
       document.getElementById('pacing-timer-badge').innerText = "20:00";
-      document.getElementById('btn-start-pacing').innerText = "Iniciar al comer";
+      const btn = document.getElementById('btn-start-pacing');
+      btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer`;
+      lucide.createIcons();
     }
 
     function toggleFastingTimer() {
@@ -2880,11 +2962,11 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Nivel de apetito / Satiety: ${sym.hunger || 3}/10
 • Náuseas: ${sym.nausea || 'Ninguna'}
 • Reflujo / Acidez: ${sym.heartburn || 'Ninguna'}
-• Eructos de azufre (*sulfur burps*): ${sym.sulfur || 'Ninguno'}
+• Eructos de azufre: ${sym.sulfur || 'Ninguno'}
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v2.6).`;
+Generado con GLP-1 Companion Web App (v2.7).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -2920,20 +3002,25 @@ Generado con GLP-1 Companion Web App (v2.6).`;
     }
 
     function saveApiKeySetting() {
-      state.settings.apiKey = document.getElementById('setting-api-key').value.trim();
-      persistState();
-      showToast("Clave de API Gemini configurada.");
+      const val = document.getElementById('setting-api-key').value.trim();
+      setStoredApiKey(val);
+      showToast("Clave de API Gemini configurada de forma segura.");
     }
 
     function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const exportObject = JSON.parse(JSON.stringify(state));
+      // Double guarantee: API key is excluded from export JSON
+      if (exportObject.settings) {
+        delete exportObject.settings.apiKey;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
       a.setAttribute("download", `glp1_backup_${state.selectedDate}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
-      showToast("Copia de seguridad descargada.");
+      showToast("Copia de seguridad descargada (sin credenciales privadas).");
     }
 
     function importDataJSON(e) {
@@ -2944,11 +3031,28 @@ Generado con GLP-1 Companion Web App (v2.6).`;
       reader.onload = function(evt) {
         try {
           const imported = JSON.parse(evt.target.result);
-          if (imported.settings) state.settings = imported.settings;
-          if (imported.daysData) state.daysData = imported.daysData;
-          if (imported.injections) state.injections = imported.injections;
-          if (imported.weights) state.weights = imported.weights;
-          if (imported.measurements) state.measurements = imported.measurements;
+          
+          // Type safety validation
+          if (!imported || typeof imported !== 'object') {
+            throw new Error("Formato inválido");
+          }
+
+          if (imported.settings && typeof imported.settings === 'object') {
+            delete imported.settings.apiKey;
+            state.settings = Object.assign(state.settings, imported.settings);
+          }
+          if (imported.daysData && typeof imported.daysData === 'object') {
+            state.daysData = imported.daysData;
+          }
+          if (Array.isArray(imported.injections)) {
+            state.injections = imported.injections;
+          }
+          if (Array.isArray(imported.weights)) {
+            state.weights = imported.weights;
+          }
+          if (Array.isArray(imported.measurements)) {
+            state.measurements = imported.measurements;
+          }
 
           ensureInjectionIds();
           state.selectedDate = getFormattedDate(new Date());
@@ -2956,9 +3060,9 @@ Generado con GLP-1 Companion Web App (v2.6).`;
           applyMedicationTheme();
           renderCurrentDay();
           if (activeTab === 'tools') renderToolsView();
-          showToast("Datos restaurados exitosamente.");
+          showToast("Datos restaurados y verificados exitosamente.");
         } catch (err) {
-          showToast("Error al importar el archivo JSON.");
+          showToast("Error: El archivo JSON está dañado o no es válido.");
         }
       };
       reader.readAsText(file);
@@ -2974,17 +3078,33 @@ Generado con GLP-1 Companion Web App (v2.6).`;
       document.getElementById('modal-reset').classList.remove('flex');
     }
 
+    // Factory reset without re-creating demo data
     function executeFactoryReset() {
       localStorage.removeItem(STORAGE_KEY);
       state.daysData = {};
       state.injections = [];
       state.weights = [];
       state.measurements = [];
-      initData();
+      state.settings = {
+        medication: "mounjaro",
+        goalWeight: 180,
+        calGoal: 1400,
+        tdee: 2000,
+        proteinGoal: 110,
+        waterGoal: 96,
+        pensInStock: 4,
+        roomTempPenStart: null,
+        fastingStart: null,
+        isFasting: false
+      };
+      state.selectedDate = getFormattedDate(new Date());
+
+      persistState();
       closeResetModal();
       applyMedicationTheme();
       renderCurrentDay();
-      showToast("Todos los datos han sido reiniciados.");
+      if (activeTab === 'tools') renderToolsView();
+      showToast("Todos los datos han sido borrados por completo.");
     }
 
     let toastTimer = null;
@@ -3089,7 +3209,10 @@ Generado con GLP-1 Companion Web App (v2.6).`;
           if (docSnap.exists) {
             const cloud = docSnap.data();
             if (cloud) {
-              if (cloud.settings) state.settings = Object.assign(state.settings, cloud.settings);
+              if (cloud.settings) {
+                delete cloud.settings.apiKey;
+                state.settings = Object.assign(state.settings, cloud.settings);
+              }
               if (cloud.daysData) state.daysData = Object.assign(state.daysData, cloud.daysData);
               if (cloud.injections && Array.isArray(cloud.injections)) state.injections = cloud.injections;
               if (cloud.weights && Array.isArray(cloud.weights)) state.weights = cloud.weights;
@@ -3120,7 +3243,11 @@ Generado con GLP-1 Companion Web App (v2.6).`;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
       document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
       document.getElementById('setting-water-goal').value = state.settings.waterGoal || 96;
-      if (state.settings.apiKey) document.getElementById('setting-api-key').value = state.settings.apiKey;
+      
+      const storedKey = getStoredApiKey();
+      if (storedKey) {
+        document.getElementById('setting-api-key').value = storedKey;
+      }
 
       document.getElementById('btn-prev-day').addEventListener('click', () => changeDate(-1));
       document.getElementById('btn-next-day').addEventListener('click', () => changeDate(1));
