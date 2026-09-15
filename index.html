@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="GLP1Tracker">
   <meta name="application-name" content="GLP1Tracker">
   <meta name="theme-color" content="#090d16">
-  <meta name="description" content="Aplicación web progresiva para el control clínico integral de Mounjaro y Ozempic, análisis de platos con IA, hidratación y seguridad digestiva.">
+  <meta name="description" content="Aplicación web progresiva bilingüe para seguimiento GLP-1: dosis, nutrición, hidratación, síntomas, mantenimiento e insights personales.">
 
   <!-- Manifest PWA embebido -->
   <link rel="manifest" href='data:application/manifest+json,{"name":"GLP-1 Companion","short_name":"GLP1App","start_url":".","display":"standalone","background_color":"#090d16","theme_color":"#090d16","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3063/3063176.png","sizes":"512x512","type":"image/png"}]}'>
@@ -167,7 +167,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.2</p>
+          <p id="print-app-version">Versión: v3.3</p>
         </div>
       </div>
     </div>
@@ -184,7 +184,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.2</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.3</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -224,7 +224,7 @@
           <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0 animate-bounce"></i>
           <div>
             <span class="font-bold block leading-tight">Alerta preventiva de evacuación (>48h)</span>
-            <span class="text-[10px] text-rose-300">Vaciamiento lento detectado. Bebe agua tibia o citrato de magnesio.</span>
+            <span class="text-[10px] text-rose-300">Han pasado más de 48 h desde el último registro. Revisa hidratación, movimiento y tu plan de cuidado habitual.</span>
           </div>
         </div>
         <button onclick="logBowelMovementNow()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[10px] shrink-0 transition-colors">
@@ -411,8 +411,8 @@
               <div class="bg-amber-600 border border-slate-700/50" title="4. Deshidratación: Beber de inmediato"></div>
             </div>
             <div id="urine-guide-expanded" class="hidden mt-2 p-2 bg-[#111a2e] rounded-xl text-[10px] text-slate-300 space-y-1 border border-[#223455]">
-              <p>&bull; <strong>Pálido / Casi transparente:</strong> Hidratación ideal para evitar estreñimiento por GLP-1.</p>
-              <p>&bull; <strong>Amarillo oscuro / Ámbar:</strong> Alerta de deshidratación. Puede provocar mareos o cefaleas.</p>
+              <p>&bull; <strong>Pálido / Casi transparente:</strong> Generalmente compatible con buena hidratación.</p>
+              <p>&bull; <strong>Amarillo oscuro / Ámbar:</strong> Puede ser una señal para prestar más atención a la hidratación.</p>
             </div>
           </div>
         </div>
@@ -462,6 +462,19 @@
           </div>
         </div>
 
+        <!-- Insights personales avanzados -->
+        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Insights personales</span>
+              <h3 class="text-sm font-bold text-white">Lo que muestran tus últimos 30 días</h3>
+            </div>
+            <span class="text-[9px] text-slate-500">Descriptivo, no diagnóstico</span>
+          </div>
+          <div id="personal-insights-list" class="space-y-2 text-[11px]"></div>
+          <p class="text-[9px] text-slate-500 leading-relaxed">Las asociaciones se calculan únicamente con tus propios registros y no prueban causa ni sustituyen una evaluación médica.</p>
+        </div>
+
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -490,7 +503,7 @@
           <div class="flex items-center justify-between">
             <div>
               <h3 id="hub-card-title" class="text-sm font-bold text-white">Control de inyecciones</h3>
-              <p class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
+              <p id="hub-regimen-subtitle" class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
             </div>
             <button onclick="openLogInjectionModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-all">
               + Registrar dosis
@@ -506,13 +519,13 @@
               <span class="text-slate-400">Fecha de aplicación:</span>
               <span id="hub-last-date" class="font-bold text-white">--</span>
             </div>
-            <div class="flex justify-between items-center">
+            <div id="hub-site-row" class="flex justify-between items-center">
               <span class="text-slate-400">Sitio utilizado:</span>
               <span id="hub-last-site" class="font-bold text-cyan-300">--</span>
             </div>
           </div>
 
-          <div>
+          <div id="injection-zones-card">
             <h4 class="text-xs font-bold text-slate-300 mb-2">Zonas de aplicación recomendadas</h4>
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
               <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
@@ -532,7 +545,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
+          <div id="room-temp-card" class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="thermometer-sun" class="w-4 h-4 text-cyan-400"></i>
@@ -556,22 +569,22 @@
             </div>
           </div>
 
-          <div class="glass-panel rounded-2xl p-3.5 border border-[#223455] space-y-2">
+          <div id="med-inventory-card" class="glass-panel rounded-2xl p-3.5 border border-[#223455] space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="package-check" class="w-4 h-4 text-emerald-400"></i>
-                <h4 class="text-xs font-bold text-white">Inventario de plumas</h4>
+                <h4 id="inventory-card-title" class="text-xs font-bold text-white">Inventario de medicamento</h4>
               </div>
               <span id="dash-pen-warning" class="hidden text-[9px] font-bold px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded">
                 Pedir resurtido
               </span>
             </div>
             <p class="text-[10px] text-slate-400 leading-tight">
-              Plumas de repuesto guardadas en refrigeración.
+              <span id="inventory-card-subtitle">Unidades disponibles para seguimiento.</span>
             </p>
             <div class="flex items-center justify-between p-2 bg-[#111a2e] rounded-xl border border-[#223455]">
               <button onclick="adjustPenCount(-1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
-              <span id="pen-stock-val" class="font-black text-white text-base">4 plumas</span>
+              <span id="pen-stock-val" class="font-black text-white text-base">4 unidades</span>
               <button onclick="adjustPenCount(1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
             </div>
           </div>
@@ -746,6 +759,30 @@
           <p id="proj-subtext" class="text-[10px] text-slate-400">Basado en el ritmo promedio de pérdida de peso de las últimas semanas.</p>
         </div>
 
+        <!-- Modo mantenimiento -->
+        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Modo mantenimiento</span>
+              <h3 class="text-sm font-bold text-white">Mantener el peso dentro de tu rango</h3>
+            </div>
+            <span id="maintenance-status-badge" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Inactivo</span>
+          </div>
+          <p id="maintenance-summary" class="text-[11px] text-slate-300 leading-relaxed">Actívalo cuando tú y tu profesional de salud decidan que entraste en una fase de mantenimiento.</p>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500 uppercase font-bold">Rango meta</span><p id="maintenance-range" class="text-xs font-black text-emerald-300">--</p></div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500 uppercase font-bold">Peso actual</span><p id="maintenance-current" class="text-xs font-black text-cyan-300">--</p></div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500 uppercase font-bold">Variación 30d</span><p id="maintenance-variation" class="text-xs font-black text-violet-300">--</p></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] text-slate-400 shrink-0">Margen ±</label>
+            <input id="maintenance-range-input" type="number" min="1" max="15" step="0.5" class="w-20 p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-xs text-white text-center" value="3">
+            <span class="text-[10px] text-slate-500">lb</span>
+            <button id="maintenance-toggle-btn" onclick="toggleMaintenanceMode()" class="ml-auto px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600/45 border border-emerald-500/40 text-emerald-200 text-xs font-bold rounded-xl">Activar</button>
+          </div>
+          <p class="text-[9px] text-slate-500">Este modo monitorea estabilidad de peso y hábitos. No recomienda cambios de dosis ni tratamiento.</p>
+        </div>
+
         <!-- Curva de peso con Media Móvil de 7 días -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
@@ -878,9 +915,16 @@
           <div>
             <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
             <select id="setting-medication" class="w-full p-2.5 bg-[#111a2e] border border-emerald-500/40 rounded-xl text-emerald-400 font-bold text-xs" onchange="handleMedicationChange(this.value)">
-              <option value="mounjaro">Mounjaro (tirzepatide &bull; vida media 5 días &bull; 21 días temp. ambiente)</option>
-              <option value="ozempic">Ozempic (semaglutide &bull; vida media 7 días &bull; 56 días temp. ambiente)</option>
+              <option value="mounjaro">Mounjaro (tirzepatide)</option>
+              <option value="zepbound">Zepbound (tirzepatide)</option>
+              <option value="ozempic">Ozempic Injection (semaglutide)</option>
+              <option value="wegovy">Wegovy Injection (semaglutide)</option>
+              <option value="trulicity">Trulicity (dulaglutide)</option>
+              <option value="saxenda">Saxenda (liraglutide)</option>
+              <option value="victoza">Victoza (liraglutide)</option>
+              <option value="ozempic_tablets">Ozempic Tablets (semaglutide)</option>
             </select>
+            <p id="medication-regimen-help" class="text-[10px] text-slate-500 mt-1">La app adapta frecuencia, vida media y registro según el medicamento seleccionado. No modifica ni recomienda tratamiento.</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3 text-xs pt-1">
@@ -1130,7 +1174,7 @@
 
         <div class="space-y-3 text-xs">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Fecha de inyección:</label>
+            <label id="inj-date-label" class="block font-semibold text-slate-300 mb-1">Fecha de inyección:</label>
             <input id="inj-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
           </div>
 
@@ -1139,7 +1183,7 @@
             <select id="inj-dose" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl font-bold text-emerald-400"></select>
           </div>
 
-          <div>
+          <div id="inj-site-wrap">
             <label class="block font-semibold text-slate-300 mb-1">Sitio anatómico de inyección:</label>
             <select id="inj-site" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
               <option value="Abdomen derecho">Abdomen derecho</option>
@@ -1156,7 +1200,7 @@
             <input id="inj-notes" type="text" placeholder="Ej: Buena tolerancia, sin molestias..." class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
           </div>
 
-          <button onclick="saveInjectionRecord()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition-colors">
+          <button id="inj-save-button" onclick="saveInjectionRecord()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition-colors">
             Confirmar aplicación
           </button>
         </div>
@@ -1445,8 +1489,8 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.2";
-    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_2";
+    const APP_VERSION = "v3.3";
+    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_3";
 
     function formatSyncTime(timestamp) {
       if (!timestamp) return "";
@@ -1530,7 +1574,7 @@
       "Sign in": "Sign in",
       "Hoy": "Today",
       "Alerta preventiva de evacuación (>48h)": "Preventive bowel movement alert (>48h)",
-      "Vaciamiento lento detectado. Bebe agua tibia o citrato de magnesio.": "Slow bowel transit detected. Review hydration and your usual care plan.",
+      "Han pasado más de 48 h desde el último registro. Revisa hidratación, movimiento y tu plan de cuidado habitual.": "Slow bowel transit detected. Review hydration and your usual care plan.",
       "Evacuó hoy": "Bowel movement today",
       "Desliza para actualizar": "Pull to refresh",
       "Próxima inyección": "Next injection",
@@ -1555,9 +1599,9 @@
       "Guía visual de hidratación (color de orina):": "Visual hydration guide (urine color):",
       "Ver escala": "View scale",
       "Pálido / Casi transparente:": "Pale / Almost clear:",
-      "Hidratación ideal para evitar estreñimiento por GLP-1.": "Generally consistent with good hydration.",
+      "Generalmente compatible con buena hidratación.": "Generally consistent with good hydration.",
       "Amarillo oscuro / Ámbar:": "Dark yellow / Amber:",
-      "Alerta de deshidratación. Puede provocar mareos o cefaleas.": "May indicate a need to pay attention to hydration.",
+      "Puede ser una señal para prestar más atención a la hidratación.": "May indicate a need to pay attention to hydration.",
       "Resumen semanal": "Weekly summary",
       "Tus últimos 7 días": "Your last 7 days",
       "Peso 7d": "7d weight",
@@ -1742,13 +1786,89 @@
       "Se eliminarán definitivamente los registros de comidas, inyecciones, agua y pesajes tanto de este dispositivo como de Firestore.": "Food, injection, water and weight records will be permanently removed from this device and Firestore.",
       "Cancelar": "Cancel",
       "Sí, borrar todo": "Yes, delete everything",
-      "Notificación": "Notification"
+      "Notificación": "Notification",
+      "4 unidades": "4 units",
+      "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
+      "Versión: v3.3": "Version: v3.3",
+      "Semana 1/4": "Week 1/4",
+      "21 días máx.": "21 days max.",
+      "21 días": "21 days",
+      "Última evacuación registrada: Hoy": "Last bowel movement: Today",
+      "Meta: -- lbs": "Goal: -- lbs",
+      "Mounjaro (tirzepatide • vida media 5 días • 21 días temp. ambiente)": "Mounjaro (tirzepatide)",
+      "Ozempic (semaglutide • vida media 7 días • 56 días temp. ambiente)": "Ozempic Injection (semaglutide)",
+      "Náuseas repentinas": "Sudden nausea",
+      "Acupresión P6:": "P6 acupressure:",
+      "Presiona el punto ubicado tres dedos por debajo de la muñeca en la cara interna del antebrazo.": "Press the point about three finger-widths below the wrist on the inner forearm.",
+      "No te acuestes inmediatamente después de comer; mantente erguido al menos 2 horas.": "Avoid lying down right after eating; remain upright for at least 2 hours.",
+      "Líquidos fríos:": "Cool fluids:",
+      "Bebe sorbos diminutos de agua helada o infusión de jengibre sin azúcar.": "Take small sips of cool water or unsweetened ginger tea.",
+      "Realiza la cena al menos 3 horas antes de acostarte.": "Have dinner at least 3 hours before bedtime.",
+      "Cero frituras, salsas picantes o café tardío.": "Avoid fried foods, spicy sauces, or late caffeine if they worsen your symptoms.",
+      "Fermentación gástrica de grasas pesadas o proteínas retenidas por vaciamiento lento.": "Digestive discomfort can sometimes follow heavier meals during slowed gastric emptying.",
+      "Solución:": "General support:",
+      "Reduce temporalmente alimentos ricos en sulfuro (huevos cocidos en exceso, brócoli crudo, carnes con grasa) y toma té de manzanilla o menta.": "Consider simplifying meals and noting which foods seem associated with symptoms.",
+      "Electrólitos:": "Electrolytes:",
+      "Disuelve una pizca de sal marina o un sobre de electrolitos sin azúcar en agua.": "Use an electrolyte product according to its label if appropriate for you.",
+      "Siéntate en la orilla de la cama durante un minuto antes de ponerte de pie.": "Sit at the edge of the bed briefly before standing if you feel lightheaded.",
+      "Estreñimiento prolongado (>48 horas)": "Prolonged constipation (>48 hours)",
+      "Hidratación tibia:": "Warm hydration:",
+      "Bebe dos tazas de agua tibia en ayunas.": "Consider warm fluids and regular hydration.",
+      "Suplementación:": "Supplements:",
+      "Considera citrato de magnesio bajo indicación médica para estimular la motilidad intestinal.": "Discuss any laxative or magnesium product with a healthcare professional before use.",
+      "Insights personales": "Personal insights",
+      "Lo que muestran tus últimos 30 días": "What your last 30 days show",
+      "Descriptivo, no diagnóstico": "Descriptive, not diagnostic",
+      "Las asociaciones se calculan únicamente con tus propios registros y no prueban causa ni sustituyen una evaluación médica.": "Associations use only your own logs and do not prove cause or replace medical evaluation.",
+      "Modo mantenimiento": "Maintenance mode",
+      "Mantener el peso dentro de tu rango": "Keep weight within your range",
+      "Inactivo": "Inactive",
+      "Activo": "Active",
+      "Rango meta": "Goal range",
+      "Peso actual": "Current weight",
+      "Variación 30d": "30d variation",
+      "Margen ±": "Margin ±",
+      "Activar": "Enable",
+      "Desactivar": "Disable",
+      "Este modo monitorea estabilidad de peso y hábitos. No recomienda cambios de dosis ni tratamiento.": "This mode tracks weight stability and habits. It does not recommend dose or treatment changes.",
+      "Inventario de medicamento": "Medication inventory",
+      "Unidades disponibles para seguimiento.": "Units available for tracking.",
+      "La app adapta frecuencia, vida media y registro según el medicamento seleccionado. No modifica ni recomienda tratamiento.": "The app adapts frequency, half-life and logging to the selected medication. It does not change or recommend treatment.",
+      "Fecha de dosis:": "Dose date:",
+      "Confirmar dosis": "Confirm dose",
+      "Régimen diario": "Daily regimen",
+      "Sin datos": "No data",
+      "Tabla oral · una vez al día": "Oral tablet · once daily",
+      "Español": "Spanish",
+      "Mounjaro puede permanecer hasta 21 días a temperatura ambiente (<86°F/30°C).": "Mounjaro room-temperature tracking window: up to 21 days. Follow the product label for storage conditions.",
+      "Actívalo cuando tú y tu profesional de salud decidan que entraste en una fase de mantenimiento.": "Enable it when you and your healthcare professional decide you have entered a maintenance phase.",
+      "2\" del ombligo": "2 in from the navel",
+      "Tabletas disponibles para seguimiento.": "Tablets available for tracking.",
+      "Vida media aproximada": "Approx. half-life",
+      "La app no modifica ni recomienda tratamiento.": "The app does not change or recommend treatment.",
+      "Inyección · una vez al día": "Injection · once daily",
+      "Inyección · una vez por semana": "Injection · once weekly",
+      "Tableta oral · una vez al día": "Oral tablet · once daily",
+      "No hay dosis guardadas aún.": "No doses recorded yet.",
+      "Conteo de temperatura ambiente iniciado para el medicamento en uso.": "Room-temperature countdown started for the medication in use.",
+      "Comida": "Meal",
+      "Eliminar registro": "Delete record"
     };
 
     const STATIC_ATTRIBUTE_TRANSLATIONS = {
       "Ej: 180": "e.g. 180",
       "Ej: Mareo breve al levantarme, tomé agua con sal...": "e.g. brief dizziness when standing...",
-      "Ej: Buena tolerancia, sin molestias...": "e.g. good tolerance, no concerns..."
+      "Ej: Buena tolerancia, sin molestias...": "e.g. good tolerance, no concerns...",
+      "Guía rápida de alivio": "Quick support guide",
+      "Día anterior": "Previous day",
+      "Día siguiente": "Next day",
+      "1. Hidratación óptima (claro)": "1. Good hydration (pale)",
+      "2. Hidratación buena (amarillo pálido)": "2. Good hydration (light yellow)",
+      "3. Precaución: Beber más agua": "3. Pay attention to hydration",
+      "4. Deshidratación: Beber de inmediato": "4. Darker urine: review hydration",
+      "Ej: 2 piernas de pollo asadas pequeñas y media taza de arroz moro con frijoles...": "e.g. two small roasted chicken legs and half a cup of rice and beans...",
+      "Ej: Pechuga a la plancha con brócoli": "e.g. grilled chicken breast with broccoli",
+      "Eliminar registro": "Delete record"
     };
 
     function isEnglish() {
@@ -1757,6 +1877,21 @@
 
     function uiText(es, en) {
       return isEnglish() ? en : es;
+    }
+
+    function translateSite(site) {
+      if (!site) return uiText('Sin registro', 'No record');
+      const sites = {
+        'Abdomen derecho': ['Abdomen derecho','Right abdomen'],
+        'Abdomen izquierdo': ['Abdomen izquierdo','Left abdomen'],
+        'Muslo derecho': ['Muslo derecho','Right thigh'],
+        'Muslo izquierdo': ['Muslo izquierdo','Left thigh'],
+        'Brazo derecho': ['Brazo derecho','Right upper arm'],
+        'Brazo izquierdo': ['Brazo izquierdo','Left upper arm'],
+        'Oral': ['Vía oral','Oral']
+      };
+      const pair = sites[site];
+      return pair ? (isEnglish() ? pair[1] : pair[0]) : String(site);
     }
 
     function translateRuntimePhrase(text) {
@@ -1853,7 +1988,9 @@
         roomTempPenStart: null,
         fastingStart: null,
         isFasting: false,
-        language: "es"
+        language: "es",
+        maintenanceEnabled: false,
+        maintenanceRangeLb: 3
       },
       daysData: {},
       injections: [],
@@ -1933,8 +2070,11 @@
           }
           state = Object.assign(state, parsed);
           if (!state.settings.medication) state.settings.medication = "mounjaro";
+          if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
           if (!state.settings.language) state.settings.language = "es";
+          if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
+          if (!Number.isFinite(Number(state.settings.maintenanceRangeLb))) state.settings.maintenanceRangeLb = 3;
           if (!state.deletedRecords) {
             state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
           }
@@ -2059,6 +2199,8 @@
       if (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) {
         const cloudSettings = Object.assign({}, cloud.settings);
         delete cloudSettings.apiKey;
+        // Language is a device UI preference; never let a stale cloud value overwrite the local selection.
+        delete cloudSettings.language;
         state.settings = Object.assign(state.settings, cloudSettings);
       }
 
@@ -2333,196 +2475,183 @@
       if (currentUser) {
         try {
           await auth.signOut();
-          showToast("Sesión cerrada. Tus registros siguen seguros en este dispositivo.");
+          showToast(uiText("Sesión cerrada. Tus registros siguen seguros en este dispositivo.", "Signed out. Your records remain on this device."));
         } catch (err) {
-          showToast("Error al cerrar sesión: " + err.message);
+          showToast(uiText("Error al cerrar sesión: ", "Sign-out error: ") + err.message);
         }
       } else {
         try {
           await auth.signInWithPopup(provider);
         } catch (err) {
           console.error("Error al autenticar:", err);
-          showToast("Error de conexión: " + err.message);
+          showToast(uiText("Error de conexión: ", "Connection error: ") + err.message);
         }
       }
+    }
+
+    /* ==========================================================================
+       MEDICATION PROFILES — compatible with existing v3 data model
+       ========================================================================== */
+    const MEDICATION_PROFILES = {
+      mounjaro: { key:'mounjaro', name:'Mounjaro', generic:'tirzepatide', route:'injection', frequencyDays:7, halfLifeDays:5, roomTempDays:21, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['2.5 mg','Dosis inicial','Starter dose'],['5.0 mg','Dosis','Dose'],['7.5 mg','Dosis','Dose'],['10.0 mg','Dosis','Dose'],['12.5 mg','Dosis','Dose'],['15.0 mg','Dosis','Dose']
+      ]},
+      zepbound: { key:'zepbound', name:'Zepbound', generic:'tirzepatide', route:'injection', frequencyDays:7, halfLifeDays:5, roomTempDays:21, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['2.5 mg','Dosis inicial','Starter dose'],['5.0 mg','Dosis','Dose'],['7.5 mg','Dosis','Dose'],['10.0 mg','Dosis','Dose'],['12.5 mg','Dosis','Dose'],['15.0 mg','Dosis','Dose']
+      ]},
+      ozempic: { key:'ozempic', name:'Ozempic', generic:'semaglutide', route:'injection', frequencyDays:7, halfLifeDays:7, roomTempDays:56, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['0.25 mg','Dosis inicial','Starter dose'],['0.5 mg','Dosis','Dose'],['1.0 mg','Dosis','Dose'],['2.0 mg','Dosis','Dose']
+      ]},
+      wegovy: { key:'wegovy', name:'Wegovy', generic:'semaglutide', route:'injection', frequencyDays:7, halfLifeDays:7, roomTempDays:28, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['0.25 mg','Dosis inicial','Starter dose'],['0.5 mg','Dosis','Dose'],['1.0 mg','Dosis','Dose'],['1.7 mg','Dosis','Dose'],['2.4 mg','Dosis','Dose']
+      ]},
+      trulicity: { key:'trulicity', name:'Trulicity', generic:'dulaglutide', route:'injection', frequencyDays:7, halfLifeDays:5, roomTempDays:14, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['0.75 mg','Dosis','Dose'],['1.5 mg','Dosis','Dose'],['3.0 mg','Dosis','Dose'],['4.5 mg','Dosis','Dose']
+      ]},
+      saxenda: { key:'saxenda', name:'Saxenda', generic:'liraglutide', route:'injection', frequencyDays:1, halfLifeDays:0.54, roomTempDays:30, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['0.6 mg','Dosis','Dose'],['1.2 mg','Dosis','Dose'],['1.8 mg','Dosis','Dose'],['2.4 mg','Dosis','Dose'],['3.0 mg','Dosis','Dose']
+      ]},
+      victoza: { key:'victoza', name:'Victoza', generic:'liraglutide', route:'injection', frequencyDays:1, halfLifeDays:0.54, roomTempDays:30, inventoryUnitEs:'unidades', inventoryUnitEn:'units', doses:[
+        ['0.6 mg','Dosis','Dose'],['1.2 mg','Dosis','Dose'],['1.8 mg','Dosis','Dose']
+      ]},
+      ozempic_tablets: { key:'ozempic_tablets', name:'Ozempic Tablets', generic:'semaglutide', route:'oral', frequencyDays:1, halfLifeDays:7, roomTempDays:null, inventoryUnitEs:'tabletas', inventoryUnitEn:'tablets', doses:[
+        ['1.5 mg','Dosis inicial','Starter dose'],['4 mg','Dosis','Dose'],['9 mg','Dosis','Dose']
+      ]}
+    };
+
+    function getMedicationProfile(key = null) {
+      return MEDICATION_PROFILES[key || state.settings.medication] || MEDICATION_PROFILES.mounjaro;
+    }
+
+    function getMedicationLabel(profile = null, includeGeneric = false) {
+      const p = profile || getMedicationProfile();
+      return includeGeneric ? `${p.name} (${p.generic})` : p.name;
+    }
+
+    function getRegimenLabel(profile = null) {
+      const p = profile || getMedicationProfile();
+      if (p.route === 'oral') return uiText('Tableta oral · una vez al día', 'Oral tablet · once daily');
+      if (p.frequencyDays === 1) return uiText('Inyección · una vez al día', 'Injection · once daily');
+      return uiText('Inyección · una vez por semana', 'Injection · once weekly');
     }
 
     /* ==========================================================================
        ADAPTACIÓN DINÁMICA: MOUNJARO VS OZEMPIC
        ========================================================================== */
     function handleMedicationChange(selectedMed) {
+      if (!MEDICATION_PROFILES[selectedMed]) selectedMed = 'mounjaro';
       state.settings.medication = selectedMed;
+      // Room-temperature countdown is product-specific; reset when medication changes.
+      state.settings.roomTempPenStart = null;
       persistState();
       applyMedicationTheme();
       updateHalfLifeAndNextDose();
       renderMounjaroView();
-      showToast(`Medicamento configurado: ${selectedMed === 'ozempic' ? 'Ozempic (semaglutide)' : 'Mounjaro (tirzepatide)'}`);
+      renderPersonalInsights();
+      showToast(isEnglish() ? `Medication set: ${getMedicationLabel(getMedicationProfile(), true)}` : `Medicamento configurado: ${getMedicationLabel(getMedicationProfile(), true)}`);
     }
 
     function applyMedicationTheme() {
-      const isOz = state.settings.medication === 'ozempic';
-      const medName = isOz ? "Ozempic" : "Mounjaro";
+      const p = getMedicationProfile();
+      const medName = p.name;
+      const isOral = p.route === 'oral';
 
       document.getElementById('header-app-title').innerText = `${medName} Companion`;
-      document.getElementById('nav-label-med').innerText = `${medName} y salud`;
-      document.getElementById('hub-card-title').innerText = `Control de ${medName}`;
-      document.getElementById('modal-inj-title').innerText = `Registrar dosis de ${medName}`;
+      document.getElementById('nav-label-med').innerText = isEnglish() ? `${medName} & health` : `${medName} y salud`;
+      document.getElementById('hub-card-title').innerText = isOral ? uiText(`Control de ${medName}`, `${medName} tracking`) : uiText(`Control de ${medName}`, `${medName} tracking`);
+      document.getElementById('modal-inj-title').innerText = isOral ? uiText(`Registrar dosis de ${medName}`, `Log ${medName} dose`) : uiText(`Registrar dosis de ${medName}`, `Log ${medName} dose`);
+      const subtitle = document.getElementById('hub-regimen-subtitle');
+      if (subtitle) subtitle.innerText = getRegimenLabel(p);
 
       const medSelector = document.getElementById('setting-medication');
       if (medSelector) medSelector.value = state.settings.medication;
+      const help = document.getElementById('medication-regimen-help');
+      if (help) help.innerText = `${getRegimenLabel(p)} · ${uiText('Vida media aproximada', 'Approx. half-life')}: ${p.halfLifeDays < 1 ? Math.round(p.halfLifeDays*24)+' h' : p.halfLifeDays+' '+uiText('días','days')}. ${uiText('La app no modifica ni recomienda tratamiento.', 'The app does not change or recommend treatment.')}`;
 
       const doseSelect = document.getElementById('inj-dose');
       if (doseSelect) {
         doseSelect.innerHTML = '';
-        const doses = isOz 
-          ? [
-              { val: "0.25 mg", label: "0.25 mg (Iniciación / 4 semanas)" },
-              { val: "0.5 mg", label: "0.5 mg (Mantenimiento inicial)" },
-              { val: "1.0 mg", label: "1.0 mg (Dosis terapéutica)" },
-              { val: "2.0 mg", label: "2.0 mg (Dosis máxima)" }
-            ]
-          : [
-              { val: "2.5 mg", label: "2.5 mg (Dosis inicial / starter)" },
-              { val: "5.0 mg", label: "5.0 mg (Dosis terapéutica)" },
-              { val: "7.5 mg", label: "7.5 mg" },
-              { val: "10.0 mg", label: "10.0 mg" },
-              { val: "12.5 mg", label: "12.5 mg" },
-              { val: "15.0 mg", label: "15.0 mg (Dosis máxima)" }
-            ];
-
-        doses.forEach(d => {
+        p.doses.forEach(d => {
           const opt = document.createElement('option');
-          opt.value = d.val;
-          opt.innerText = d.label;
+          opt.value = d[0];
+          opt.innerText = `${d[0]} (${isEnglish() ? d[2] : d[1]})`;
           doseSelect.appendChild(opt);
         });
       }
 
+      const siteWrap = document.getElementById('inj-site-wrap');
+      const hubSiteRow = document.getElementById('hub-site-row');
+      const zones = document.getElementById('injection-zones-card');
+      [siteWrap, hubSiteRow, zones].forEach(el => { if (el) el.classList.toggle('hidden', isOral); });
+      const dateLabel = document.getElementById('inj-date-label');
+      if (dateLabel) dateLabel.innerText = isOral ? uiText('Fecha de dosis:', 'Dose date:') : uiText('Fecha de inyección:', 'Injection date:');
+      const saveBtn = document.getElementById('inj-save-button');
+      if (saveBtn) saveBtn.innerText = uiText('Confirmar dosis', 'Confirm dose');
+
+      const roomCard = document.getElementById('room-temp-card');
       const roomBadge = document.getElementById('room-temp-status-badge');
       const roomExpl = document.getElementById('room-temp-expl-text');
-      if (isOz) {
-        roomBadge.innerText = "56 días máx.";
-        roomExpl.innerHTML = `Ozempic puede permanecer hasta 56 días (8 semanas) a temperatura ambiente (&lt;86°F/30°C).`;
-      } else {
-        roomBadge.innerText = "21 días máx.";
-        roomExpl.innerHTML = `Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).`;
+      if (roomCard) roomCard.classList.toggle('hidden', !p.roomTempDays);
+      if (p.roomTempDays) {
+        if (roomBadge) roomBadge.innerText = isEnglish() ? `${p.roomTempDays} days max.` : `${p.roomTempDays} días máx.`;
+        if (roomExpl) roomExpl.innerText = isEnglish()
+          ? `${p.name}: room-temperature tracking window set to ${p.roomTempDays} days. Follow the product label for storage temperature and handling.`
+          : `${p.name}: ventana de seguimiento a temperatura ambiente configurada en ${p.roomTempDays} días. Sigue la etiqueta del producto para temperatura y manejo.`;
       }
+
+      const invTitle = document.getElementById('inventory-card-title');
+      const invSubtitle = document.getElementById('inventory-card-subtitle');
+      if (invTitle) invTitle.innerText = uiText('Inventario de medicamento', 'Medication inventory');
+      if (invSubtitle) invSubtitle.innerText = isOral ? uiText('Tabletas disponibles para seguimiento.', 'Tablets available for tracking.') : uiText('Unidades disponibles para seguimiento.', 'Units available for tracking.');
+      const penVal = document.getElementById('pen-stock-val');
+      if (penVal) penVal.innerText = `${state.settings.pensInStock || 0} ${isEnglish() ? p.inventoryUnitEn : p.inventoryUnitEs}`;
     }
 
     function updateTitrationStatus() {
-      const banner = document.getElementById('titration-banner-dash');
       const textEl = document.getElementById('titration-status-text');
       const badgeEl = document.getElementById('titration-badge');
-      if (!banner || !textEl || !badgeEl) return;
-
+      if (!textEl || !badgeEl) return;
+      const p = getMedicationProfile();
       if (!state.injections || state.injections.length === 0) {
-        textEl.innerText = "Sin dosis para calcular titulación.";
-        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
-        badgeEl.innerText = "0 semanas";
+        textEl.innerText = uiText('Sin dosis para resumir el régimen.', 'No doses logged to summarize the regimen.');
+        badgeEl.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+        badgeEl.innerText = uiText('Sin datos', 'No data');
         return;
       }
-
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const currentDose = sorted[0].dose;
-
-      const sameDoseInjs = [];
-      for (let i = 0; i < sorted.length; i++) {
-        if (sorted[i].dose === currentDose) {
-          sameDoseInjs.push(sorted[i]);
-        } else {
-          break;
-        }
-      }
-
-      const earliestDate = new Date((sameDoseInjs[sameDoseInjs.length - 1].date).split('T')[0] + "T12:00:00");
-      const elapsedDays = Math.max(0, Math.round((new Date() - earliestDate) / (1000 * 60 * 60 * 24)));
-      const completedWeeks = Math.floor(elapsedDays / 7);
-      const currentWeekNumber = completedWeeks + 1;
-      const uniqueInjectionDates = new Set(sameDoseInjs.map(i => (i.date || '').split('T')[0])).size;
-
-      if (elapsedDays >= 28 && uniqueInjectionDates >= 4) {
-        textEl.innerText = `${completedWeeks} semanas cumplidas en ${currentDose} (${uniqueInjectionDates} dosis registradas). Lista para evaluar ajuste con tu médico.`;
-        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-        badgeEl.innerText = `${completedWeeks} sem. (Apta)`;
+      const sorted = [...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      const currentDose = sorted[0].dose || '--';
+      const sameDose = sorted.filter(i=>i.dose===currentDose);
+      const earliest = sameDose.map(i=>String(i.date).split('T')[0]).sort()[0];
+      const elapsedDays = earliest ? Math.max(0, Math.floor((new Date()-new Date(earliest+'T12:00:00'))/86400000)) : 0;
+      if (p.frequencyDays === 1) {
+        textEl.innerText = isEnglish() ? `${elapsedDays+1} day(s) logged at ${currentDose}. Review any dose change only with your prescriber.` : `${elapsedDays+1} día(s) registrados en ${currentDose}. Revisa cualquier cambio de dosis únicamente con tu profesional.`;
+        badgeEl.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+        badgeEl.innerText = uiText('Régimen diario', 'Daily regimen');
       } else {
-        textEl.innerText = `Fase de adaptación: Semana ${Math.min(4, currentWeekNumber)} de 4 (${uniqueInjectionDates} dosis registradas).`;
-        badgeEl.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
-        badgeEl.innerText = `Semana ${Math.min(4, currentWeekNumber)} de 4`;
+        const weeks = Math.floor(elapsedDays/7)+1;
+        textEl.innerText = isEnglish() ? `Week ${weeks} at ${currentDose} · ${sameDose.length} logged dose(s). Dose changes should follow your prescribed plan.` : `Semana ${weeks} en ${currentDose} · ${sameDose.length} dosis registrada(s). Los cambios deben seguir tu plan prescrito.`;
+        badgeEl.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+        badgeEl.innerText = isEnglish() ? `Week ${weeks}` : `Semana ${weeks}`;
       }
     }
 
     function addToAppleCalendar() {
-      if (!state.injections || state.injections.length === 0) {
-        showToast("Registra primero una inyección para generar el recordatorio.");
-        return;
-      }
-
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const latest = sorted[0];
-      const dateStr = typeof latest.date === 'string' ? latest.date.split('T')[0] : '';
-      const lastDate = dateStr ? new Date(dateStr + "T12:00:00") : new Date(latest.date);
-
-      const nextDate = new Date(lastDate);
-      nextDate.setDate(lastDate.getDate() + 7);
-
-      const isOz = state.settings.medication === 'ozempic';
-      const medName = isOz ? "Ozempic" : "Mounjaro";
-
-      const y = nextDate.getFullYear();
-      const m = String(nextDate.getMonth() + 1).padStart(2, '0');
-      const d = String(nextDate.getDate()).padStart(2, '0');
-      const dtStart = `${y}${m}${d}T090000`;
-      const dtEnd = `${y}${m}${d}T093000`;
-
-      const ics = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//GLP1 Companion//ES",
-        "CALSCALE:GREGORIAN",
-        "BEGIN:VEVENT",
-        `SUMMARY:Dosis semanal de ${medName} (${latest.dose})`,
-        `DESCRIPTION:Recordatorio de inyeccion semanal de ${medName}. Rotar sitio de puncion anatomico.`,
-        `DTSTART:${dtStart}`,
-        `DTEND:${dtEnd}`,
-        "RRULE:FREQ=WEEKLY",
-        "BEGIN:VALARM",
-        "TRIGGER:-PT15M",
-        "ACTION:DISPLAY",
-        "DESCRIPTION:Recordatorio de dosis",
-        "END:VALARM",
-        "END:VEVENT",
-        "END:VCALENDAR"
-      ].join("\r\n");
-
-      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${medName.toLowerCase()}_recordatorio.ics`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Archivo de calendario generado. Ábrelo para agregarlo a Apple Calendar.");
+      if (!state.injections || state.injections.length === 0) { showToast(uiText('Registra primero una dosis para generar el recordatorio.', 'Log a dose first to create the reminder.')); return; }
+      const p=getMedicationProfile(); const sorted=[...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      const lastDate=new Date(String(latest.date).split('T')[0]+'T12:00:00'); const nextDate=new Date(lastDate); nextDate.setDate(lastDate.getDate()+p.frequencyDays);
+      const y=nextDate.getFullYear(), m=String(nextDate.getMonth()+1).padStart(2,'0'), d=String(nextDate.getDate()).padStart(2,'0');
+      const freq=p.frequencyDays===1?'DAILY':'WEEKLY'; const medName=p.name;
+      const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//GLP1 Companion//BILINGUAL','CALSCALE:GREGORIAN','BEGIN:VEVENT',`SUMMARY:${uiText('Dosis de','Dose of')} ${medName} (${latest.dose})`,`DESCRIPTION:${uiText('Recordatorio según el régimen registrado en GLP-1 Companion. Sigue siempre tu plan prescrito.','Reminder based on the regimen logged in GLP-1 Companion. Always follow your prescribed plan.')}`,`DTSTART:${y}${m}${d}T090000`,`DTEND:${y}${m}${d}T093000`,`RRULE:FREQ=${freq}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY',`DESCRIPTION:${uiText('Recordatorio de dosis','Dose reminder')}`,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\\r\
+');
+      const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=`${medName.toLowerCase().replace(/\\s+/g,'_')}_reminder.ics`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showToast(uiText('Archivo de calendario generado.', 'Calendar file created.'));
     }
 
     function triggerPrintReport() {
-      const isOz = state.settings.medication === 'ozempic';
-      const medName = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
-      
-      const printDateEl = document.getElementById('print-date');
-      const printPatientEl = document.getElementById('print-patient-info');
-      
-      if (printDateEl) printDateEl.innerText = `Fecha: ${new Date().toLocaleDateString('es-ES')}`;
-      if (printPatientEl) {
-        const userTag = currentUser ? `Paciente: ${escapeHtml(currentUser.email)}` : "Paciente: Usuario activo";
-        printPatientEl.innerHTML = `${userTag} &bull; Fármaco: ${medName}`;
-      }
-
-      switchTab('tools');
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      const p=getMedicationProfile(); const printDateEl=document.getElementById('print-date'); const printPatientEl=document.getElementById('print-patient-info');
+      if(printDateEl) printDateEl.innerText=isEnglish()?`Date: ${new Date().toLocaleDateString('en-US')}`:`Fecha: ${new Date().toLocaleDateString('es-US')}`;
+      if(printPatientEl){const who=currentUser?currentUser.email:uiText('Usuario activo','Active user'); printPatientEl.textContent=`${uiText('Paciente','Patient')}: ${who} · ${uiText('Medicamento','Medication')}: ${getMedicationLabel(p,true)}`;}
+      switchTab('tools'); setTimeout(()=>window.print(),300);
     }
 
     function checkFoodSymptomCorrelation() {
@@ -2556,7 +2685,9 @@
 
       if (hasDigestiveSymptoms && (highFatMeals.length > 0 || totalFatToday >= 25)) {
         alertBox.classList.remove('hidden');
-        alertText.innerText = `Se registraron síntomas digestivos tras consumir ${highFatMeals.length > 0 ? highFatMeals.join(', ') : `${totalFatToday}g de grasa acumulada hoy`}. En tratamiento GLP-1, las grasas moderadas/altas se retienen por vaciamiento gástrico lento, provocando reflujo, náuseas o eructos de azufre.`;
+        alertText.innerText = isEnglish()
+          ? `Digestive symptoms were logged on a day with ${highFatMeals.length > 0 ? highFatMeals.join(', ') : `${totalFatToday}g total fat`}. This is an observed association in your log, not proof of cause.`
+          : `Se registraron síntomas digestivos en un día con ${highFatMeals.length > 0 ? highFatMeals.join(', ') : `${totalFatToday}g de grasa total`}. Es una asociación observada en tu registro, no prueba de causa.`;
       } else {
         alertBox.classList.add('hidden');
       }
@@ -2743,12 +2874,36 @@
       }
     }
 
+    function getLastNDaysKeys(days=30){const end=new Date();end.setHours(12,0,0,0);const out=[];for(let i=days-1;i>=0;i--){const d=new Date(end);d.setDate(end.getDate()-i);out.push(getFormattedDate(d));}return out;}
+
+    function calculatePersonalInsights(days=30){
+      const keys=getLastNDaysKeys(days), waterGoal=Number(state.settings.waterGoal||96), proteinGoal=Number(state.settings.proteinGoal||110);
+      let lowWaterDays=0, lowWaterSymptomDays=0, adequateWaterDays=0, adequateWaterSymptomDays=0, proteinTracked=0, proteinGoalDays=0, tracked=0, symptomDays=0;
+      keys.forEach(k=>{const d=state.daysData[k];if(!d)return;if(dayHasMeaningfulTracking(d))tracked++;const s=d.symptoms||{};const symptomatic=!!((s.nausea&&s.nausea!=='none')||(s.heartburn&&s.heartburn!=='none')||(s.sulfur&&s.sulfur!=='none'));if(symptomatic)symptomDays++;const w=Number(d.water||0);if(w>0){if(w<waterGoal*.7){lowWaterDays++;if(symptomatic)lowWaterSymptomDays++;}else{adequateWaterDays++;if(symptomatic)adequateWaterSymptomDays++;}}if(Array.isArray(d.meals)&&d.meals.length){proteinTracked++;const prot=d.meals.reduce((sum,m)=>sum+Number(m&&m.protein||0),0);if(prot>=proteinGoal*.8)proteinGoalDays++;}});
+      const weights=(state.weights||[]).filter(w=>w&&keys.includes(String(w.date).split('T')[0])&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      const weightDelta=weights.length>=2?Number(weights.at(-1).weight)-Number(weights[0].weight):null;
+      const postDoseKeys=new Set();(state.injections||[]).forEach(i=>{if(!i||!i.date)return;const base=String(i.date).split('T')[0];[0,1,2].forEach(o=>postDoseKeys.add(getDateOffsetKey(base,o)));});
+      let postTracked=0,postSym=0,otherTracked=0,otherSym=0;keys.forEach(k=>{const d=state.daysData[k];if(!d||!dayHasMeaningfulTracking(d))return;const s=d.symptoms||{};const symptomatic=!!((s.nausea&&s.nausea!=='none')||(s.heartburn&&s.heartburn!=='none')||(s.sulfur&&s.sulfur!=='none'));if(postDoseKeys.has(k)){postTracked++;if(symptomatic)postSym++;}else{otherTracked++;if(symptomatic)otherSym++;}});
+      return {days,tracked,symptomDays,lowWaterDays,lowWaterSymptomDays,adequateWaterDays,adequateWaterSymptomDays,proteinTracked,proteinGoalDays,weightDelta,postTracked,postSym,otherTracked,otherSym};
+    }
+
+    function renderPersonalInsights(){
+      const el=document.getElementById('personal-insights-list');if(!el)return;const x=calculatePersonalInsights(30),items=[];
+      if(x.lowWaterDays>=2&&x.adequateWaterDays>=2){const low=Math.round(x.lowWaterSymptomDays/x.lowWaterDays*100), good=Math.round(x.adequateWaterSymptomDays/x.adequateWaterDays*100);items.push({icon:'droplets',text:isEnglish()?`Digestive symptoms were logged on ${low}% of lower-hydration days vs ${good}% of better-hydrated days.`:`Registraste síntomas digestivos en ${low}% de los días con menor hidratación vs ${good}% de los días con mejor hidratación.`});}
+      if(x.postTracked>=2&&x.otherTracked>=2){const a=Math.round(x.postSym/x.postTracked*100),b=Math.round(x.otherSym/x.otherTracked*100);items.push({icon:'syringe',text:isEnglish()?`Digestive symptoms appeared on ${a}% of tracked days within ~72h of a dose vs ${b}% on other tracked days.`:`Los síntomas digestivos aparecieron en ${a}% de los días registrados dentro de ~72 h de una dosis vs ${b}% en otros días registrados.`});}
+      if(x.proteinTracked>=3){const pct=Math.round(x.proteinGoalDays/x.proteinTracked*100);items.push({icon:'drumstick',text:isEnglish()?`You reached at least 80% of your protein goal on ${pct}% of days with meals logged.`:`Alcanzaste al menos 80% de tu meta de proteína en ${pct}% de los días con comidas registradas.`});}
+      if(x.weightDelta!==null){items.push({icon:'trending-up',text:isEnglish()?`Recorded weight change over the last 30 days: ${x.weightDelta>0?'+':''}${x.weightDelta.toFixed(1)} lb.`:`Cambio de peso registrado en los últimos 30 días: ${x.weightDelta>0?'+':''}${x.weightDelta.toFixed(1)} lb.`});}
+      if(!items.length) items.push({icon:'info',text:uiText('Sigue registrando agua, comidas, síntomas y dosis para generar insights personales más útiles.','Keep logging water, meals, symptoms and doses to generate more useful personal insights.')});
+      el.innerHTML=items.slice(0,4).map(i=>`<div class="p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl flex gap-2 items-start"><i data-lucide="${i.icon}" class="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5"></i><span class="text-slate-300 leading-relaxed">${escapeHtml(i.text)}</span></div>`).join(''); lucide.createIcons();
+    }
+
     /* ==========================================================================
        DASHBOARD METRICS & CURVA BIOLÓGICA CALIBRADA
        ========================================================================== */
     function updateDashboardView() {
       const day = getSelectedDay();
       renderWeeklySummary();
+      renderPersonalInsights();
 
       let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
       (day.meals || []).forEach(m => {
@@ -2808,75 +2963,25 @@
     }
 
     function updateHalfLifeAndNextDose() {
+      const p=getMedicationProfile(); const isOral=p.route==='oral';
       if (!state.injections || state.injections.length === 0) {
-        document.getElementById('dash-next-inj-text').innerText = uiText("Sin dosis registrada", "No dose recorded");
-        document.getElementById('dash-rotation-hint').innerHTML = `
-          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-          <span>${uiText("Toca Hub para registrar tu primera inyección", "Tap Hub to log your first injection")}</span>
-        `;
-        document.getElementById('dash-halflife-pct').innerText = "0%";
-        document.getElementById('dash-halflife-bar').style.width = "0%";
-        document.getElementById('dash-halflife-expl').innerText = uiText("Registra una inyección para calcular la concentración en sangre.", "Log an injection to calculate the estimated medication level.");
-        lucide.createIcons();
-        return;
+        document.getElementById('dash-next-inj-text').innerText = uiText('Sin dosis registrada','No dose recorded');
+        document.getElementById('dash-rotation-hint').innerHTML = `<i data-lucide="${isOral?'pill':'map-pin'}" class="w-3.5 h-3.5 text-emerald-400"></i><span>${isOral?uiText('Registra tu primera dosis oral','Log your first oral dose'):uiText('Toca Hub para registrar tu primera dosis','Tap Hub to log your first dose')}</span>`;
+        document.getElementById('dash-halflife-pct').innerText='0%'; document.getElementById('dash-halflife-bar').style.width='0%';
+        document.getElementById('dash-halflife-expl').innerText=uiText('Registra una dosis para calcular el nivel estimado.','Log a dose to calculate the estimated medication level.'); lucide.createIcons(); return;
       }
-
-      const isOz = state.settings.medication === 'ozempic';
-      const halfLifeDays = isOz ? 7 : 5;
-
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const latest = sorted[0];
-
-      const dateStr = typeof latest.date === 'string' ? latest.date.split('T')[0] : '';
-      const lastDate = dateStr ? new Date(dateStr + "T12:00:00") : new Date(latest.date);
-
-      if (isNaN(lastDate.getTime())) {
-        document.getElementById('dash-next-inj-text').innerText = uiText("Revisar fecha de dosis", "Review dose date");
-        return;
+      const sorted=[...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      const lastDate=new Date(String(latest.date).split('T')[0]+'T12:00:00'); if(isNaN(lastDate.getTime())){document.getElementById('dash-next-inj-text').innerText=uiText('Revisar fecha de dosis','Review dose date');return;}
+      const nextDate=new Date(lastDate); nextDate.setDate(lastDate.getDate()+p.frequencyDays); const now=new Date(); now.setHours(12,0,0,0); const diff=Math.round((nextDate-now)/86400000);
+      let due=''; if(diff>1) due=isEnglish()?`In ${diff} days (${nextDate.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})})`:`En ${diff} días (${nextDate.toLocaleDateString('es-US',{weekday:'short',day:'numeric',month:'short'})})`; else if(diff===1) due=uiText('Próxima dosis: mañana','Next dose: tomorrow'); else if(diff===0) due=uiText('¡Dosis programada para hoy!','Dose scheduled for today!'); else due=isEnglish()?`Past scheduled date by ${Math.abs(diff)} day(s)`:`Pasó la fecha programada por ${Math.abs(diff)} día(s)`;
+      document.getElementById('dash-next-inj-text').innerText=due;
+      const hint=document.getElementById('dash-rotation-hint');
+      if(isOral){hint.innerHTML=`<i data-lucide="pill" class="w-3.5 h-3.5 text-emerald-400"></i><span>${uiText('Régimen registrado','Logged regimen')}: <strong>${escapeHtml(getRegimenLabel(p))}</strong></span>`;} else {
+        const rotations={'Abdomen derecho':'Abdomen izquierdo','Abdomen izquierdo':'Muslo derecho','Muslo derecho':'Muslo izquierdo','Muslo izquierdo':'Brazo derecho','Brazo derecho':'Brazo izquierdo','Brazo izquierdo':'Abdomen derecho'}; const nextSite=rotations[latest.site]||'Abdomen izquierdo';
+        hint.innerHTML=`<i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i><span>${uiText('Rotación sugerida','Suggested rotation')}: <strong>${escapeHtml(translateSite(nextSite))}</strong></span>`;
       }
-
-      const nextDate = new Date(lastDate);
-      nextDate.setDate(lastDate.getDate() + 7);
-
-      const now = new Date();
-      now.setHours(12, 0, 0, 0);
-
-      const diffDays = Math.round((nextDate - now) / (1000 * 60 * 60 * 24));
-      let text = "";
-      if (diffDays > 1) text = isEnglish() ? `In ${diffDays} days (${nextDate.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })})` : `En ${diffDays} días (${nextDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })})`;
-      else if (diffDays === 1) text = uiText("Mañana corresponde dosis", "Dose due tomorrow");
-      else if (diffDays === 0) text = uiText("¡Hoy corresponde dosis!", "Dose due today!");
-      else text = isEnglish() ? `Overdue by ${Math.abs(diffDays)} days` : `Atrasada por ${Math.abs(diffDays)} días`;
-
-      document.getElementById('dash-next-inj-text').innerText = text;
-
-      const rotations = {
-        "Abdomen derecho": "Abdomen izquierdo",
-        "Abdomen izquierdo": "Muslo derecho",
-        "Muslo derecho": "Muslo izquierdo",
-        "Muslo izquierdo": "Brazo derecho",
-        "Brazo derecho": "Brazo izquierdo",
-        "Brazo izquierdo": "Abdomen derecho"
-      };
-      const nextSite = rotations[latest.site] || "Abdomen izquierdo";
-      document.getElementById('dash-rotation-hint').innerHTML = `
-        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>${uiText("Rotación sugerida", "Suggested rotation")}: <strong>${escapeHtml(nextSite)}</strong> (${uiText("Última", "Last")}: ${escapeHtml(latest.site)})</span>
-      `;
-
-      const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
-      const remainingPct = Math.round(Math.pow(0.5, daysSince / halfLifeDays) * 100);
-      document.getElementById('dash-halflife-pct').innerText = `${remainingPct}%`;
-      document.getElementById('dash-halflife-bar').style.width = `${Math.min(100, remainingPct)}%`;
-
-      let expl = "";
-      if (isOz) {
-        expl = uiText(`Vida media de ~7 días (semaglutide). Mantiene niveles plasmáticos más planos y uniformes a lo largo de la semana.`, `~7-day half-life (semaglutide). Estimated levels remain more even across the week.`);
-      } else {
-        expl = uiText(`Vida media de ~5 días (tirzepatide). En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`, `~5-day half-life (tirzepatide). Estimated levels decline across the week; continue following your nutrition plan.`);
-      }
-      document.getElementById('dash-halflife-expl').innerText = expl;
-      lucide.createIcons();
+      const daysSince=Math.max(0,(now-lastDate)/86400000), pct=Math.round(Math.pow(0.5,daysSince/p.halfLifeDays)*100); document.getElementById('dash-halflife-pct').innerText=`${pct}%`; document.getElementById('dash-halflife-bar').style.width=`${Math.min(100,pct)}%`;
+      const hl=p.halfLifeDays<1?`${Math.round(p.halfLifeDays*24)} h`:`~${p.halfLifeDays} ${uiText('días','days')}`; document.getElementById('dash-halflife-expl').innerText=isEnglish()?`Approximate half-life: ${hl} (${p.generic}). This is an estimate, not a drug-level measurement.`:`Vida media aproximada: ${hl} (${p.generic}). Es una estimación, no una medición del nivel del medicamento.`; lucide.createIcons();
     }
 
     function addWater(oz) {
@@ -3053,7 +3158,7 @@
       document.getElementById('modal-scanner').classList.add('flex');
       document.getElementById('ai-results-container').classList.add('hidden');
       document.getElementById('btn-run-analysis').disabled = false;
-      document.getElementById('btn-run-analysis-text').innerText = "Analizar nutrientes y tolerancia gástrica";
+      document.getElementById('btn-run-analysis-text').innerText = uiText('Analizar nutrientes y tolerancia gástrica','Analyze nutrition and tolerance');
       lucide.createIcons();
     }
 
@@ -3081,7 +3186,7 @@
     async function runMealAnalysis() {
       const textQuery = document.getElementById('scanner-text-input').value.trim();
       if (!selectedImageBase64 && !textQuery) {
-        showToast("Adjunta una foto o escribe una descripción del plato.");
+        showToast(uiText("Adjunta una foto o escribe una descripción del plato.", "Attach a photo or enter a meal description."));
         return;
       }
 
@@ -3090,28 +3195,28 @@
       // Validación previa de API key
       if (!apiKey) {
         if (textQuery) {
-          simulateSmartEstimate(textQuery, "Estimación local basada en descripción");
+          simulateSmartEstimate(textQuery, uiText("Estimación local basada en descripción", "Local estimate based on description"));
           return;
         } else {
-          showToast("Se requiere una clave de API de Gemini para analizar fotografías. Ingrésala en Ajustes o describe el plato.");
+          showToast(uiText("Se requiere una clave de API de Gemini para analizar fotografías. Ingrésala en Ajustes o describe el plato.", "A Gemini API key is required to analyze photos. Add it in Settings or describe the meal."));
           document.getElementById('ai-results-container').classList.add('hidden');
           return;
         }
       }
 
-      const isOz = state.settings.medication === 'ozempic';
-      const medLabel = isOz ? "Ozempic (semaglutide)" : "Mounjaro (tirzepatide)";
+      const medLabel = getMedicationLabel(getMedicationProfile(), true);
 
       const btn = document.getElementById('btn-run-analysis');
       const btnText = document.getElementById('btn-run-analysis-text');
       btn.disabled = true;
-      btnText.innerText = "Analizando plato con IA Gemini...";
+      btnText.innerText = uiText("Analizando plato con IA Gemini...", "Analyzing meal with Gemini AI...");
 
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`;
 
       // Prompt neutral de asistente nutricional
-      const systemPrompt = `Eres un asistente de análisis nutricional para una aplicación de seguimiento de pacientes que utilizan ${medLabel}.
-Analiza el plato de comida en la imagen o el texto.
+      const systemPrompt = `${isEnglish() ? 'You are a nutrition-analysis assistant for a GLP-1 tracking app. Respond in English.' : 'Eres un asistente de análisis nutricional para una app de seguimiento GLP-1. Responde en español.'}
+Medication logged: ${medLabel}.
+Analyze the food shown in the image or described in text.
 Debes responder obligatoriamente con un JSON válido con este formato:
 {
   "foodName": "Nombre descriptivo del plato",
@@ -3168,27 +3273,27 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         if (!rawJson) throw new Error("Respuesta vacía");
 
         const parsed = JSON.parse(rawJson);
-        populateAiResults(parsed, "Analizado con Gemini");
+        populateAiResults(parsed, uiText("Analizado con Gemini", "Analyzed with Gemini"));
 
       } catch (err) {
         console.warn("Fallo de API:", err);
         if (textQuery) {
-          simulateSmartEstimate(textQuery, "Estimación local basada en descripción");
-          showToast("Fallo de conexión con Gemini. Usando estimación local por texto.");
+          simulateSmartEstimate(textQuery, uiText("Estimación local basada en descripción", "Local estimate based on description"));
+          showToast(uiText("Fallo de conexión con Gemini. Usando estimación local por texto.", "Gemini connection failed. Using a local text-based estimate."));
         } else {
           document.getElementById('ai-results-container').classList.add('hidden');
-          showToast("No se pudo analizar la fotografía con Gemini. Verifica tu conexión y la clave de API, o escribe una descripción del plato para obtener una estimación local.");
+          showToast(uiText("No se pudo analizar la fotografía con Gemini. Verifica tu conexión y la clave de API, o escribe una descripción del plato para obtener una estimación local.", "Gemini could not analyze the photo. Check your connection and API key, or enter a meal description for a local estimate."));
         }
       } finally {
         btn.disabled = false;
-        btnText.innerText = "Analizar nutrientes y tolerancia gástrica";
+        btnText.innerText = uiText("Analizar nutrientes y tolerancia gástrica", "Analyze nutrition and tolerance");
       }
     }
 
     function simulateSmartEstimate(query, sourceLabel) {
       const q = (query || "").toLowerCase();
       let est = {
-        foodName: query || "Plato combinado",
+        foodName: query || uiText("Plato combinado", "Mixed meal"),
         calories: 390,
         protein: 33,
         carbs: 27,
@@ -3197,23 +3302,23 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       };
 
       if (q.includes("pollo") || q.includes("pierna")) {
-        est.foodName = query || "Piernas de pollo con arroz y frijoles";
+        est.foodName = query || uiText("Piernas de pollo con arroz y frijoles", "Chicken legs with rice and beans");
         est.calories = 390;
         est.protein = 33;
         est.carbs = 27;
         est.fat = 15;
-        est.mounjaroTip = "La piel dorada contiene grasa concentrada. Si sientes eructos de azufre o reflujo, retira la piel para aligerar la digestión.";
+        est.mounjaroTip = uiText("Las comidas con más grasa pueden coincidir con síntomas en algunas personas; observa tu propio registro.", "Higher-fat meals may coincide with symptoms for some people; watch your own log.");
       } else if (q.includes("huevo") || q.includes("omelet")) {
-        est.foodName = "Huevos revueltos con vegetales";
+        est.foodName = uiText("Huevos revueltos con vegetales", "Scrambled eggs with vegetables");
         est.calories = 240;
         est.protein = 18;
         est.carbs = 3;
         est.fat = 16;
-        est.mounjaroTip = "Proteína suave y de digestión ligera. Ideal para romper el ayuno sin generar distensión abdominal.";
+        est.mounjaroTip = uiText("Fuente de proteína; registra cómo la toleras.", "Protein source; log how you tolerate it.");
       }
 
-      populateAiResults(est, sourceLabel || "Estimación local basada en descripción");
-      showToast(sourceLabel || "Estimado asistido completado.");
+      populateAiResults(est, sourceLabel || uiText("Estimación local basada en descripción", "Local estimate based on description"));
+      showToast(sourceLabel || uiText("Estimado asistido completado.", "Assisted estimate completed."));
     }
 
     function populateAiResults(data, sourceLabel) {
@@ -3222,11 +3327,11 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.getElementById('res-protein').value = data.protein || 30;
       document.getElementById('res-carbs').value = data.carbs || 25;
       document.getElementById('res-fat').value = data.fat || 12;
-      document.getElementById('res-glp1-tip').innerText = data.mounjaroTip || "Prioriza la proteína y mastica despacio para no saturar el estómago.";
+      document.getElementById('res-glp1-tip').innerText = data.mounjaroTip || uiText("Prioriza la proteína y mastica despacio para no saturar el estómago.", "Prioritize protein and eat slowly to support tolerance.");
 
       const badgeText = document.getElementById('ai-source-text');
       if (badgeText) {
-        badgeText.innerText = sourceLabel || "Análisis listo (Ajustable)";
+        badgeText.innerText = sourceLabel || uiText("Análisis listo (Ajustable)", "Analysis ready (Editable)");
       }
 
       document.getElementById('ai-results-container').classList.remove('hidden');
@@ -3278,7 +3383,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     function saveManualMeal() {
-      const name = document.getElementById('manual-name').value.trim() || "Comida";
+      const name = document.getElementById('manual-name').value.trim() || uiText("Comida", "Meal");
       const slot = document.getElementById('manual-slot').value;
       const calories = Number(document.getElementById('manual-cal').value) || 0;
       const protein = Number(document.getElementById('manual-protein').value) || 0;
@@ -3326,7 +3431,8 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     function saveInjectionRecord() {
       const date = document.getElementById('inj-date').value || state.selectedDate;
       const dose = document.getElementById('inj-dose').value;
-      const site = document.getElementById('inj-site').value;
+      const medProfile = getMedicationProfile();
+      const site = medProfile.route === 'oral' ? 'Oral' : document.getElementById('inj-site').value;
       const notes = document.getElementById('inj-notes').value.trim();
 
       const newId = "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
@@ -3350,12 +3456,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       closeLogInjectionModal();
       renderMounjaroView();
       updateDashboardView();
-      showToast(`Dosis de ${dose} guardada (${site})`);
+      showToast(isEnglish() ? `Dose saved: ${dose}${medProfile.route==='oral'?'':` (${site})`}` : `Dosis guardada: ${dose}${medProfile.route==='oral'?'':` (${site})`}`);
     }
 
     function adjustPenCount(delta) {
       state.settings.pensInStock = Math.max(0, (state.settings.pensInStock || 0) + delta);
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock} plumas`;
+      const p = getMedicationProfile();
+      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock} ${isEnglish() ? p.inventoryUnitEn : p.inventoryUnitEs}`;
       persistState();
       renderMounjaroView();
     }
@@ -3364,7 +3471,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.settings.roomTempPenStart = Date.now();
       persistState();
       renderMounjaroView();
-      showToast(uiText("Conteo de temperatura ambiente iniciado para la pluma en uso.", "Room-temperature countdown started for the pen in use."));
+      showToast(uiText("Conteo de temperatura ambiente iniciado para el medicamento en uso.", "Room-temperature countdown started for the medication in use."));
     }
 
     function getDateOffsetKey(dateKey, offsetDays) {
@@ -3492,10 +3599,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const inj=(state.injections||[]).find(i=>i&&i.id===id); if(!inj) return;
       const subtitle=document.getElementById('injection-detail-subtitle');
       const body=document.getElementById('injection-detail-body');
-      subtitle.innerText=`${inj.dose||'--'} · ${String(inj.date).split('T')[0]} · ${inj.site||'--'}`;
+      subtitle.innerText=`${inj.dose||'--'} · ${String(inj.date).split('T')[0]} · ${translateSite(inj.site)}`;
       const windows=getInjectionResponse(inj), labels=['0–24 h','24–48 h','48–72 h'];
       const cards=windows.map((m,idx)=>`<div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl"><div class="flex justify-between"><span class="font-black text-emerald-300">${labels[idx]}</span><span class="text-[10px] text-slate-500">${escapeHtml(m.dateKey||'')}</span></div>${m.exists?`<p class="mt-1 text-slate-300">${escapeHtml(m.symptoms.length?m.symptoms.join(', '):uiText('Sin síntomas digestivos registrados','No digestive symptoms recorded'))}</p><p class="text-[10px] text-slate-500 mt-1">${uiText('Agua','Water')}: ${Math.round(m.water)} oz · ${uiText('Proteína','Protein')}: ${Math.round(m.protein)} g · ${uiText('Apetito','Appetite')}: ${m.hunger??'--'}/10 · ${uiText('Evacuaciones','Bowel')}: ${m.bowelCount}</p>`:`<p class="mt-1 text-slate-500">${uiText('Sin datos registrados','No records')}</p>`}</div>`).join('');
-      body.innerHTML=`<div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"><p class="font-bold text-white">${escapeHtml(inj.dose||'--')} · ${escapeHtml(inj.site||'--')}</p><p class="text-[10px] text-slate-400">${escapeHtml(inj.notes||uiText('Sin observaciones','No notes'))}</p></div>${cards}<p class="text-[9px] text-slate-500">${uiText('Resumen aproximado por días; no sustituye evaluación médica.','Approximate day-based summary; not a substitute for medical evaluation.')}</p>`;
+      body.innerHTML=`<div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl"><p class="font-bold text-white">${escapeHtml(inj.dose||'--')} · ${escapeHtml(translateSite(inj.site))}</p><p class="text-[10px] text-slate-400">${escapeHtml(inj.notes||uiText('Sin observaciones','No notes'))}</p></div>${cards}<p class="text-[9px] text-slate-500">${uiText('Resumen aproximado por días; no sustituye evaluación médica.','Approximate day-based summary; not a substitute for medical evaluation.')}</p>`;
       const modal=document.getElementById('modal-injection-detail'); modal.classList.remove('hidden'); modal.classList.add('flex'); lucide.createIcons();
     }
 
@@ -3503,22 +3610,23 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function renderMounjaroView() {
       ensureInjectionIds();
-      const isOz = state.settings.medication === 'ozempic';
-      const maxDays = isOz ? 56 : 21;
+      const medProfile = getMedicationProfile();
+      const isOral = medProfile.route === 'oral';
+      const maxDays = medProfile.roomTempDays || 0;
 
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       if (sorted.length > 0) {
         const latest = sorted[0];
-        document.getElementById('hub-last-dose').innerText = latest.dose || (isOz ? "0.25 mg" : "2.5 mg");
+        document.getElementById('hub-last-dose').innerText = latest.dose || (medProfile.doses[0]?.[0] || '--');
         document.getElementById('hub-last-date').innerText = (typeof latest.date === 'string' ? latest.date.split('T')[0] : latest.date) || "--";
-        document.getElementById('hub-last-site').innerText = latest.site || "Abdomen derecho";
+        document.getElementById('hub-last-site').innerText = isOral ? uiText('Vía oral','Oral') : translateSite(latest.site);
       } else {
         document.getElementById('hub-last-dose').innerText = uiText("Sin dosis", "No dose");
         document.getElementById('hub-last-date').innerText = "--";
         document.getElementById('hub-last-site').innerText = uiText("Sin registro", "No record");
       }
 
-      document.getElementById('pen-stock-val').innerText = isEnglish() ? `${state.settings.pensInStock || 0} pens` : `${state.settings.pensInStock || 0} plumas`;
+      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} ${isEnglish() ? medProfile.inventoryUnitEn : medProfile.inventoryUnitEs}`;
       const warningEl = document.getElementById('dash-pen-warning');
       if (state.settings.pensInStock <= 2) {
         warningEl.classList.remove('hidden');
@@ -3526,7 +3634,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         warningEl.classList.add('hidden');
       }
 
-      if (state.settings.roomTempPenStart) {
+      if (maxDays > 0 && state.settings.roomTempPenStart) {
         const elapsedDays = (Date.now() - state.settings.roomTempPenStart) / (1000 * 60 * 60 * 24);
         const daysLeft = Math.max(0, Math.ceil(maxDays - elapsedDays));
         const badge = document.getElementById('room-temp-status-badge');
@@ -3546,7 +3654,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       listEl.innerHTML = '';
 
       if (sorted.length === 0) {
-        listEl.innerHTML = `<p class="text-slate-500 italic">${uiText("No hay inyecciones guardadas aún.", "No injections recorded yet.")}</p>`;
+        listEl.innerHTML = `<p class="text-slate-500 italic">${uiText("No hay dosis guardadas aún.", "No doses recorded yet.")}</p>`;
       } else {
         sorted.forEach(inj => {
           const item = document.createElement('div');
@@ -3555,7 +3663,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           const cleanDate = typeof inj.date === 'string' ? inj.date.split('T')[0] : inj.date;
           item.innerHTML = `
             <div>
-              <span class="font-bold text-white">${escapeHtml(inj.dose)} &bull; ${escapeHtml(inj.site)}</span>
+              <span class="font-bold text-white">${escapeHtml(inj.dose)} &bull; ${escapeHtml(translateSite(inj.site))}</span>
               <p class="text-[10px] text-slate-500">${escapeHtml(cleanDate)} ${inj.notes ? `&bull; ${escapeHtml(inj.notes)}` : ''}</p>
             </div>
             <button data-delete-inj="${escapeHtml(inj.id)}" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="Eliminar registro">
@@ -3582,6 +3690,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       renderDoseResponseInsights();
       renderTolerancePatterns();
       applyStaticTranslations();
+      applyMedicationTheme();
+      renderPersonalInsights();
+      if (activeTab === 'tools') renderMaintenanceMode();
       lucide.createIcons();
     }
 
@@ -3627,7 +3738,22 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     /* ==========================================================================
        HERRAMIENTAS, PESO, PROYECCIÓN Y MEDIA MÓVIL (7 DÍAS)
        ========================================================================== */
+    function getLatestWeight(){const arr=(state.weights||[]).filter(w=>w&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));return arr.length?Number(arr.at(-1).weight):null;}
+    function getWeightVariation(days=30){const cutoff=getDateOffsetKey(getFormattedDate(new Date()),-(days-1));const vals=(state.weights||[]).filter(w=>w&&String(w.date)>=cutoff&&Number.isFinite(Number(w.weight))).map(w=>Number(w.weight));if(vals.length<2)return null;return Math.max(...vals)-Math.min(...vals);}
+    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const range=Number(input&&input.value);if(Number.isFinite(range)&&range>=1&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;persistState();renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
+    function renderMaintenanceMode(){
+      const badge=document.getElementById('maintenance-status-badge'),summary=document.getElementById('maintenance-summary'),rangeEl=document.getElementById('maintenance-range'),curEl=document.getElementById('maintenance-current'),varEl=document.getElementById('maintenance-variation'),btn=document.getElementById('maintenance-toggle-btn'),input=document.getElementById('maintenance-range-input');if(!badge||!summary)return;
+      const goal=Number(state.settings.goalWeight||180), margin=Math.max(1,Number(state.settings.maintenanceRangeLb||3)),cur=getLatestWeight(),variation=getWeightVariation(30),low=goal-margin,high=goal+margin,enabled=!!state.settings.maintenanceEnabled;if(input)input.value=margin;rangeEl.innerText=`${low.toFixed(1)}–${high.toFixed(1)} lb`;curEl.innerText=cur===null?'--':`${cur.toFixed(1)} lb`;varEl.innerText=variation===null?'--':`${variation.toFixed(1)} lb`;
+      badge.innerText=enabled?uiText('Activo','Active'):uiText('Inactivo','Inactive');badge.className=enabled?'text-[9px] font-bold px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40':'text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700';btn.innerText=enabled?uiText('Desactivar','Disable'):uiText('Activar','Enable');
+      if(!enabled){summary.innerText=cur!==null&&cur<=goal+margin?uiText('Tu peso registrado está cerca del rango meta. Activa este modo cuando tú y tu profesional decidan entrar en mantenimiento.','Your recorded weight is near the goal range. Enable this mode when you and your clinician decide to enter maintenance.'):uiText('Actívalo cuando tú y tu profesional de salud decidan que entraste en una fase de mantenimiento.','Enable it when you and your healthcare professional decide you have entered a maintenance phase.');return;}
+      if(cur===null){summary.innerText=uiText('Registra un peso para evaluar estabilidad dentro del rango.','Log a weight to evaluate stability within the range.');return;}
+      if(cur<low)summary.innerText=uiText(`Tu último peso está ${Math.abs(cur-low).toFixed(1)} lb por debajo del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`,`Your latest weight is ${Math.abs(cur-low).toFixed(1)} lb below the configured range. Watch the trend and discuss it at your next visit.`);
+      else if(cur>high)summary.innerText=uiText(`Tu último peso está ${(cur-high).toFixed(1)} lb por encima del rango configurado. Observa la tendencia y coméntala en tu próxima consulta.`,`Your latest weight is ${(cur-high).toFixed(1)} lb above the configured range. Watch the trend and discuss it at your next visit.`);
+      else summary.innerText=variation!==null&&variation<=margin*2?uiText(`Tu último peso está dentro del rango configurado. Variación de 30 días: ${variation.toFixed(1)} lb.`,`Your latest weight is within the configured range. 30-day variation: ${variation.toFixed(1)} lb.`):uiText('Tu último peso está dentro del rango configurado. Sigue observando la tendencia de varias semanas.','Your latest weight is within the configured range. Keep watching the multi-week trend.');
+    }
+
     function renderToolsView() {
+      renderMaintenanceMode();
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       const goalW = Number(state.settings.goalWeight || 180);
@@ -3929,7 +4055,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         clearInterval(pacingTimerInterval);
         pacingTimerInterval = null;
         btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Reanudar`;
-        showToast("Cronómetro pausado.");
+        showToast(uiText("Cronómetro pausado.", "Timer paused."));
         lucide.createIcons();
         return;
       }
@@ -3940,7 +4066,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
       playGentleChime(523.25);
       btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pausar`;
-      showToast(pacingSecondsLeft === 20 * 60 ? "Cronómetro de 20 min iniciado." : "Cronómetro reanudado.");
+      showToast(pacingSecondsLeft === 20 * 60 ? uiText("Cronómetro de 20 min iniciado.", "20-minute timer started.") : uiText("Cronómetro reanudado.", "Timer resumed."));
       lucide.createIcons();
 
       pacingTimerInterval = setInterval(() => {
@@ -3951,7 +4077,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
         if (pacingSecondsLeft === 600) {
           playGentleChime(659.25);
-          showToast("10 minutos transcurridos: Evalúa tu saciedad. ¿Sientes plenitud?");
+          showToast(uiText("10 minutos transcurridos: Evalúa tu saciedad. ¿Sientes plenitud?", "10 minutes: check your fullness and pace."));
         }
 
         if (pacingSecondsLeft <= 0) {
@@ -3959,8 +4085,8 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           pacingTimerInterval = null;
           pacingSecondsLeft = 20 * 60;
           playGentleChime(783.99);
-          showToast("¡20 minutos completados! Excelente ritmo digestivo.");
-          btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer`;
+          showToast(uiText("¡20 minutos completados!", "20 minutes completed!"));
+          btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> ${uiText("Iniciar al comer", "Start with meal")}`;
           lucide.createIcons();
         }
       }, 1000);
@@ -3974,7 +4100,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       pacingSecondsLeft = 20 * 60;
       document.getElementById('pacing-timer-badge').innerText = "20:00";
       const btn = document.getElementById('btn-start-pacing');
-      btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer`;
+      btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> ${uiText("Iniciar al comer", "Start with meal")}`;
       lucide.createIcons();
     }
 
@@ -4092,7 +4218,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       const tx = (es,enText) => en ? enText : es;
       const bounds = getAppointmentDateBounds(rangeValue);
       const inRange = dateKey => dateKey && (!bounds.startKey || dateKey >= bounds.startKey) && dateKey <= bounds.endKey;
-      const medication = state.settings.medication === 'ozempic' ? 'Ozempic (semaglutide)' : 'Mounjaro (tirzepatide)';
+      const medication = getMedicationLabel(getMedicationProfile(), true);
       const weights=(state.weights||[]).filter(w=>w&&inRange(w.date)&&Number.isFinite(Number(w.weight))).sort((a,b)=>a.date.localeCompare(b.date));
       const injections=(state.injections||[]).filter(i=>i&&inRange(i.date)).sort((a,b)=>a.date.localeCompare(b.date));
       const measurements=(state.measurements||[]).filter(m=>m&&inRange(m.date)).sort((a,b)=>a.date.localeCompare(b.date));
@@ -4127,7 +4253,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
       lines.push(tx('TRATAMIENTO Y RESPUESTA A DOSIS','TREATMENT AND DOSE RESPONSE'));
       lines.push(`• ${tx('Inyecciones registradas','Logged injections')}: ${injections.length}`);
-      if(injections.length){const last=injections.at(-1);lines.push(`• ${tx('Última dosis','Last dose')}: ${last.dose||'--'} · ${last.date}${last.site?` · ${last.site}`:''}`); const resp=getInjectionResponse(last); resp.forEach((m,idx)=>{const label=['0–24 h','24–48 h','48–72 h'][idx]; const sx=m.symptoms.length?m.symptoms.join(', '):tx('sin síntomas digestivos registrados','no digestive symptoms recorded'); lines.push(`  ${label}: ${m.exists?sx:tx('sin datos','no records')} · ${tx('agua','water')} ${Math.round(m.water)} oz · ${tx('proteína','protein')} ${Math.round(m.protein)} g`);});}
+      if(injections.length){const last=injections.at(-1);lines.push(`• ${tx('Última dosis','Last dose')}: ${last.dose||'--'} · ${last.date}${last.site?` · ${en ? ({'Abdomen derecho':'Right abdomen','Abdomen izquierdo':'Left abdomen','Muslo derecho':'Right thigh','Muslo izquierdo':'Left thigh','Brazo derecho':'Right upper arm','Brazo izquierdo':'Left upper arm','Oral':'Oral'}[last.site]||last.site) : ({'Oral':'Vía oral'}[last.site]||last.site)}`:''}`); const resp=getInjectionResponse(last); resp.forEach((m,idx)=>{const label=['0–24 h','24–48 h','48–72 h'][idx]; const sx=m.symptoms.length?m.symptoms.join(', '):tx('sin síntomas digestivos registrados','no digestive symptoms recorded'); lines.push(`  ${label}: ${m.exists?sx:tx('sin datos','no records')} · ${tx('agua','water')} ${Math.round(m.water)} oz · ${tx('proteína','protein')} ${Math.round(m.protein)} g`);});}
       lines.push('');
 
       lines.push(tx('NUTRICIÓN E HIDRATACIÓN','NUTRITION AND HYDRATION'));
@@ -4265,11 +4391,13 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       state.settings.tdee = Number(document.getElementById('setting-tdee').value) || 2000;
       state.settings.proteinGoal = Number(document.getElementById('setting-protein-goal').value) || 110;
       state.settings.waterGoal = Number(document.getElementById('setting-water-goal').value) || 96;
+      const maintenanceInput = document.getElementById('maintenance-range-input');
+      if (maintenanceInput) { const mr=Number(maintenanceInput.value); if (Number.isFinite(mr)&&mr>=1&&mr<=15) state.settings.maintenanceRangeLb=mr; }
 
       persistState();
       updateDashboardView();
       renderToolsView();
-      showToast("Configuración guardada.");
+      showToast(uiText("Configuración guardada.", "Settings saved."));
     }
 
     function saveApiKeySetting() {
@@ -4310,6 +4438,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           if (imported.settings && typeof imported.settings === 'object' && !Array.isArray(imported.settings)) {
             delete imported.settings.apiKey;
             state.settings = Object.assign(state.settings, imported.settings);
+            if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
+            if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
+            const importedRange = Number(state.settings.maintenanceRangeLb);
+            state.settings.maintenanceRangeLb = Number.isFinite(importedRange) && importedRange >= 1 && importedRange <= 15 ? importedRange : 3;
           }
 
           // Validación estricta día por día, incluyendo fechas reales de calendario.
@@ -4491,7 +4623,9 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         roomTempPenStart: null,
         fastingStart: null,
         isFasting: false,
-        language: "es"
+        language: "es",
+        maintenanceEnabled: false,
+        maintenanceRangeLb: 3
       };
       state.selectedDate = getFormattedDate(new Date());
 
@@ -4570,10 +4704,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           pullContainer.style.height = `${pullHeight}px`;
           pullContainer.style.opacity = `${Math.min(1, pullHeight / 35)}`;
           if (pullHeight >= 40) {
-            pullText.innerText = "Suelta para actualizar";
+            pullText.innerText = uiText("Suelta para actualizar", "Release to refresh");
             pullIcon.style.transform = "rotate(180deg)";
           } else {
-            pullText.innerText = "Desliza para actualizar";
+            pullText.innerText = uiText("Desliza para actualizar", "Pull to refresh");
             pullIcon.style.transform = `rotate(${pullHeight * 4.5}deg)`;
           }
         }
@@ -4584,7 +4718,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         isPulling = false;
         const currentHeight = parseFloat(pullContainer.style.height || "0");
         if (currentHeight >= 40) {
-          pullText.innerText = "Actualizando...";
+          pullText.innerText = uiText("Actualizando...", "Refreshing...");
           pullIcon.classList.add('animate-spin');
           await triggerAppRefresh();
           setTimeout(() => {
@@ -4617,7 +4751,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       updateDateBadge();
       renderCurrentDay();
       if (activeTab === 'tools') renderToolsView();
-      showToast("App actualizada al día de hoy.");
+      showToast(uiText("App actualizada al día de hoy.", "App refreshed to today."));
     }
 
     window.addEventListener('DOMContentLoaded', () => {
