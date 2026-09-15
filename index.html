@@ -1,2488 +1,1105 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mounjaro Companion &bull; Salud GLP-1/GIP</title>
-
-  <!-- PWA and Mobile Web App Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mounjaro clinical tracker</title>
+  
+  <!-- Configuración PWA para iOS y Android -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MounjaroApp">
-  <meta name="application-name" content="MounjaroApp">
+  <meta name="apple-mobile-web-app-title" content="Mounjaro">
   <meta name="theme-color" content="#090d16">
-  <meta name="description" content="Aplicación web progresiva para el control integral de pérdida de peso con Mounjaro (tirzepatide), análisis visual de platos con IA, monitoreo de hidratación y seguridad digestiva.">
-
-  <!-- External CDNs: Tailwind, Chart.js, Lucide Icons -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js para métricas visuales -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857'
-            },
-            app: {
-              bg: '#090d16',
-              surface: '#111a2e',
-              card: '#162238',
-              border: '#223455',
-              borderLight: '#2c426b',
-              muted: '#94a3b8',
-              cyan: '#06b6d4',
-              amber: '#f59e0b',
-              rose: '#ef4444',
-              violet: '#8b5cf6'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
-          }
-        }
-      }
-    };
-  </script>
 
   <style>
     :root {
-      color-scheme: dark;
+      --bg-main: #090d16;
+      --bg-card: #121a2c;
+      --bg-card-hover: #18233a;
+      --border: #1e2d4a;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
     }
-    body {
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      background-color: #090d16;
     }
-    input, textarea, select {
-      user-select: text;
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 90px;
     }
-    .hide-scrollbar::-webkit-scrollbar {
+
+    /* Encabezado superior */
+    header {
+      background: rgba(18, 26, 44, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-sos {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-auth {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid var(--blue);
+      color: #93c5fd;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-status {
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+    .sync-dot.synced { background: var(--emerald); }
+
+    /* Estructura general de contenedores */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Alerta médica de estreñimiento */
+    .alert-banner {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--amber);
+      border-radius: 12px;
+      padding: 12px 14px;
       display: none;
+      align-items: flex-start;
+      gap: 10px;
+      color: #fde68a;
+      font-size: 13px;
+      line-height: 1.4;
     }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+
+    /* Curva de vida media (half-life) */
+    .half-life-bar {
+      height: 10px;
+      background: #1e293b;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 10px 0;
     }
-    .tab-active {
-      color: #34d399 !important;
-      position: relative;
+
+    .half-life-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--emerald), var(--cyan));
+      border-radius: 6px;
+      transition: width 0.5s ease;
     }
-    .tab-active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 18px;
-      height: 3px;
-      background-color: #10b981;
-      border-radius: 9999px;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+
+    /* Métricas principales */
+    .grid-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-    .glass-panel {
-      background: rgba(22, 34, 56, 0.78);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(34, 52, 85, 0.85);
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
     }
-    .water-fill {
-      background: linear-gradient(180deg, #06b6d4 0%, #0284c7 100%);
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 4px;
     }
-    .glow-emerald {
-      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--text-muted);
     }
-    .glow-cyan {
-      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
+
+    /* Contador de agua */
+    .water-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
     }
+
+    .btn-water {
+      flex: 1;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid var(--cyan);
+      color: #67e8f9;
+      padding: 8px 0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Formularios y entradas */
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0d1322;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--cyan);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--emerald), #059669);
+      border: none;
+      color: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Diario de alimentos */
+    .meal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meal-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Navegación por pestañas */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(18, 26, 44, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 40;
+    }
+
+    .nav-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      width: 33%;
+    }
+
+    .nav-tab.active {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    /* Modales */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fde68a; }
   </style>
 </head>
+<body>
 
-<body class="text-slate-200 antialiased min-h-screen pb-28 flex flex-col items-center">
-  <div id="app-container" class="w-full max-w-lg min-h-screen bg-[#090d16] shadow-2xl flex flex-col relative border-x border-[#1e293b]">
+  <!-- Encabezado superior -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">M</div>
+      <div class="brand-text">
+        <h1>Mounjaro clinical</h1>
+        <div class="sync-status">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncText">Local storage</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-sos" onclick="openModal('modalSos')">SOS síntomas</button>
+      <button class="btn-auth" id="btnAuth" onclick="handleAuthAction()">
+        <span id="authLabel">Sign in</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
     
-    <!-- Top Sticky Header -->
-    <header class="sticky top-0 z-30 bg-[#090d16]/92 backdrop-blur-md border-b border-[#223455] px-4 py-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/20 font-black">
-            <i data-lucide="shield-plus" class="w-5 h-5 text-white"></i>
-          </div>
-          <div>
-            <div class="flex items-center space-x-1.5">
-              <h1 class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-            </div>
-            <p class="text-[11px] text-slate-400">Control de tirzepatide &bull; Local storage</p>
-          </div>
-        </div>
-
-        <!-- Date Navigation Controls & SOS Shortcut Button -->
-        <div class="flex items-center space-x-1.5">
-          <button onclick="openSosModal()" class="px-2 py-1 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-bold rounded-xl flex items-center gap-1 transition-all" title="Guía rápida de alivio">
-            <i data-lucide="life-buoy" class="w-3.5 h-3.5 text-rose-400 animate-pulse"></i>
-            <span class="text-[10px] hidden sm:inline">SOS</span>
-          </button>
-
-          <div class="flex items-center space-x-0.5 bg-[#111a2e] border border-[#223455] p-1 rounded-xl">
-            <button id="btn-prev-day" class="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" title="Día anterior">
-              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-            </button>
-            <span id="current-date-badge" class="text-xs font-bold px-1.5 text-slate-200 select-none min-w-[50px] text-center">Hoy</span>
-            <button id="btn-next-day" class="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" title="Día siguiente">
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-        </div>
+    <!-- Alerta médica por ausencia de evacuación -->
+    <div class="alert-banner" id="bowelAlert">
+      <span style="font-size: 18px;">⚠️</span>
+      <div>
+        <strong>Atención preventiva:</strong> Han transcurrido más de 48 horas sin registrar una evacuación. Aumenta el consumo de agua con electrolitos y consulta la guía SOS para evitar estreñimiento severo.
       </div>
+    </div>
 
-      <!-- Critical Bowel Movement Warning Banner (>48h prompt) -->
-      <div id="bowel-alert-banner" class="hidden mt-2.5 p-2.5 bg-rose-500/15 border border-rose-500/35 rounded-xl items-center justify-between text-xs text-rose-300">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0 animate-bounce"></i>
-          <div>
-            <span class="font-bold block leading-tight">Alerta preventiva de evacuación (>48h)</span>
-            <span class="text-[10px] text-rose-300">Vaciamiento lento detectado. Bebe agua tibia o citrato de magnesio.</span>
-          </div>
-        </div>
-        <button onclick="logBowelMovementNow()" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[10px] shrink-0 transition-colors">
-          Evacuó hoy
-        </button>
-      </div>
-    </header>
-
-    <main class="flex-1 p-4 overflow-y-auto hide-scrollbar space-y-4">
+    <!-- Pestaña 1: Panel y diario -->
+    <section id="tabDashboard" class="tab-content">
       
-      <!-- ======================================================================
-           TAB 1: PANEL Y DIARIO (DASHBOARD, QUICK LOG & MEALS)
-           ====================================================================== -->
-      <section id="tab-dashboard" class="tab-content space-y-4">
+      <!-- Estado de medicación y curva de concentración -->
+      <div class="card">
+        <div class="card-title">
+          <span>Curva de tirzepatida en sangre</span>
+          <span class="badge badge-emerald" id="lblCurrentDose">Dosis: 2.5 mg</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span id="lblDaysSinceDose">Día 0 de 7</span>
+          <span id="lblEstimatedConcentration">Concentración estimada: 100%</span>
+        </div>
+        <div class="half-life-bar">
+          <div class="half-life-fill" id="barHalfLife" style="width: 100%;"></div>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted);" id="lblHalfLifeNote">
+          En los días 5 a 7 es normal que el apetito se reactive levemente debido a la vida media biológica de 5 días del compuesto.
+        </p>
+      </div>
+
+      <!-- Métricas nutricionales del día -->
+      <div class="grid-stats">
+        <div class="stat-box">
+          <div class="stat-lbl">Proteína acumulada</div>
+          <div class="stat-val" id="valProtein" style="color: var(--emerald);">0 g</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Meta: 110 g</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">Calorías consumidas</div>
+          <div class="stat-val" id="valCalories" style="color: var(--cyan);">0 kcal</div>
+          <div style="font-size: 11px; color: var(--text-muted);" id="lblCalorieDeficit">Déficit: -</div>
+        </div>
+      </div>
+
+      <!-- Control de hidratación -->
+      <div class="card">
+        <div class="card-title">
+          <span>Hidratación diaria</span>
+          <span class="badge badge-emerald" id="valWater">0 oz / 80 oz</span>
+        </div>
+        <div class="water-actions">
+          <button class="btn-water" onclick="addWater(8)">+8 oz</button>
+          <button class="btn-water" onclick="addWater(16)">+16 oz</button>
+          <button class="btn-water" onclick="addWater(32)">+32 oz</button>
+          <button class="btn-water" style="border-color: var(--border); color: var(--text-muted);" onclick="addWater(-8)">-8 oz</button>
+        </div>
+      </div>
+
+      <!-- Analizador de comida con Inteligencia Artificial -->
+      <div class="card">
+        <div class="card-title">
+          <span>Analizador de comidas (IA Gemini)</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Foto o texto</span>
+        </div>
         
-        <!-- Injection Status Summary Card -->
-        <div class="glass-panel rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
-          <div class="flex items-start justify-between relative z-10 mb-2.5">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Próxima inyección</span>
-              </div>
-              <h2 id="dash-next-inj-text" class="text-lg font-black text-white mt-0.5">Calculando...</h2>
-              <p id="dash-rotation-hint" class="text-xs text-slate-300 mt-0.5 flex items-center gap-1">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>Rotación sugerida: Abdomen derecho</span>
-              </p>
-            </div>
-            <button onclick="switchTab('mounjaro')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold border border-emerald-500/40 transition-all flex items-center gap-1">
-              <i data-lucide="syringe" class="w-3.5 h-3.5"></i> Hub
-            </button>
-          </div>
-
-          <!-- Tirzepatide Half-Life Visualizer Bar -->
-          <div class="bg-[#111a2e]/90 rounded-xl p-2.5 border border-[#223455] space-y-1 relative z-10">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400 flex items-center gap-1 text-[11px]">
-                <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
-                Concentración estimada en sangre:
-              </span>
-              <span id="dash-halflife-pct" class="font-bold text-cyan-400">--%</span>
-            </div>
-            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div id="dash-halflife-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <p id="dash-halflife-expl" class="text-[10px] text-slate-400 leading-snug">
-              Vida media de ~5 días. En los días 5 a 7 es fisiológicamente normal notar retorno leve del apetito.
-            </p>
-          </div>
-        </div>
-
-        <!-- Calories & Deficit Live Counter -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Balance diario</span>
-              <h3 class="text-sm font-bold text-white">Calorías y déficit neto</h3>
-            </div>
-            <span id="dash-deficit-badge" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              Déficit óptimo
-            </span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 py-2 border-y border-[#223455] text-center">
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]/70">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">Consumidas</span>
-              <p id="dash-cal-consumed" class="text-base font-black text-white">0</p>
-              <span class="text-[9px] text-slate-500">kcal</span>
-            </div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]/70">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">Meta</span>
-              <p id="dash-cal-goal" class="text-base font-black text-slate-300">1,400</p>
-              <span class="text-[9px] text-slate-500">kcal</span>
-            </div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]/70">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">Déficit TDEE</span>
-              <p id="dash-cal-deficit" class="text-base font-black text-emerald-400">-600</p>
-              <span class="text-[9px] text-slate-500">kcal</span>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs text-slate-400 mb-1">
-              <span>Progreso de ingesta calórica</span>
-              <span id="dash-cal-pct" class="font-bold text-slate-200">0%</span>
-            </div>
-            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div id="dash-cal-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- High-Priority Protein Card (Muscle Loss Prevention) -->
-        <div class="glass-panel rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center">
-                <i data-lucide="drumstick" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Proteína diaria (Crítica)</h3>
-                <p class="text-[10px] text-slate-400">Preserva masa muscular magra y previene flacidez</p>
-              </div>
-            </div>
-            <span id="dash-protein-badge" class="text-xs font-black text-amber-300 bg-amber-500/20 border border-amber-500/30 px-2 py-1 rounded-lg">
-              0 / 110 g
-            </span>
-          </div>
-
-          <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-            <div id="dash-protein-bar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%"></div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-[#223455] text-slate-300">
-            <div class="flex justify-between bg-[#111a2e] p-2 rounded-lg border border-[#223455]">
-              <span class="text-slate-400">Carbohidratos:</span>
-              <span id="dash-carbs-val" class="font-bold text-white">0 g</span>
-            </div>
-            <div class="flex justify-between bg-[#111a2e] p-2 rounded-lg border border-[#223455]">
-              <span class="text-slate-400">Grasas totales:</span>
-              <span id="dash-fat-val" class="font-bold text-white">0 g</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Interactive Water Tracker (in oz) & Urine Color Reference -->
-        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center">
-                <i data-lucide="droplets" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Hidratación (Agua pura)</h3>
-                <p class="text-[10px] text-slate-400">Previene náuseas, dolor de cabeza y sequedad</p>
-              </div>
-            </div>
-            <span id="dash-water-badge" class="text-xs font-black text-cyan-300 bg-cyan-500/20 border border-cyan-500/30 px-2 py-1 rounded-lg">
-              0 / 96 oz
-            </span>
-          </div>
-
-          <!-- Water Progress Bar -->
-          <div class="relative w-full h-7 bg-[#111a2e] rounded-xl overflow-hidden border border-cyan-500/30">
-            <div id="dash-water-fill-bar" class="water-fill h-full" style="width: 0%"></div>
-            <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow">
-              <span id="dash-water-fill-text">0% completado</span>
-            </div>
-          </div>
-
-          <!-- Quick Water Add and Subtraction Buttons -->
-          <div class="grid grid-cols-4 gap-2">
-            <button onclick="addWater(-8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-slate-400 font-bold text-xs border border-[#223455] flex items-center justify-center gap-1 active:scale-95 transition-all" title="Restar 8 oz">
-              -8 oz
-            </button>
-            <button onclick="addWater(8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 8 oz
-            </button>
-            <button onclick="addWater(16)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-cyan-300 font-bold text-xs border border-cyan-500/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 16 oz
-            </button>
-            <button onclick="addWater(32)" class="py-2 px-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-1 active:scale-95 transition-all">
-              <i data-lucide="plus" class="w-3 h-3"></i> 32 oz
-            </button>
-          </div>
-
-          <!-- Urine Color Hydration Reference Indicator -->
-          <div class="pt-2 border-t border-[#223455]">
-            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-              <span>Guía visual de hidratación (color de orina):</span>
-              <button onclick="toggleUrineGuideDetails()" class="text-cyan-400 underline font-semibold text-[10px]">Ver escala</button>
-            </div>
-            <div class="grid grid-cols-4 gap-1 h-3 rounded-md overflow-hidden">
-              <div class="bg-amber-100 border border-slate-700/50" title="1. Hidratación óptima (claro)"></div>
-              <div class="bg-amber-200 border border-slate-700/50" title="2. Hidratación buena (amarillo pálido)"></div>
-              <div class="bg-amber-400 border border-slate-700/50" title="3. Precaución: Beber más agua"></div>
-              <div class="bg-amber-600 border border-slate-700/50" title="4. Deshidratación: Beber de inmediato"></div>
-            </div>
-            <div id="urine-guide-expanded" class="hidden mt-2 p-2 bg-[#111a2e] rounded-xl text-[10px] text-slate-300 space-y-1 border border-[#223455]">
-              <p>&bull; <strong>Pálido / Casi transparente:</strong> Hidratación ideal para evitar estreñimiento por GLP-1.</p>
-              <p>&bull; <strong>Amarillo oscuro / Ámbar:</strong> Alerta de deshidratación. Puede provocar mareos o cefaleas.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Food Diary List and AI Scanner Action Buttons -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white">Registro de alimentos</h3>
-              <p class="text-[10px] text-slate-400">Analizador visual con IA o entrada manual</p>
-            </div>
-            <div class="flex items-center space-x-1.5">
-              <button onclick="openManualMealModal()" class="px-2.5 py-1.5 text-xs font-semibold bg-[#111a2e] border border-[#223455] text-slate-200 rounded-xl hover:bg-slate-800 transition-colors">
-                + Manual
-              </button>
-              <button onclick="openScannerModal()" class="px-3 py-1.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Analizar plato
-              </button>
-            </div>
-          </div>
-
-          <!-- Daily Meals Container -->
-          <div id="daily-meals-container" class="space-y-2.5 pt-1">
-            <!-- Populated dynamically via JS -->
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ======================================================================
-           TAB 2: MOUNJARO Y SALUD (INJECTIONS, ROOM TEMP, BOWEL & SYMPTOMS)
-           ====================================================================== -->
-      <section id="tab-mounjaro" class="tab-content hidden space-y-4">
+        <input type="password" id="geminiApiKey" placeholder="API key de Google AI Studio" onchange="saveApiKey(this.value)">
+        <textarea id="mealDescription" rows="2" placeholder="Describe lo que comiste (ej. 2 piernas de pollo asadas con ensalada)"></textarea>
         
-        <!-- Injection Cycle & Anatomical Rotation Card -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white">Control de inyecciones</h3>
-              <p class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
-            </div>
-            <button onclick="openLogInjectionModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-all">
-              + Registrar dosis
-            </button>
-          </div>
-
-          <div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-2 text-xs">
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400">Última dosis administrada:</span>
-              <span id="hub-last-dose" class="font-bold text-emerald-400">2.5 mg</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400">Fecha de aplicación:</span>
-              <span id="hub-last-date" class="font-bold text-white">--</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-400">Sitio utilizado:</span>
-              <span id="hub-last-site" class="font-bold text-cyan-300">Abdomen derecho</span>
-            </div>
-          </div>
-
-          <!-- Anatomical Rotation Guide -->
-          <div>
-            <h4 class="text-xs font-bold text-slate-300 mb-2">Zonas de aplicación recomendadas</h4>
-            <div class="grid grid-cols-3 gap-2 text-center text-xs">
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
-                <span class="block font-bold text-white">Abdomen</span>
-                <span class="text-[9px] text-slate-400">2" del ombligo</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
-                <span class="block font-bold text-white">Muslo</span>
-                <span class="text-[9px] text-slate-400">Zona frontal/alta</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
-                <span class="block font-bold text-white">Brazo</span>
-                <span class="text-[9px] text-slate-400">Tríceps posterior</span>
-              </div>
-            </div>
-          </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="file" id="mealImage" accept="image/*" style="display: none;" onchange="handleImageSelected(this)">
+          <button class="btn-secondary" onclick="document.getElementById('mealImage').click()">📷 Tomar foto</button>
+          <button class="btn-primary" onclick="analyzeMealWithGemini()">Analizar plato</button>
         </div>
 
-        <!-- 21-Day Room Temperature Tracker & Pen Stock Inventory -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Room Temperature Pen Countdown (21 days max <86°F) -->
-          <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-1.5">
-                <i data-lucide="thermometer-sun" class="w-4 h-4 text-cyan-400"></i>
-                <h4 class="text-xs font-bold text-white">Pluma en uso</h4>
-              </div>
-              <span id="room-temp-status-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                21 días máx.
-              </span>
-            </div>
-            <p class="text-[10px] text-slate-400 leading-tight">
-              Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).
-            </p>
-            <div class="p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-xs flex items-center justify-between">
-              <div>
-                <span class="text-[10px] text-slate-400 block">Días restantes:</span>
-                <strong id="room-temp-days-left" class="text-sm text-cyan-300 font-black">21 días</strong>
-              </div>
-              <button onclick="startRoomTempCountdown()" class="px-2 py-1 bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 text-[10px] font-bold rounded-lg border border-cyan-500/40">
-                Iniciar hoy
-              </button>
-            </div>
+        <div id="aiAnalysisResult" style="display: none; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; margin-bottom: 12px;">
+          <p style="font-size: 13px; font-weight: 600; margin-bottom: 6px;" id="aiFoodName">Resultado</p>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 12px; text-align: center;">
+            <div><span id="aiCal">0</span><br><small>kcal</small></div>
+            <div><span id="aiProt">0</span>g<br><small>prot</small></div>
+            <div><span id="aiCarb">0</span>g<br><small>carb</small></div>
+            <div><span id="aiFat">0</span>g<br><small>grasas</small></div>
           </div>
-
-          <!-- Refrigerated Pens Inventory Card -->
-          <div class="glass-panel rounded-2xl p-3.5 border border-[#223455] space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-1.5">
-                <i data-lucide="package-check" class="w-4 h-4 text-emerald-400"></i>
-                <h4 class="text-xs font-bold text-white">Inventario de plumas</h4>
-              </div>
-              <span id="dash-pen-warning" class="hidden text-[9px] font-bold px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded">
-                Pedir resurtido
-              </span>
-            </div>
-            <p class="text-[10px] text-slate-400 leading-tight">
-              Plumas de repuesto guardadas en refrigeración.
-            </p>
-            <div class="flex items-center justify-between p-2 bg-[#111a2e] rounded-xl border border-[#223455]">
-              <button onclick="adjustPenCount(-1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
-              <span id="pen-stock-val" class="font-black text-white text-base">4 plumas</span>
-              <button onclick="adjustPenCount(1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
-            </div>
-          </div>
+          <p style="font-size: 11px; color: #fde68a; margin-top: 8px;" id="aiClinicalNote"></p>
+          <button class="btn-primary" style="margin-top: 10px; padding: 8px;" onclick="confirmAddAnalyzedMeal()">Guardar en diario</button>
         </div>
 
-        <!-- Bowel Movement Safety Logger -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <h3 class="text-xs font-bold text-white">Tránsito intestinal (Seguridad gástrica)</h3>
-                <p class="text-[10px] text-slate-400">Monitoreo obligatorio para evitar impacto intestinal</p>
-              </div>
-            </div>
-            <button onclick="logBowelMovementNow()" class="px-2.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow transition-colors flex items-center gap-1">
-              <i data-lucide="check" class="w-3.5 h-3.5"></i> Evacuó hoy
-            </button>
-          </div>
-          <div id="bowel-movement-status-text" class="text-xs text-slate-300 p-2.5 bg-[#111a2e] rounded-xl border border-[#223455]">
-            Última evacuación registrada: Hoy
-          </div>
-        </div>
-
-        <!-- Daily Symptoms & Tolerance Log -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white">Síntomas y tolerancia digestiva</h3>
-              <p class="text-[10px] text-slate-400">Monitorea efectos secundarios para tu consulta médica</p>
-            </div>
-            <button onclick="saveDailySymptoms()" class="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-colors">
-              Guardar
-            </button>
-          </div>
-
-          <div class="space-y-3 text-xs">
-            <!-- Hunger Scale Slider -->
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-slate-300 font-medium">Nivel de apetito ("Ruido mental de comida"):</span>
-                <span id="symptom-hunger-label" class="font-bold text-emerald-400">3 / 10 (Poco apetito)</span>
-              </div>
-              <input id="input-symptom-hunger" type="range" min="1" max="10" value="3" class="w-full accent-emerald-500" oninput="updateHungerLabel(this.value)">
-            </div>
-
-            <!-- Adverse Effects Selects -->
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-              <div>
-                <label class="block text-slate-400 font-medium mb-1">Náuseas:</label>
-                <select id="input-symptom-nausea" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
-                  <option value="none">Ninguna</option>
-                  <option value="mild">Leve (tolerable)</option>
-                  <option value="moderate">Moderada</option>
-                  <option value="severe">Fuerte</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-slate-400 font-medium mb-1">Acidez / Reflujo:</label>
-                <select id="input-symptom-heartburn" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
-                  <option value="none">Ninguna</option>
-                  <option value="mild">Leve</option>
-                  <option value="moderate">Moderada</option>
-                  <option value="severe">Fuerte</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-slate-400 font-medium mb-1">Eructos de azufre (*sulfur*):</label>
-                <select id="input-symptom-sulfur" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
-                  <option value="none">Ninguno</option>
-                  <option value="mild">Leves ocasionales</option>
-                  <option value="frequent">Frecuentes (revisar grasa)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-slate-400 font-medium mb-1">Fatiga / Nivel de energía:</label>
-                <select id="input-symptom-fatigue" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white">
-                  <option value="none">Normal</option>
-                  <option value="mild">Cansancio leve</option>
-                  <option value="moderate">Fatiga notable</option>
-                  <option value="severe">Mucha debilidad</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Notas o preguntas para el médico:</label>
-              <input id="input-symptom-notes" type="text" placeholder="Ej: Mareo breve al levantarme, tomé agua con sal..." class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-xs text-white placeholder-slate-600 focus:ring-1 focus:ring-emerald-500">
-            </div>
-          </div>
-        </div>
-
-        <!-- History of Injections List -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
-          <h4 class="text-xs font-bold text-white">Historial de inyecciones</h4>
-          <div id="hub-injections-list" class="space-y-2 text-xs">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ======================================================================
-           TAB 3: PROGRESO Y HERRAMIENTAS (CHART, TIMERS, SOS & BACKUP)
-           ====================================================================== -->
-      <section id="tab-tools" class="tab-content hidden space-y-4">
-        
-        <!-- Weight Metric KPI Cards -->
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Inicial</span>
-            <p id="prog-start-w" class="text-base font-black text-white">--</p>
-            <span class="text-[9px] text-slate-500">lbs</span>
-          </div>
-          <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
-            <span class="text-[10px] font-bold text-slate-400 uppercase">Actual</span>
-            <p id="prog-cur-w" class="text-base font-black text-cyan-400">--</p>
-            <span class="text-[9px] text-slate-500">lbs</span>
-          </div>
-          <div class="glass-panel p-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
-            <span class="text-[10px] font-bold text-emerald-400 uppercase">Total perdido</span>
-            <p id="prog-lost-w" class="text-base font-black text-emerald-400">0.0</p>
-            <span class="text-[9px] text-emerald-500">lbs</span>
-          </div>
-        </div>
-
-        <!-- Interactive Weight Line Chart -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white">Curva de peso (lbs)</h3>
-              <p class="text-[10px] text-slate-400">Evolución y tendencia en el tiempo</p>
-            </div>
-            <button onclick="openWeightModal()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors">
-              + Anotar peso
-            </button>
-          </div>
-
-          <div class="relative w-full h-56">
-            <canvas id="weightChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Non-Scale Victories (Inches: Waist, Chest, Hips, Neck) -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xs font-bold text-white">Medidas corporales (*Non-Scale Victories*)</h3>
-              <p class="text-[10px] text-slate-400">Pérdida de grasa visceral en pulgadas (cintura, pecho, cadera, cuello)</p>
-            </div>
-            <button onclick="openMeasurementModal()" class="px-2.5 py-1 bg-[#111a2e] border border-[#223455] hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold transition-colors">
-              + Medidas
-            </button>
-          </div>
-
-          <div id="measurements-history-list" class="space-y-1.5 text-xs">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-
-        <!-- 20-Minute Meal Pacing Timer (Prevents GLP-1 Overeating & Sudden Nausea) -->
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <i data-lucide="timer" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <h3 class="text-xs font-bold text-white">Cronómetro de ritmo (20 min)</h3>
-                <p class="text-[10px] text-slate-400">Campanillas a los 10 y 20 min para pausar y evaluar saciedad</p>
-              </div>
-            </div>
-            <span id="pacing-timer-badge" class="text-xs font-black text-emerald-400">20:00</span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button id="btn-start-pacing" onclick="startMealPacingTimer()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
-              <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar al comer
-            </button>
-            <button id="btn-stop-pacing" onclick="resetMealPacingTimer()" class="px-3 py-2 bg-[#111a2e] border border-[#223455] hover:bg-slate-800 text-slate-400 rounded-xl text-xs transition-colors">
-              Reiniciar
-            </button>
-          </div>
-        </div>
-
-        <!-- Intermittent Fasting Widget (Designed for Breakfast Skippers) -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 rounded-xl bg-violet-500/20 border border-violet-500/40 text-violet-400 flex items-center justify-center">
-                <i data-lucide="clock" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">Ventana de ayuno matutino</h3>
-                <p class="text-[10px] text-slate-400">Ideal si saltas el desayuno y comes en almuerzo y cena</p>
-              </div>
-            </div>
-            <span id="fasting-status-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
-              En ayuno
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between bg-[#111a2e] p-3 rounded-xl border border-[#223455]">
-            <div>
-              <span class="text-[10px] text-slate-400 block font-semibold">Tiempo acumulado de ayuno</span>
-              <p id="fasting-timer-display" class="text-lg font-black text-white">00h 00m</p>
-            </div>
-            <button id="btn-toggle-fasting" onclick="toggleFastingTimer()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all">
-              Iniciar ayuno
-            </button>
-          </div>
-        </div>
-
-        <!-- Apple Health Shortcut & Clinical Report Export -->
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-[#162238] space-y-3">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <i data-lucide="share-2" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white">Reporte clínico para Apple Notes / Médico</h3>
-              <p class="text-[10px] text-slate-300">Copia al portapapeles todos tus datos consolidados en un toque</p>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <button onclick="copyDoctorSummary()" class="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/20">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-              <span>Copiar para Apple Notes / Consulta</span>
-            </button>
-            <button onclick="openAppleHealthModal()" class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
-              <i data-lucide="heart" class="w-4 h-4 text-rose-400"></i>
-              <span>Apple Health shortcut</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Nutritional & Target Calculator -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
-              <input id="setting-cal-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Gasto total (TDEE):</label>
-              <input id="setting-tdee" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Meta proteína (g):</label>
-              <input id="setting-protein-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
-              <input id="setting-water-goal" type="number" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-          </div>
-          <button onclick="saveNutritionalSettings()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
-            Guardar metas
-          </button>
-        </div>
-
-        <!-- Gemini API Key Setup (Optional) -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i>
-            <h3 class="text-xs font-bold text-white">Clave de API Gemini (Opcional)</h3>
-          </div>
-          <p class="text-[10px] text-slate-400 leading-relaxed">
-            Para el escáner visual con IA. Si dejas el campo vacío, el entorno suministra la clave automáticamente o utiliza el asistente heurístico integrado.
-          </p>
-          <div class="flex gap-2">
-            <input id="setting-api-key" type="password" placeholder="AIzaSy..." class="flex-1 p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-xs text-white">
-            <button onclick="saveApiKeySetting()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors">
-              Guardar
-            </button>
-          </div>
-        </div>
-
-        <!-- Local Storage Backup & Restore -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <h3 class="text-sm font-bold text-white">Copia de seguridad local (Backup)</h3>
-          <p class="text-xs text-slate-400">
-            Descarga un archivo `.json` con todos tus pesajes, dosis e historial, o impórtalo en otro teléfono.
-          </p>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="exportDataJSON()" class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar JSON
-            </button>
-            <label class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar JSON
-              <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="importDataJSON(event)">
-            </label>
-          </div>
-          <button onclick="openResetModal()" class="w-full py-2 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl text-xs font-bold transition-colors">
-            Reiniciar todos los datos
-          </button>
-        </div>
-
-      </section>
-
-    </main>
-
-    <!-- Bottom 3-Tab Navigation Bar -->
-    <nav class="fixed bottom-0 w-full max-w-lg bg-[#090d16]/95 backdrop-blur-lg border-t border-[#223455] px-3 py-2.5 z-30 flex justify-around">
-      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all tab-active">
-        <i data-lucide="layout-grid" class="w-5 h-5 transition-transform"></i>
-        <span class="text-[10px] mt-1 font-bold">Panel y diario</span>
-      </button>
-
-      <button onclick="switchTab('mounjaro')" id="nav-mounjaro" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all">
-        <i data-lucide="syringe" class="w-5 h-5 transition-transform"></i>
-        <span class="text-[10px] mt-1 font-bold">Mounjaro y salud</span>
-      </button>
-
-      <button onclick="switchTab('tools')" id="nav-tools" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all">
-        <i data-lucide="trending-up" class="w-5 h-5 transition-transform"></i>
-        <span class="text-[10px] mt-1 font-bold">Progreso y herramientas</span>
-      </button>
-    </nav>
-
-    <!-- ======================================================================
-         MODALS CONTAINER
-         ====================================================================== -->
-
-    <!-- MODAL 1: AI PHOTO & TEXT SCANNER -->
-    <div id="modal-scanner" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
-            </div>
-            <h3 class="text-sm font-bold text-white">Analizador de comidas con IA</h3>
-          </div>
-          <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <!-- Camera / Image Upload Box -->
-        <div class="space-y-3">
-          <div id="scanner-image-preview-box" class="relative w-full h-44 bg-[#090d16] border-2 border-dashed border-[#223455] rounded-2xl flex flex-col items-center justify-center overflow-hidden">
-            <img id="scanner-preview-img" src="" class="w-full h-full object-cover hidden">
-            <div id="scanner-placeholder-content" class="text-center p-4">
-              <i data-lucide="camera" class="w-8 h-8 text-emerald-400 mx-auto mb-2"></i>
-              <p class="text-xs font-semibold text-slate-200">Tomar foto o subir imagen del plato</p>
-              <p class="text-[10px] text-slate-400 mt-0.5">Calcula porción, calorías, grasa y advertencias para Mounjaro</p>
-            </div>
-            <input type="file" id="scanner-file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleImageSelected(event)">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Descripción o detalles del plato (opcional):</label>
-            <textarea id="scanner-text-input" rows="2" placeholder="Ej: 2 piernas de pollo asadas pequeñas y media taza de arroz moro con frijoles..." class="w-full p-2.5 bg-[#090d16] border border-[#223455] rounded-xl text-xs text-white placeholder-slate-600 focus:ring-1 focus:ring-emerald-500"></textarea>
-          </div>
-
-          <div class="flex items-center space-x-2 text-xs">
-            <span class="text-slate-400">Asignar a:</span>
-            <select id="scanner-meal-slot" class="bg-[#090d16] border border-[#223455] rounded-lg p-1.5 text-xs text-white">
-              <option value="Almuerzo">Almuerzo</option>
-              <option value="Cena">Cena</option>
-              <option value="Merienda">Merienda</option>
-              <option value="Desayuno">Desayuno</option>
-            </select>
-          </div>
-
-          <button id="btn-run-analysis" onclick="runMealAnalysis()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
-            <span id="btn-run-analysis-text">Analizar nutrientes y tolerancia gástrica</span>
-          </button>
-        </div>
-
-        <!-- AI Results Review Container (Editable before commit) -->
-        <div id="ai-results-container" class="hidden p-4 bg-[#090d16] border border-emerald-500/30 rounded-2xl space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Análisis listo (Ajustable)
-            </span>
-            <span class="text-[10px] text-slate-400">Verifica antes de guardar</span>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-400">Nombre del plato:</label>
-            <input id="res-food-name" type="text" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1.5 text-xs font-bold text-white">
-          </div>
-
-          <div class="grid grid-cols-4 gap-2 text-center text-xs">
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold">Calorías</span>
-              <input id="res-cal" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-white">
-            </div>
-            <div>
-              <span class="text-[10px] text-amber-500 uppercase font-bold">Proteína</span>
-              <input id="res-protein" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-amber-400">
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold">Carbos</span>
-              <input id="res-carbs" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold">Grasas</span>
-              <input id="res-fat" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
-            </div>
-          </div>
-
-          <!-- Mounjaro Digestive Warning Box -->
-          <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs space-y-1">
-            <span class="font-bold text-emerald-400 flex items-center gap-1">
-              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Advertencia digestiva Mounjaro:
-            </span>
-            <p id="res-glp1-tip" class="text-slate-300 leading-snug">
-              Retira la piel tostada para reducir grasa concentrada y evitar reflujo o eructos de azufre.
-            </p>
-          </div>
-
-          <button onclick="commitScannedMeal()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-colors">
-            Guardar en mi registro del día
-          </button>
-        </div>
-
+        <!-- Lista de alimentos guardados en el día -->
+        <div id="dailyMealList"></div>
       </div>
-    </div>
 
-    <!-- MODAL 2: MANUAL MEAL ENTRY -->
-    <div id="modal-manual-meal" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Añadir comida manual</h3>
-          <button onclick="closeManualMealModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+    </section>
+
+    <!-- Pestaña 2: Mounjaro y salud -->
+    <section id="tabMedication" class="tab-content" style="display: none;">
+      
+      <!-- Registro de inyección semanal -->
+      <div class="card">
+        <div class="card-title">
+          <span>Registrar inyección semanal</span>
         </div>
+        <label>Dosis administrada</label>
+        <select id="injDose">
+          <option value="2.5">2.5 mg (inicio / adaptación)</option>
+          <option value="5.0">5.0 mg (terapéutica)</option>
+          <option value="7.5">7.5 mg</option>
+          <option value="10.0">10.0 mg</option>
+          <option value="12.5">12.5 mg</option>
+          <option value="15.0">15.0 mg</option>
+        </select>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Nombre o descripción:</label>
-            <input id="manual-name" type="text" placeholder="Ej: Pechuga a la plancha con brócoli" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+        <label>Sitio anatómico de punción</label>
+        <select id="injSite">
+          <option value="Abdomen derecho">Abdomen derecho</option>
+          <option value="Abdomen izquierdo">Abdomen izquierdo</option>
+          <option value="Muslo derecho">Muslo derecho</option>
+          <option value="Muslo izquierdo">Muslo izquierdo</option>
+          <option value="Brazo derecho">Brazo derecho</option>
+          <option value="Brazo izquierdo">Brazo izquierdo</option>
+        </select>
+
+        <button class="btn-primary" onclick="recordInjection()">Guardar inyección de hoy</button>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;" id="lastInjDetails"></div>
+      </div>
+
+      <!-- Control de pluma a temperatura ambiente e inventario -->
+      <div class="grid-stats">
+        <div class="stat-box">
+          <div class="stat-lbl">Pluma en uso (temp. ambiente)</div>
+          <div class="stat-val" id="valRoomTempDays" style="color: var(--amber);">21 días</div>
+          <div style="font-size: 11px; color: var(--text-muted);">&lt; 86°F (30°C) máx</div>
+          <button class="btn-secondary" style="margin-top: 8px; font-size: 11px; padding: 4px;" onclick="startRoomTempCountdown()">Iniciar pluma hoy</button>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">Plumas en refrigerador</div>
+          <div class="stat-val" id="valInventory">4 plumas</div>
+          <div style="font-size: 11px; color: var(--text-muted);" id="lblInventoryAlert">Inventario estable</div>
+          <div style="display: flex; gap: 4px; margin-top: 8px;">
+            <button class="btn-secondary" style="padding: 4px;" onclick="adjustInventory(1)">+1</button>
+            <button class="btn-secondary" style="padding: 4px;" onclick="adjustInventory(-1)">-1</button>
           </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Momento:</label>
-              <select id="manual-slot" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-                <option value="Almuerzo">Almuerzo</option>
-                <option value="Cena">Cena</option>
-                <option value="Merienda">Merienda</option>
-                <option value="Desayuno">Desayuno</option>
-              </select>
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Calorías (kcal):</label>
-              <input id="manual-cal" type="number" placeholder="350" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Proteína (g):</label>
-              <input id="manual-protein" type="number" placeholder="30" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Carbos (g):</label>
-              <input id="manual-carbs" type="number" placeholder="20" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Grasas (g):</label>
-              <input id="manual-fat" type="number" placeholder="10" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
-          </div>
-
-          <button onclick="saveManualMeal()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition-colors">
-            Guardar comida
-          </button>
         </div>
       </div>
-    </div>
 
-    <!-- MODAL 3: INJECTION LOGGING -->
-    <div id="modal-injection" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Registrar dosis de Mounjaro</h3>
-          <button onclick="closeLogInjectionModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+      <!-- Registro de evacuaciones -->
+      <div class="card">
+        <div class="card-title">
+          <span>Tránsito intestinal</span>
+          <span class="badge badge-emerald" id="lblLastBowel">Al día</span>
         </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          El vaciamiento gástrico retardado hace indispensable registrar las evacuaciones para prevenir estreñimiento clínico.
+        </p>
+        <button class="btn-secondary" onclick="recordBowelMovement()">Registrar evacuación ahora</button>
+      </div>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Fecha de inyección:</label>
-            <input id="inj-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-          </div>
+    </section>
 
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Dosis aplicada:</label>
-            <select id="inj-dose" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl font-bold text-emerald-400">
-              <option value="2.5 mg">2.5 mg (Dosis inicial / starter)</option>
-              <option value="5.0 mg">5.0 mg (Dosis terapéutica)</option>
-              <option value="7.5 mg">7.5 mg</option>
-              <option value="10.0 mg">10.0 mg</option>
-              <option value="12.5 mg">12.5 mg</option>
-              <option value="15.0 mg">15.0 mg (Dosis máxima)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Sitio anatómico de inyección:</label>
-            <select id="inj-site" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-              <option value="Abdomen derecho">Abdomen derecho</option>
-              <option value="Abdomen izquierdo">Abdomen izquierdo</option>
-              <option value="Muslo derecho">Muslo frontal derecho</option>
-              <option value="Muslo izquierdo">Muslo frontal izquierdo</option>
-              <option value="Brazo derecho">Brazo derecho (tríceps)</option>
-              <option value="Brazo izquierdo">Brazo izquierdo (tríceps)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Observaciones:</label>
-            <input id="inj-notes" type="text" placeholder="Ej: Buena tolerancia, sin dolor..." class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-          </div>
-
-          <button onclick="saveInjectionRecord()" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition-colors">
-            Confirmar aplicación
-          </button>
+    <!-- Pestaña 3: Progreso y herramientas -->
+    <section id="tabProgress" class="tab-content" style="display: none;">
+      
+      <!-- Registro y gráfica de peso -->
+      <div class="card">
+        <div class="card-title">
+          <span>Control de peso corporal</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="number" id="inputWeight" step="0.1" placeholder="Peso en libras (ej. 215.4)">
+          <button class="btn-primary" style="width: 120px;" onclick="recordWeight()">Guardar</button>
+        </div>
+        <div style="height: 220px; margin-top: 12px;">
+          <canvas id="weightChart"></canvas>
         </div>
       </div>
-    </div>
 
-    <!-- MODAL 4: WEIGHT ENTRY -->
-    <div id="modal-weight" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Registrar peso en libras</h3>
-          <button onclick="closeWeightModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+      <!-- Cronómetro de ritmo de comida (20 minutos) -->
+      <div class="card">
+        <div class="card-title">
+          <span>Ritmo al comer (20 minutos)</span>
+          <span id="timerDisplay" style="font-family: monospace; font-size: 16px; color: var(--cyan);">20:00</span>
         </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+          Comer despacio previene náuseas súbitas y llenura extrema. Campanillas automáticas a los 10 y 20 minutos.
+        </p>
+        <button class="btn-secondary" id="btnTimerToggle" onclick="toggleMealTimer()">Iniciar cronómetro de comida</button>
+      </div>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Fecha:</label>
-            <input id="weight-input-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-          </div>
-
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Peso en libras (lbs):</label>
-            <input id="weight-input-val" type="number" step="0.1" placeholder="Ej: 214.8" class="w-full p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-xl font-black text-center text-cyan-400">
-          </div>
-
-          <button onclick="saveWeightEntry()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl transition-colors">
-            Guardar pesaje
-          </button>
+      <!-- Respaldo manual e integración -->
+      <div class="card">
+        <div class="card-title">
+          <span>Respaldo y notas clínicas</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn-secondary" onclick="copyDoctorReport()">Copiar informe para Apple Notes o médico</button>
+          <button class="btn-secondary" onclick="exportDataJson()">Descargar respaldo local (JSON)</button>
         </div>
       </div>
-    </div>
 
-    <!-- MODAL 5: NON-SCALE MEASUREMENTS (WAIST, CHEST, HIPS, NECK IN INCHES) -->
-    <div id="modal-measurement" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <h3 class="text-sm font-bold text-white">Anotar medidas corporales (Pulgadas)</h3>
-          <button onclick="closeMeasurementModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
+    </section>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Fecha:</label>
-            <input id="meas-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-          </div>
+  </main>
 
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cintura (in):</label>
-              <input id="meas-waist" type="number" step="0.5" placeholder="38" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Pecho (in):</label>
-              <input id="meas-chest" type="number" step="0.5" placeholder="42" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cadera (in):</label>
-              <input id="meas-hips" type="number" step="0.5" placeholder="40" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">Cuello (in):</label>
-              <input id="meas-neck" type="number" step="0.5" placeholder="16" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white text-center font-bold">
-            </div>
-          </div>
+  <!-- Navegación inferior -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" onclick="switchTab('tabDashboard', this)">
+      <span style="font-size: 18px;">📊</span>
+      <span>Panel y diario</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('tabMedication', this)">
+      <span style="font-size: 18px;">💉</span>
+      <span>Mounjaro y salud</span>
+    </button>
+    <button class="nav-tab" onclick="switchTab('tabProgress', this)">
+      <span style="font-size: 18px;">📈</span>
+      <span>Progreso</span>
+    </button>
+  </nav>
 
-          <button onclick="saveMeasurementEntry()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors">
-            Guardar medidas
-          </button>
-        </div>
+  <!-- Modal SOS Síntomas -->
+  <div class="modal-backdrop" id="modalSos" onclick="closeModal('modalSos')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="card-title">
+        <span style="color: #fca5a5;">Guía SOS de alivio inmediato</span>
+        <button style="background: none; border: none; color: #fff; font-size: 18px;" onclick="closeModal('modalSos')">✕</button>
       </div>
-    </div>
-
-    <!-- MODAL 6: SOS RELIEF GUIDE (GUÍA RÁPIDA DE ALIVIO) -->
-    <div id="modal-sos" class="fixed inset-0 z-50 bg-[#090d16]/90 backdrop-blur-md hidden items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-[#162238] border border-rose-500/30 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
-              <i data-lucide="life-buoy" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white">Guía rápida de alivio (SOS)</h3>
-              <p class="text-[10px] text-slate-400">Protocolos inmediatos para efectos secundarios de Mounjaro</p>
-            </div>
-          </div>
-          <button onclick="closeSosModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <!-- Item 1: Náuseas súbitas -->
-          <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
-            <div class="flex items-center space-x-2 text-rose-400 font-bold">
-              <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-              <span>Náuseas repentinas</span>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-[11px]">
-              &bull; <strong>Acupresión P6:</strong> Presiona el punto ubicado tres dedos por debajo de la muñeca en la cara interna del antebrazo.<br>
-              &bull; <strong>Postura erguida:</strong> No te acuestes inmediatamente después de comer; mantente erguido al menos 2 horas.<br>
-              &bull; <strong>Líquidos fríos:</strong> Bebe sorbos diminutos de agua helada o infusión de jengibre sin azúcar.
-            </p>
-          </div>
-
-          <!-- Item 2: Acidez y reflujo nocturno -->
-          <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
-            <div class="flex items-center space-x-2 text-amber-400 font-bold">
-              <i data-lucide="flame" class="w-4 h-4 shrink-0"></i>
-              <span>Acidez y reflujo nocturno</span>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-[11px]">
-              &bull; <strong>Espaciamiento:</strong> Realiza la cena al menos 3 horas antes de acostarte.<br>
-              &bull; <strong>Eleva la cabecera:</strong> Duerme con el torso ligeramente inclinado o sobre tu costado izquierdo.<br>
-              &bull; <strong>Evita desencadenantes:</strong> Cero frituras, salsas picantes o café tardío.
-            </p>
-          </div>
-
-          <!-- Item 3: Eructos de azufre -->
-          <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
-            <div class="flex items-center space-x-2 text-yellow-300 font-bold">
-              <i data-lucide="wind" class="w-4 h-4 shrink-0"></i>
-              <span>Eructos con sabor a azufre (*sulfur burps*)</span>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-[11px]">
-              &bull; <strong>Causa:</strong> Fermentación gástrica de grasas pesadas o proteínas retenidas por vaciamiento lento.<br>
-              &bull; <strong>Solución:</strong> Reduce temporalmente alimentos ricos en sulfuro (huevos cocidos en exceso, brócoli crudo, carnes con grasa) y toma té de manzanilla o menta.
-            </p>
-          </div>
-
-          <!-- Item 4: Mareos ortostáticos o fatiga -->
-          <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
-            <div class="flex items-center space-x-2 text-cyan-400 font-bold">
-              <i data-lucide="zap-off" class="w-4 h-4 shrink-0"></i>
-              <span>Mareos al levantarte o fatiga</span>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-[11px]">
-              &bull; <strong>Electrólitos:</strong> Disuelve una pizca de sal marina o un sobre de electrolitos sin azúcar en agua.<br>
-              &bull; <strong>Movimiento lento:</strong> Siéntate en la orilla de la cama durante un minuto antes de ponerte de pie.
-            </p>
-          </div>
-
-          <!-- Item 5: Estreñimiento prolongado -->
-          <div class="p-3 bg-[#090d16] border border-rose-500/40 rounded-2xl space-y-1">
-            <div class="flex items-center space-x-2 text-rose-300 font-bold">
-              <i data-lucide="shield-alert" class="w-4 h-4 shrink-0"></i>
-              <span>Estreñimiento prolongado (&gt;48 horas)</span>
-            </div>
-            <p class="text-slate-300 leading-relaxed text-[11px]">
-              &bull; <strong>Hidratación tibia:</strong> Bebe dos tazas de agua tibia en ayunas.<br>
-              &bull; <strong>Suplementación:</strong> Considera citrato de magnesio bajo indicación médica para estimular la motilidad intestinal.
-            </p>
-          </div>
-        </div>
-
-        <button onclick="closeSosModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition-colors">
-          Cerrar guía
-        </button>
-      </div>
-    </div>
-
-    <!-- MODAL 7: APPLE HEALTH SHORTCUT INTEGRATION -->
-    <div id="modal-apple-health" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-sm rounded-3xl p-5 space-y-3 shadow-2xl text-center">
-        <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
-          <i data-lucide="heart" class="w-6 h-6"></i>
+      <div style="font-size: 13px; display: flex; flex-direction: column; gap: 12px; line-height: 1.5;">
+        <div>
+          <strong style="color: var(--cyan);">Náuseas súbitas:</strong>
+          <p>Presiona el punto de acupresión P6 (tres dedos por debajo de la muñeca interna, entre los tendones) durante 2 minutos. Inhala alcohol isopropílico de una toallita o consume una infusión fría de jengibre sin azúcar.</p>
         </div>
         <div>
-          <h3 class="text-sm font-bold text-white">Apple Health Shortcuts</h3>
-          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-            Ejecuta un atajo de iOS para registrar tu peso actual en Apple Health con un solo toque.
-          </p>
-        </div>
-        <div class="p-3 bg-[#090d16] rounded-xl border border-[#223455] text-left text-xs space-y-1 text-slate-300">
-          <p class="text-[11px] text-slate-400">Peso actual para exportar:</p>
-          <p id="apple-health-weight-val" class="font-black text-cyan-400 text-base">214.8 lbs</p>
-        </div>
-        <div class="flex flex-col gap-2 pt-1">
-          <a id="btn-run-health-shortcut" href="shortcuts://run-shortcut?name=LogWeight" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-            <span>Abrir atajo en iOS</span>
-          </a>
-          <button onclick="closeAppleHealthModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl">
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL 8: RESET CONFIRMATION (NO ALERT/CONFIRM) -->
-    <div id="modal-reset" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-rose-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
-        <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
-          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+          <strong style="color: var(--amber);">Reflujo o eructos de azufre:</strong>
+          <p>Permanece erguido al menos 3 horas tras la última ingesta. Evita comidas con grasas saturadas o aderezos pesados en la noche.</p>
         </div>
         <div>
-          <h3 class="text-sm font-bold text-white">¿Reiniciar todos los datos?</h3>
-          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-            Se eliminarán los registros de comidas, inyecciones, agua y pesajes del Local storage en tu navegador.
-          </p>
+          <strong style="color: var(--red);">Estreñimiento &gt;48 horas:</strong>
+          <p>Aumenta el agua a un mínimo de 90 oz diarias, complementa con citrato de magnesio antes de dormir y camina 15 minutos continuos para activar el peristaltismo.</p>
         </div>
-        <div class="grid grid-cols-2 gap-2 pt-2">
-          <button onclick="closeResetModal()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">
-            Cancelar
-          </button>
-          <button onclick="executeFactoryReset()" class="py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl">
-            Sí, borrar todo
-          </button>
+        <div>
+          <strong style="color: var(--blue);">Mareos al ponerte de pie:</strong>
+          <p>Baja de presión ortostática habitual por pérdida rápida de agua y sodio. Disuelve una pizca de sal marina o electrolitos sin azúcar en tu primer vaso de agua de la mañana.</p>
         </div>
       </div>
     </div>
-
-    <!-- Toast Notification Banner -->
-    <div id="toast" class="fixed bottom-20 z-50 max-w-sm px-4 py-2.5 rounded-2xl bg-[#162238] text-white text-xs font-bold shadow-2xl border border-[#223455] transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2">
-      <i id="toast-icon" data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-      <span id="toast-msg">Notificación</span>
-    </div>
-
   </div>
 
-  <script>
-    /* ==========================================================================
-       STATE MANAGEMENT & LOCAL STORAGE ARCHITECTURE
-       ========================================================================== */
-    const STORAGE_KEY = "mounjaro_pwa_data_v3";
+  <!-- Lógica modular Firebase y aplicación -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    let state = {
-      selectedDate: getFormattedDate(new Date()),
-      settings: {
-        calGoal: 1400,
-        tdee: 2000,
-        proteinGoal: 110,
-        waterGoal: 96,
-        pensInStock: 4,
-        roomTempPenStart: null, // Timestamp when active pen was taken out
-        apiKey: "",
-        fastingStart: null,
-        isFasting: false
-      },
-      daysData: {},     // 'YYYY-MM-DD': { water: 0, meals: [], symptoms: {}, bowelMovements: [], electrolytes: {} }
-      injections: [],   // [ { id, date, dose, site, notes } ]
-      weights: [],      // [ { date, weight } ]
-      measurements: []  // [ { date, waist, chest, hips, neck } ]
+    // Configuración registrada en Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
+      authDomain: "mounjaro-tracker-5c1c5.firebaseapp.com",
+      projectId: "mounjaro-tracker-5c1c5",
+      storageBucket: "mounjaro-tracker-5c1c5.firebasestorage.app",
+      messagingSenderId: "300857507450",
+      appId: "1:300857507450:web:9e397cda0d918b565e85c3"
     };
 
-    let activeTab = 'dashboard';
-    let weightChartInstance = null;
-    let selectedImageBase64 = null;
-    let pacingTimerInterval = null;
-    let pacingSecondsLeft = 20 * 60; // 20 minutes
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-    function getFormattedDate(d) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+    // Estructura de datos principal
+    let appState = {
+      userEmail: null,
+      geminiKey: localStorage.getItem("mounjaro_gemini_key") || "",
+      weights: [],
+      injections: [],
+      meals: [],
+      waterOz: 0,
+      waterDate: new Date().toISOString().split("T")[0],
+      bowelMovements: [],
+      penRoomTempStart: null,
+      penInventory: 4
+    };
 
-    function initData() {
+    let currentUser = null;
+    let chartInstance = null;
+
+    // Carga inicial local
+    const savedLocal = localStorage.getItem("mounjaro_clinical_data");
+    if (savedLocal) {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state = Object.assign(state, parsed);
-        } else {
-          setupInitialDemoData();
-        }
-      } catch (err) {
-        console.error("Error loading LocalStorage:", err);
+        appState = { ...appState, ...JSON.parse(savedLocal) };
+      } catch (e) {
+        console.error("Error al leer almacenamiento local", e);
       }
     }
 
-    function setupInitialDemoData() {
-      const today = new Date();
-      const twoWeeksAgo = new Date(today);
-      twoWeeksAgo.setDate(today.getDate() - 14);
-      const oneWeekAgo = new Date(today);
-      oneWeekAgo.setDate(today.getDate() - 7);
+    // Escucha de estado de sesión
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const syncDot = document.getElementById("syncDot");
+      const syncText = document.getElementById("syncText");
+      const authLabel = document.getElementById("authLabel");
 
-      state.injections = [
-        { id: "inj_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio" },
-        { id: "inj_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia" }
-      ];
+      if (user) {
+        syncDot.classList.add("synced");
+        syncText.textContent = user.email.split("@")[0];
+        authLabel.textContent = "Sign out";
 
-      state.weights = [
-        { date: getFormattedDate(twoWeeksAgo), weight: 216.0 },
-        { date: getFormattedDate(oneWeekAgo), weight: 215.2 },
-        { date: getFormattedDate(today), weight: 214.8 }
-      ];
-
-      state.measurements = [
-        { date: getFormattedDate(twoWeeksAgo), waist: 40.0, chest: 43.0, hips: 42.0, neck: 16.5 },
-        { date: getFormattedDate(today), waist: 39.0, chest: 42.5, hips: 41.5, neck: 16.2 }
-      ];
-
-      // Mark an initial bowel movement 24 hours ago
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const yDate = getFormattedDate(yesterday);
-      if (!state.daysData[yDate]) {
-        state.daysData[yDate] = { water: 80, meals: [], bowelMovements: [yesterday.toISOString()], symptoms: {}, electrolytes: {} };
-      }
-
-      state.settings.roomTempPenStart = Date.now() - (3 * 24 * 60 * 60 * 1000); // 3 days ago
-      persistState();
-    }
-
-    function persistState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function getSelectedDay() {
-      if (!state.daysData[state.selectedDate]) {
-        state.daysData[state.selectedDate] = {
-          water: 0,
-          meals: [],
-          symptoms: {
-            hunger: 3,
-            nausea: "none",
-            heartburn: "none",
-            sulfur: "none",
-            fatigue: "none",
-            notes: ""
-          },
-          bowelMovements: [],
-          electrolytes: { mg: false, k: false, na: false, multi: false }
-        };
-      }
-      return state.daysData[state.selectedDate];
-    }
-
-    /* ==========================================================================
-       NAVIGATION & TAB SWITCHING
-       ========================================================================== */
-    function switchTab(tabId) {
-      activeTab = tabId;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('nav button').forEach(el => el.classList.remove('tab-active'));
-
-      const targetSec = document.getElementById(`tab-${tabId}`);
-      const targetNav = document.getElementById(`nav-${tabId}`);
-      if (targetSec) targetSec.classList.remove('hidden');
-      if (targetNav) targetNav.classList.add('tab-active');
-
-      if (tabId === 'dashboard') updateDashboardView();
-      if (tabId === 'mounjaro') renderMounjaroView();
-      if (tabId === 'tools') renderToolsView();
-
-      lucide.createIcons();
-    }
-
-    function changeDate(delta) {
-      const cur = new Date(state.selectedDate + "T12:00:00");
-      cur.setDate(cur.getDate() + delta);
-      state.selectedDate = getFormattedDate(cur);
-      updateDateBadge();
-    }
-
-    function updateDateBadge() {
-      const todayStr = getFormattedDate(new Date());
-      const badge = document.getElementById('current-date-badge');
-      if (state.selectedDate === todayStr) {
-        badge.innerText = 'Hoy';
-      } else {
-        const parts = state.selectedDate.split('-');
-        badge.innerText = `${parts[2]}/${parts[1]}`;
-      }
-      renderCurrentDay();
-    }
-
-    function renderCurrentDay() {
-      updateDashboardView();
-      renderMealsList();
-      renderMounjaroView();
-      checkBowelMovementAlert();
-    }
-
-    /* ==========================================================================
-       DASHBOARD METRICS & MACRO COUNTERS
-       ========================================================================== */
-    function updateDashboardView() {
-      const day = getSelectedDay();
-
-      // Consumed Macros
-      let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
-      (day.meals || []).forEach(m => {
-        totalCal += Number(m.calories || 0);
-        totalP += Number(m.protein || 0);
-        totalC += Number(m.carbs || 0);
-        totalF += Number(m.fat || 0);
-      });
-
-      const calGoal = state.settings.calGoal || 1400;
-      const tdee = state.settings.tdee || 2000;
-      const deficit = totalCal - tdee;
-
-      document.getElementById('dash-cal-consumed').innerText = totalCal;
-      document.getElementById('dash-cal-goal').innerText = calGoal;
-      document.getElementById('dash-cal-deficit').innerText = `${deficit > 0 ? '+' : ''}${deficit}`;
-      
-      const calPct = Math.min(100, Math.round((totalCal / calGoal) * 100));
-      document.getElementById('dash-cal-pct').innerText = `${calPct}%`;
-      document.getElementById('dash-cal-bar').style.width = `${calPct}%`;
-
-      const defBadge = document.getElementById('dash-deficit-badge');
-      if (deficit <= -300) {
-        defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
-        defBadge.innerText = "Déficit óptimo";
-      } else if (deficit <= 0) {
-        defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30";
-        defBadge.innerText = "Déficit ligero";
-      } else {
-        defBadge.className = "px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30";
-        defBadge.innerText = "Superávit calórico";
-      }
-
-      // Protein Goal
-      const proteinGoal = state.settings.proteinGoal || 110;
-      document.getElementById('dash-protein-badge').innerText = `${totalP} / ${proteinGoal} g`;
-      const pPct = Math.min(100, Math.round((totalP / proteinGoal) * 100));
-      document.getElementById('dash-protein-bar').style.width = `${pPct}%`;
-
-      // Secondary Macros
-      document.getElementById('dash-carbs-val').innerText = `${totalC} g`;
-      document.getElementById('dash-fat-val').innerText = `${totalF} g`;
-
-      // Hydration
-      const waterGoal = state.settings.waterGoal || 96;
-      const curWater = day.water || 0;
-      document.getElementById('dash-water-badge').innerText = `${curWater} / ${waterGoal} oz`;
-      const wPct = Math.min(100, Math.round((curWater / waterGoal) * 100));
-      document.getElementById('dash-water-fill-bar').style.width = `${wPct}%`;
-      document.getElementById('dash-water-fill-text').innerText = `${wPct}% (${curWater} oz)`;
-
-      // Injection summary and concentration
-      updateHalfLifeAndNextDose();
-      checkBowelMovementAlert();
-      renderMealsList();
-    }
-
-    function updateHalfLifeAndNextDose() {
-      if (state.injections.length === 0) {
-        document.getElementById('dash-next-inj-text').innerText = "Sin dosis registrada";
-        document.getElementById('dash-rotation-hint').innerText = "Toca Hub para registrar tu primera inyección";
-        document.getElementById('dash-halflife-pct').innerText = "0%";
-        document.getElementById('dash-halflife-bar').style.width = "0%";
-        return;
-      }
-
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const latest = sorted[0];
-      const lastDate = new Date(latest.date + "T12:00:00");
-      const nextDate = new Date(lastDate);
-      nextDate.setDate(lastDate.getDate() + 7);
-
-      const now = new Date();
-      now.setHours(12, 0, 0, 0);
-
-      const diffDays = Math.round((nextDate - now) / (1000 * 60 * 60 * 24));
-      let text = "";
-      if (diffDays > 1) text = `En ${diffDays} días (${nextDate.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })})`;
-      else if (diffDays === 1) text = "Mañana corresponde dosis";
-      else if (diffDays === 0) text = "¡Hoy corresponde dosis!";
-      else text = `Atrasada por ${Math.abs(diffDays)} días`;
-
-      document.getElementById('dash-next-inj-text').innerText = text;
-
-      // Anatomical rotation suggestions
-      const rotations = {
-        "Abdomen derecho": "Abdomen izquierdo",
-        "Abdomen izquierdo": "Muslo derecho",
-        "Muslo derecho": "Muslo izquierdo",
-        "Muslo izquierdo": "Brazo derecho",
-        "Brazo derecho": "Brazo izquierdo",
-        "Brazo izquierdo": "Abdomen derecho"
-      };
-      const nextSite = rotations[latest.site] || "Abdomen izquierdo";
-      document.getElementById('dash-rotation-hint').innerHTML = `
-        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>Rotación sugerida: <strong>${nextSite}</strong> (Última: ${latest.site})</span>
-      `;
-
-      // Pharmacokinetic estimated concentration curve:
-      // Tirzepatide elimination half-life is ~5 days. C(t) = C0 * (0.5)^(t/5)
-      const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
-      const remainingPct = Math.round(Math.pow(0.5, daysSince / 5) * 100);
-      document.getElementById('dash-halflife-pct').innerText = `${remainingPct}%`;
-      document.getElementById('dash-halflife-bar').style.width = `${Math.min(100, remainingPct)}%`;
-
-      let expl = "";
-      if (daysSince <= 2) {
-        expl = "Pico plasmático (días 1-2): Apetito en su mínimo. Evita comidas con grasa concentrada para prevenir náuseas.";
-      } else if (daysSince <= 4) {
-        expl = "Concentración terapéutica óptima (días 3-4): Buena saciedad sostenida.";
-      } else {
-        expl = `Día ${Math.round(daysSince)} del ciclo: Concentración en descenso biológico (~5 días de vida media). Es fisiológicamente normal notar retorno leve del apetito; prioriza proteína.`;
-      }
-      document.getElementById('dash-halflife-expl').innerText = expl;
-    }
-
-    function addWater(oz) {
-      const day = getSelectedDay();
-      day.water = Math.max(0, (day.water || 0) + oz);
-      persistState();
-      updateDashboardView();
-      showToast(`${oz > 0 ? '+' : ''}${oz} oz de agua registradas (Total: ${day.water} oz)`);
-    }
-
-    function toggleUrineGuideDetails() {
-      const el = document.getElementById('urine-guide-expanded');
-      el.classList.toggle('hidden');
-    }
-
-    /* ==========================================================================
-       BOWEL MOVEMENT SAFETY & 48H ALERT
-       ========================================================================== */
-    function logBowelMovementNow() {
-      const day = getSelectedDay();
-      if (!day.bowelMovements) day.bowelMovements = [];
-      day.bowelMovements.push(new Date().toISOString());
-      persistState();
-      checkBowelMovementAlert();
-      showToast("Evacuación registrada. Tránsito intestinal al día.");
-    }
-
-    function checkBowelMovementAlert() {
-      let latestBMTime = 0;
-      Object.keys(state.daysData).forEach(d => {
-        const list = state.daysData[d]?.bowelMovements || [];
-        list.forEach(ts => {
-          const t = new Date(ts).getTime();
-          if (t > latestBMTime) latestBMTime = t;
-        });
-      });
-
-      const banner = document.getElementById('bowel-alert-banner');
-      const statusText = document.getElementById('bowel-movement-status-text');
-
-      if (latestBMTime === 0) {
-        banner.classList.add('hidden');
-        banner.classList.remove('flex');
-        if (statusText) statusText.innerText = "Sin registros recientes de evacuación.";
-        return;
-      }
-
-      const diffHours = (Date.now() - latestBMTime) / (1000 * 60 * 60);
-      if (statusText) {
-        const diffDays = Math.floor(diffHours / 24);
-        if (diffDays === 0) statusText.innerText = "Última evacuación registrada: Hoy";
-        else if (diffDays === 1) statusText.innerText = "Última evacuación registrada: Ayer (~24h)";
-        else statusText.innerText = `Última evacuación: Hace ${diffDays} días (${Math.round(diffHours)}h)`;
-      }
-
-      if (diffHours >= 48) {
-        banner.classList.remove('hidden');
-        banner.classList.add('flex');
-        lucide.createIcons();
-      } else {
-        banner.classList.add('hidden');
-        banner.classList.remove('flex');
-      }
-    }
-
-    /* ==========================================================================
-       MEAL DIARY LIST RENDERING
-       ========================================================================== */
-    function renderMealsList() {
-      const day = getSelectedDay();
-      const container = document.getElementById('daily-meals-container');
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (!day.meals || day.meals.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-6 bg-[#111a2e]/50 rounded-2xl border border-dashed border-[#223455] p-5">
-            <i data-lucide="utensils" class="w-7 h-7 text-slate-500 mx-auto mb-2"></i>
-            <p class="text-xs font-bold text-slate-300">Sin alimentos registrados en esta fecha</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">Usa 'Analizar plato' para fotografiar tu comida o añade manualmente.</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      day.meals.forEach((meal, idx) => {
-        const card = document.createElement('div');
-        card.className = "bg-[#111a2e] rounded-2xl p-3 border border-[#223455] space-y-2";
-        card.innerHTML = `
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${meal.slot || 'Comida'}</span>
-                <span class="text-[10px] text-slate-500">${meal.time || ''}</span>
-              </div>
-              <h4 class="text-xs font-bold text-white mt-0.5">${meal.name}</h4>
-            </div>
-            <button onclick="removeMealItem(${idx})" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-
-          <div class="flex items-center gap-3 text-xs pt-1 border-t border-[#223455]">
-            <div>
-              <span class="text-[10px] text-slate-400 font-medium">Cal:</span>
-              <span class="font-black text-white">${meal.calories}</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-amber-400 font-medium">Proteína:</span>
-              <span class="font-black text-amber-400">${meal.protein}g</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 font-medium">Carbos:</span>
-              <span class="font-semibold text-slate-300">${meal.carbs || 0}g</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 font-medium">Grasas:</span>
-              <span class="font-semibold text-slate-300">${meal.fat || 0}g</span>
-            </div>
-          </div>
-
-          ${meal.tip ? `
-            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2 text-[10px] text-emerald-300 flex items-start gap-1.5">
-              <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-              <span>${meal.tip}</span>
-            </div>
-          ` : ''}
-        `;
-        container.appendChild(card);
-      });
-
-      lucide.createIcons();
-    }
-
-    function removeMealItem(idx) {
-      const day = getSelectedDay();
-      day.meals.splice(idx, 1);
-      persistState();
-      updateDashboardView();
-      showToast("Comida eliminada.");
-    }
-
-    /* ==========================================================================
-       AI MEAL SCANNER & GEMINI INTEGRATION
-       ========================================================================== */
-    function openScannerModal() {
-      document.getElementById('modal-scanner').classList.remove('hidden');
-      document.getElementById('modal-scanner').classList.add('flex');
-      document.getElementById('ai-results-container').classList.add('hidden');
-      document.getElementById('btn-run-analysis').disabled = false;
-      document.getElementById('btn-run-analysis-text').innerText = "Analizar nutrientes y tolerancia gástrica";
-      lucide.createIcons();
-    }
-
-    function closeScannerModal() {
-      document.getElementById('modal-scanner').classList.add('hidden');
-      document.getElementById('modal-scanner').classList.remove('flex');
-    }
-
-    function handleImageSelected(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        selectedImageBase64 = evt.target.result;
-        const imgEl = document.getElementById('scanner-preview-img');
-        imgEl.src = selectedImageBase64;
-        imgEl.classList.remove('hidden');
-        document.getElementById('scanner-placeholder-content').classList.add('hidden');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function runMealAnalysis() {
-      const textQuery = document.getElementById('scanner-text-input').value.trim();
-      if (!selectedImageBase64 && !textQuery) {
-        showToast("Adjunta una foto o escribe una descripción del plato.");
-        return;
-      }
-
-      const btn = document.getElementById('btn-run-analysis');
-      const btnText = document.getElementById('btn-run-analysis-text');
-      btn.disabled = true;
-      btnText.innerText = "Analizando plato con IA Gemini...";
-
-      const apiKey = state.settings.apiKey || "";
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-      const systemPrompt = `Eres un médico especialista en endocrinología y nutrición para pacientes en tratamiento con tirzepatide/Mounjaro (agonista dual GLP-1/GIP).
-Analiza el plato de comida en la imagen o el texto.
-Debes responder obligatoriamente con un JSON válido con este formato:
-{
-  "foodName": "Nombre descriptivo del plato",
-  "calories": 390,
-  "protein": 33,
-  "carbs": 27,
-  "fat": 16,
-  "mounjaroTip": "Advertencia específica para tirzepatide: Si contiene piel de pollo, frituras o grasas concentradas, advierte sobre náuseas, acidez y eructos de azufre por vaciamiento gástrico enlentecido. Recomienda comer la proteína primero."
-}
-Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
-
-      let parts = [];
-      if (textQuery) {
-        parts.push({ text: `Detalles del usuario: ${textQuery}` });
-      } else {
-        parts.push({ text: "Analiza los alimentos en este plato y calcula calorías, macronutrientes y tolerancia digestiva para Mounjaro." });
-      }
-
-      if (selectedImageBase64) {
-        const base64Data = selectedImageBase64.split(',')[1];
-        const mimeType = selectedImageBase64.split(';')[0].replace('data:', '');
-        parts.push({
-          inlineData: {
-            mimeType: mimeType,
-            data: base64Data
+        // Suscripción a cambios en la nube en tiempo real (Firestore)
+        const userDocRef = doc(db, "trackers", user.uid);
+        onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const cloudData = docSnap.data();
+            appState = { ...appState, ...cloudData };
+            localStorage.setItem("mounjaro_clinical_data", JSON.stringify(appState));
+            renderAll();
+          } else {
+            persistData();
           }
         });
+      } else {
+        syncDot.classList.remove("synced");
+        syncText.textContent = "Local storage";
+        authLabel.textContent = "Sign in";
+        renderAll();
+      }
+    });
+
+    // Guardado unificado (Local Storage + Firestore si hay sesión activa)
+    async function persistData() {
+      localStorage.setItem("mounjaro_clinical_data", JSON.stringify(appState));
+      if (currentUser) {
+        try {
+          const userDocRef = doc(db, "trackers", currentUser.uid);
+          await setDoc(userDocRef, appState, { merge: true });
+        } catch (err) {
+          console.error("Error al sincronizar con Firestore:", err);
+        }
+      }
+      renderAll();
+    }
+
+    // Manejo de autenticación
+    window.handleAuthAction = async function() {
+      if (currentUser) {
+        await signOut(auth);
+      } else {
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (error) {
+          alert("Error de autenticación: " + error.message);
+        }
+      }
+    };
+
+    // Funciones globales expuestas al DOM
+    window.saveApiKey = function(val) {
+      appState.geminiKey = val.trim();
+      localStorage.setItem("mounjaro_gemini_key", appState.geminiKey);
+    };
+
+    window.addWater = function(amount) {
+      const today = new Date().toISOString().split("T")[0];
+      if (appState.waterDate !== today) {
+        appState.waterDate = today;
+        appState.waterOz = 0;
+      }
+      appState.waterOz = Math.max(0, appState.waterOz + amount);
+      persistData();
+    };
+
+    window.recordInjection = function() {
+      const dose = document.getElementById("injDose").value;
+      const site = document.getElementById("injSite").value;
+      const now = new Date();
+
+      appState.injections.unshift({
+        date: now.toISOString(),
+        dose: parseFloat(dose),
+        site: site
+      });
+
+      if (appState.penInventory > 0) {
+        appState.penInventory -= 1;
       }
 
-      const payload = {
-        contents: [{ role: "user", parts: parts }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          responseMimeType: "application/json"
+      persistData();
+      alert("Inyección guardada correctamente.");
+    };
+
+    window.startRoomTempCountdown = function() {
+      if (confirm("¿Confirmas que retiraste una nueva pluma del refrigerador hoy?")) {
+        appState.penRoomTempStart = new Date().toISOString();
+        persistData();
+      }
+    };
+
+    window.adjustInventory = function(delta) {
+      appState.penInventory = Math.max(0, appState.penInventory + delta);
+      persistData();
+    };
+
+    window.recordBowelMovement = function() {
+      appState.bowelMovements.unshift(new Date().toISOString());
+      persistData();
+      alert("Evacuación registrada.");
+    };
+
+    window.recordWeight = function() {
+      const input = document.getElementById("inputWeight");
+      const val = parseFloat(input.value);
+      if (!val || isNaN(val)) return;
+
+      appState.weights.push({
+        date: new Date().toISOString().split("T")[0],
+        weight: val
+      });
+      input.value = "";
+      persistData();
+    };
+
+    window.switchTab = function(tabId, btn) {
+      document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+      document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
+      document.getElementById(tabId).style.display = "block";
+      btn.classList.add("active");
+      if (tabId === "tabProgress") renderChart();
+    };
+
+    window.openModal = function(id) { document.getElementById(id).style.display = "flex"; };
+    window.closeModal = function(id) { document.getElementById(id).style.display = "none"; };
+
+    // Renderizado general de interfaces
+    function renderAll() {
+      if (appState.geminiKey) {
+        const keyInput = document.getElementById("geminiApiKey");
+        if (keyInput) keyInput.value = appState.geminiKey;
+      }
+
+      // Cálculo de vida media de tirzepatida (~5 días)
+      if (appState.injections.length > 0) {
+        const lastInj = appState.injections[0];
+        const lastDate = new Date(lastInj.date);
+        const now = new Date();
+        const diffHours = (now - lastDate) / (1000 * 60 * 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        document.getElementById("lblCurrentDose").textContent = `Dosis: ${lastInj.dose} mg`;
+        document.getElementById("lblDaysSinceDose").textContent = `Día ${diffDays + 1} de 7`;
+        
+        // Estimación exponencial: C(t) = C0 * 0.5^(dias/5)
+        const concentration = Math.max(0, Math.round(100 * Math.pow(0.5, (diffHours / 24) / 5)));
+        document.getElementById("barHalfLife").style.width = `${concentration}%`;
+        document.getElementById("lblEstimatedConcentration").textContent = `Concentración estimada: ${concentration}%`;
+        
+        document.getElementById("lastInjDetails").textContent = `Última: ${lastInj.dose} mg en ${lastInj.site} (${lastDate.toLocaleDateString()})`;
+      }
+
+      // Alerta de evacuación >48h
+      const bowelAlert = document.getElementById("bowelAlert");
+      const lblLastBowel = document.getElementById("lblLastBowel");
+      if (appState.bowelMovements.length > 0) {
+        const lastBowelDate = new Date(appState.bowelMovements[0]);
+        const diffHoursBowel = (new Date() - lastBowelDate) / (1000 * 60 * 60);
+        if (diffHoursBowel > 48) {
+          bowelAlert.style.display = "flex";
+          lblLastBowel.className = "badge badge-amber";
+          lblLastBowel.textContent = `Hace ${Math.floor(diffHoursBowel)}h`;
+        } else {
+          bowelAlert.style.display = "none";
+          lblLastBowel.className = "badge badge-emerald";
+          lblLastBowel.textContent = "Al día";
         }
-      };
+      }
+
+      // Pluma a temperatura ambiente (límite 21 días)
+      if (appState.penRoomTempStart) {
+        const start = new Date(appState.penRoomTempStart);
+        const daysPassed = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.max(0, 21 - daysPassed);
+        document.getElementById("valRoomTempDays").textContent = `${daysRemaining} días`;
+      }
+
+      // Inventario de plumas
+      document.getElementById("valInventory").textContent = `${appState.penInventory} plumas`;
+      const invAlert = document.getElementById("lblInventoryAlert");
+      if (appState.penInventory <= 2) {
+        invAlert.textContent = "⚠️ Solicitar recarga";
+        invAlert.style.color = "var(--amber)";
+      } else {
+        invAlert.textContent = "Inventario estable";
+        invAlert.style.color = "var(--text-muted)";
+      }
+
+      // Agua
+      const today = new Date().toISOString().split("T")[0];
+      const waterCurrent = appState.waterDate === today ? appState.waterOz : 0;
+      document.getElementById("valWater").textContent = `${waterCurrent} oz / 80 oz`;
+
+      // Resumen de comidas de hoy
+      const todayMeals = appState.meals.filter(m => m.date === today);
+      let totalCal = 0;
+      let totalProt = 0;
+
+      const mealListEl = document.getElementById("dailyMealList");
+      mealListEl.innerHTML = "";
+
+      todayMeals.forEach(m => {
+        totalCal += m.calories;
+        totalProt += m.protein;
+        const item = document.createElement("div");
+        item.className = "meal-item";
+        item.innerHTML = `
+          <div>
+            <div style="font-size: 13px; font-weight: 500;">${m.name}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${m.protein}g proteína · ${m.calories} kcal</div>
+          </div>
+          <button style="background:none; border:none; color:var(--text-muted);" onclick="deleteMeal('${m.id}')">✕</button>
+        `;
+        mealListEl.appendChild(item);
+      });
+
+      document.getElementById("valProtein").textContent = `${totalProt} g`;
+      document.getElementById("valCalories").textContent = `${totalCal} kcal`;
+    }
+
+    window.deleteMeal = function(id) {
+      appState.meals = appState.meals.filter(m => m.id !== id);
+      persistData();
+    };
+
+    // Analizador Gemini API
+    let analyzedPendingMeal = null;
+
+    window.analyzeMealWithGemini = async function() {
+      if (!appState.geminiKey) {
+        alert("Ingresa tu clave gratuita de Google AI Studio en la casilla correspondiente.");
+        return;
+      }
+      const desc = document.getElementById("mealDescription").value;
+      if (!desc) {
+        alert("Escribe una breve descripción del plato.");
+        return;
+      }
+
+      const prompt = `Analiza este plato para una persona bajo tratamiento con Mounjaro (tirzepatide): "${desc}". 
+      Calcula calorías, proteína, carbohidratos y grasas. Da una advertencia digestiva breve si contiene mucha grasa saturada o azúcares que causen reflujo con vaciamiento gástrico retardado.
+      Responde EXCLUSIVAMENTE en este formato JSON estricto sin bloques Markdown adicionales:
+      {"name": "nombre del plato", "calories": 350, "protein": 30, "carbs": 20, "fat": 10, "note": "consejo clínico breve"}`;
 
       try {
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${appState.geminiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
         });
 
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await response.json();
+        const rawText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+        const parsed = JSON.parse(rawText);
 
-        const data = await res.json();
-        const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawJson) throw new Error("Respuesta vacía");
-
-        const parsed = JSON.parse(rawJson);
-        populateAiResults(parsed);
-
-      } catch (err) {
-        console.warn("Fallo de API o sin clave; usando estimación inteligente asistida:", err);
-        simulateSmartEstimate(textQuery);
-      } finally {
-        btn.disabled = false;
-        btnText.innerText = "Analizar nutrientes y tolerancia gástrica";
+        analyzedPendingMeal = parsed;
+        document.getElementById("aiFoodName").textContent = parsed.name;
+        document.getElementById("aiCal").textContent = parsed.calories;
+        document.getElementById("aiProt").textContent = parsed.protein;
+        document.getElementById("aiCarb").textContent = parsed.carbs;
+        document.getElementById("aiFat").textContent = parsed.fat;
+        document.getElementById("aiClinicalNote").textContent = parsed.note || "";
+        document.getElementById("aiAnalysisResult").style.display = "block";
+      } catch (e) {
+        alert("Error al analizar la comida. Revisa la clave API ingresada.");
       }
-    }
+    };
 
-    function simulateSmartEstimate(query) {
-      const q = (query || "").toLowerCase();
-      let est = {
-        foodName: query || "Plato combinado",
-        calories: 390,
-        protein: 33,
-        carbs: 27,
-        fat: 16,
-        mounjaroTip: "Come primero la proteína antes de saciarte. Si notas acidez o reflujo, retira la piel tostada o grasa para acelerar la digestión."
-      };
-
-      if (q.includes("pollo") || q.includes("pierna")) {
-        est.foodName = query || "Piernas de pollo con arroz y frijoles";
-        est.calories = 390;
-        est.protein = 33;
-        est.carbs = 27;
-        est.fat = 15;
-        est.mounjaroTip = "La piel dorada contiene grasa concentrada. Si sientes eructos de azufre o reflujo, retira la piel para aligerar la digestión.";
-      } else if (q.includes("huevo") || q.includes("omelet")) {
-        est.foodName = "Huevos revueltos con vegetales";
-        est.calories = 240;
-        est.protein = 18;
-        est.carbs = 3;
-        est.fat = 16;
-        est.mounjaroTip = "Proteína suave y de digestión ligera. Ideal para romper el ayuno sin generar distensión abdominal.";
-      }
-
-      populateAiResults(est);
-      showToast("Estimado asistido completado.");
-    }
-
-    function populateAiResults(data) {
-      document.getElementById('res-food-name').value = data.foodName || "Plato analizado";
-      document.getElementById('res-cal').value = data.calories || 350;
-      document.getElementById('res-protein').value = data.protein || 30;
-      document.getElementById('res-carbs').value = data.carbs || 25;
-      document.getElementById('res-fat').value = data.fat || 12;
-      document.getElementById('res-glp1-tip').innerText = data.mounjaroTip || "Prioriza la proteína y mastica despacio para no saturar el estómago.";
-
-      document.getElementById('ai-results-container').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function commitScannedMeal() {
-      const name = document.getElementById('res-food-name').value.trim();
-      const calories = Number(document.getElementById('res-cal').value) || 0;
-      const protein = Number(document.getElementById('res-protein').value) || 0;
-      const carbs = Number(document.getElementById('res-carbs').value) || 0;
-      const fat = Number(document.getElementById('res-fat').value) || 0;
-      const tip = document.getElementById('res-glp1-tip').innerText;
-      const slot = document.getElementById('scanner-meal-slot').value;
-
-      const day = getSelectedDay();
-      day.meals.push({
-        id: "meal_" + Date.now(),
-        name,
-        calories,
-        protein,
-        carbs,
-        fat,
-        tip,
-        slot,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    window.confirmAddAnalyzedMeal = function() {
+      if (!analyzedPendingMeal) return;
+      const today = new Date().toISOString().split("T")[0];
+      appState.meals.unshift({
+        id: Date.now().toString(),
+        date: today,
+        name: analyzedPendingMeal.name,
+        calories: analyzedPendingMeal.calories,
+        protein: analyzedPendingMeal.protein,
+        carbs: analyzedPendingMeal.carbs,
+        fat: analyzedPendingMeal.fat
       });
+      analyzedPendingMeal = null;
+      document.getElementById("aiAnalysisResult").style.display = "none";
+      document.getElementById("mealDescription").value = "";
+      persistData();
+    };
 
-      persistState();
-      closeScannerModal();
-      updateDashboardView();
-      showToast("¡Comida guardada en el diario!");
-    }
+    // Cronómetro de ritmo al comer
+    let timerInterval = null;
+    let timerSeconds = 1200;
 
-    function openManualMealModal() {
-      document.getElementById('modal-manual-meal').classList.remove('hidden');
-      document.getElementById('modal-manual-meal').classList.add('flex');
-    }
-
-    function closeManualMealModal() {
-      document.getElementById('modal-manual-meal').classList.add('hidden');
-      document.getElementById('modal-manual-meal').classList.remove('flex');
-    }
-
-    function saveManualMeal() {
-      const name = document.getElementById('manual-name').value.trim() || "Comida";
-      const slot = document.getElementById('manual-slot').value;
-      const calories = Number(document.getElementById('manual-cal').value) || 0;
-      const protein = Number(document.getElementById('manual-protein').value) || 0;
-      const carbs = Number(document.getElementById('manual-carbs').value) || 0;
-      const fat = Number(document.getElementById('manual-fat').value) || 0;
-
-      const day = getSelectedDay();
-      day.meals.push({
-        id: "meal_" + Date.now(),
-        name,
-        calories,
-        protein,
-        carbs,
-        fat,
-        slot,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      persistState();
-      closeManualMealModal();
-      updateDashboardView();
-      showToast("Comida registrada manualmente.");
-    }
-
-    /* ==========================================================================
-       MOUNJARO HUB, ROOM TEMPERATURE TRACKER & INJECTIONS
-       ========================================================================== */
-    function openLogInjectionModal() {
-      document.getElementById('inj-date').value = state.selectedDate;
-      document.getElementById('modal-injection').classList.remove('hidden');
-      document.getElementById('modal-injection').classList.add('flex');
-    }
-
-    function closeLogInjectionModal() {
-      document.getElementById('modal-injection').classList.add('hidden');
-      document.getElementById('modal-injection').classList.remove('flex');
-    }
-
-    function saveInjectionRecord() {
-      const date = document.getElementById('inj-date').value || state.selectedDate;
-      const dose = document.getElementById('inj-dose').value;
-      const site = document.getElementById('inj-site').value;
-      const notes = document.getElementById('inj-notes').value.trim();
-
-      state.injections.push({
-        id: "inj_" + Date.now(),
-        date,
-        dose,
-        site,
-        notes
-      });
-
-      if (state.settings.pensInStock > 0) {
-        state.settings.pensInStock--;
-      }
-
-      persistState();
-      closeLogInjectionModal();
-      renderMounjaroView();
-      updateDashboardView();
-      showToast(`Dosis de ${dose} guardada (${site})`);
-    }
-
-    function adjustPenCount(delta) {
-      state.settings.pensInStock = Math.max(0, (state.settings.pensInStock || 0) + delta);
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock} plumas`;
-      persistState();
-      renderMounjaroView();
-    }
-
-    function startRoomTempCountdown() {
-      state.settings.roomTempPenStart = Date.now();
-      persistState();
-      renderMounjaroView();
-      showToast("Conteo de 21 días iniciado para la pluma en uso.");
-    }
-
-    function renderMounjaroView() {
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      if (sorted.length > 0) {
-        const latest = sorted[0];
-        document.getElementById('hub-last-dose').innerText = latest.dose;
-        document.getElementById('hub-last-date').innerText = latest.date;
-        document.getElementById('hub-last-site').innerText = latest.site;
-      }
-
-      // Pen inventory
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} plumas`;
-      const warningEl = document.getElementById('dash-pen-warning');
-      if (state.settings.pensInStock <= 2) {
-        warningEl.classList.remove('hidden');
+    window.toggleMealTimer = function() {
+      const btn = document.getElementById("btnTimerToggle");
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.textContent = "Reanudar cronómetro";
       } else {
-        warningEl.classList.add('hidden');
+        btn.textContent = "Pausar cronómetro";
+        timerInterval = setInterval(() => {
+          timerSeconds--;
+          const m = Math.floor(timerSeconds / 60);
+          const s = timerSeconds % 60;
+          document.getElementById("timerDisplay").textContent = 
+            `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+          
+          if (timerSeconds === 600 || timerSeconds === 0) {
+            playChime();
+          }
+
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.textContent = "Finalizado";
+          }
+        }, 1000);
       }
+    };
 
-      // Room Temp Pen Countdown (21 days)
-      if (state.settings.roomTempPenStart) {
-        const elapsedDays = (Date.now() - state.settings.roomTempPenStart) / (1000 * 60 * 60 * 24);
-        const daysLeft = Math.max(0, Math.ceil(21 - elapsedDays));
-        const badge = document.getElementById('room-temp-status-badge');
-        const textEl = document.getElementById('room-temp-days-left');
-
-        textEl.innerText = `${daysLeft} días`;
-        if (daysLeft <= 3) {
-          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
-          badge.innerText = "Por vencer";
-        } else {
-          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-          badge.innerText = "Vigente";
-        }
-      }
-
-      // Injections list
-      const listEl = document.getElementById('hub-injections-list');
-      listEl.innerHTML = '';
-
-      if (sorted.length === 0) {
-        listEl.innerHTML = `<p class="text-slate-500 italic">No hay inyecciones guardadas aún.</p>`;
-      } else {
-        sorted.forEach(inj => {
-          const item = document.createElement('div');
-          item.className = "flex justify-between items-center p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]";
-          item.innerHTML = `
-            <div>
-              <span class="font-bold text-white">${inj.dose} &bull; ${inj.site}</span>
-              <p class="text-[10px] text-slate-500">${inj.date} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
-            </div>
-            <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
-          `;
-          listEl.appendChild(item);
-        });
-      }
-
-      // Load Symptoms
-      const day = getSelectedDay();
-      const s = day.symptoms || {};
-      document.getElementById('input-symptom-hunger').value = s.hunger || 3;
-      updateHungerLabel(s.hunger || 3);
-      document.getElementById('input-symptom-nausea').value = s.nausea || "none";
-      document.getElementById('input-symptom-heartburn').value = s.heartburn || "none";
-      document.getElementById('input-symptom-sulfur').value = s.sulfur || "none";
-      document.getElementById('input-symptom-fatigue').value = s.fatigue || "none";
-      document.getElementById('input-symptom-notes').value = s.notes || "";
-
-      checkBowelMovementAlert();
-      lucide.createIcons();
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.2);
+      } catch (e) {}
     }
 
-    function removeInjection(id) {
-      state.injections = state.injections.filter(i => i.id !== id);
-      persistState();
-      renderMounjaroView();
-      updateDashboardView();
-      showToast("Registro de inyección eliminado.");
-    }
+    // Gráfica de peso con Chart.js
+    function renderChart() {
+      const ctx = document.getElementById("weightChart");
+      if (!ctx) return;
 
-    function updateHungerLabel(val) {
-      const lbl = document.getElementById('symptom-hunger-label');
-      let t = "";
-      if (val <= 2) t = `${val} / 10 (Apetito nulo)`;
-      else if (val <= 4) t = `${val} / 10 (Poco apetito)`;
-      else if (val <= 6) t = `${val} / 10 (Apetito moderado)`;
-      else if (val <= 8) t = `${val} / 10 (Apetito alto)`;
-      else t = `${val} / 10 (Hambre intensa)`;
-      lbl.innerText = t;
-    }
+      const labels = appState.weights.map(w => w.date.substring(5));
+      const dataVals = appState.weights.map(w => w.weight);
 
-    function saveDailySymptoms() {
-      const day = getSelectedDay();
-      day.symptoms = {
-        hunger: Number(document.getElementById('input-symptom-hunger').value),
-        nausea: document.getElementById('input-symptom-nausea').value,
-        heartburn: document.getElementById('input-symptom-heartburn').value,
-        sulfur: document.getElementById('input-symptom-sulfur').value,
-        fatigue: document.getElementById('input-symptom-fatigue').value,
-        notes: document.getElementById('input-symptom-notes').value.trim()
-      };
-      persistState();
-      showToast("Tolerancia y síntomas guardados.");
-    }
+      if (chartInstance) chartInstance.destroy();
 
-    /* ==========================================================================
-       PROGRESS, WEIGHT CHART, BODY MEASUREMENTS & TOOLS
-       ========================================================================== */
-    function renderToolsView() {
-      state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      if (state.weights.length > 0) {
-        const startW = state.weights[0].weight;
-        const curW = state.weights[state.weights.length - 1].weight;
-        const totalLost = (startW - curW).toFixed(1);
-
-        document.getElementById('prog-start-w').innerText = startW.toFixed(1);
-        document.getElementById('prog-cur-w').innerText = curW.toFixed(1);
-        document.getElementById('prog-lost-w').innerText = `${totalLost > 0 ? '-' : ''}${Math.abs(totalLost)}`;
-        document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
-      }
-
-      // Measurements List
-      const mList = document.getElementById('measurements-history-list');
-      mList.innerHTML = '';
-      if (state.measurements.length === 0) {
-        mList.innerHTML = `<p class="text-slate-500 italic">No hay medidas registradas aún.</p>`;
-      } else {
-        [...state.measurements].reverse().forEach(m => {
-          const r = document.createElement('div');
-          r.className = "flex justify-between items-center p-2 rounded-xl bg-[#111a2e] border border-[#223455]";
-          r.innerHTML = `
-            <span class="text-slate-300 font-medium">${m.date}</span>
-            <div class="text-slate-400 space-x-2 text-[11px]">
-              <span>Cint: <strong class="text-white">${m.waist}"</strong></span>
-              <span>Pech: <strong class="text-white">${m.chest}"</strong></span>
-              <span>Cad: <strong class="text-white">${m.hips}"</strong></span>
-              <span>Cuell: <strong class="text-white">${m.neck || '--'}"</strong></span>
-            </div>
-          `;
-          mList.appendChild(r);
-        });
-      }
-
-      // Chart.js Setup
-      renderChartJs();
-    }
-
-    function renderChartJs() {
-      const canvas = document.getElementById('weightChart');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-
-      const labels = state.weights.map(w => {
-        const p = w.date.split('-');
-        return `${p[2]}/${p[1]}`;
-      });
-      const dataPoints = state.weights.map(w => w.weight);
-
-      if (weightChartInstance) {
-        weightChartInstance.destroy();
-      }
-
-      weightChartInstance = new Chart(ctx, {
-        type: 'line',
+      chartInstance = new Chart(ctx, {
+        type: "line",
         data: {
-          labels: labels.length ? labels : ['Inicio'],
+          labels: labels,
           datasets: [{
-            label: 'Peso (lbs)',
-            data: dataPoints.length ? dataPoints : [215],
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.12)',
-            borderWidth: 2.5,
-            pointBackgroundColor: '#10b981',
-            pointRadius: 4,
-            pointHoverRadius: 6,
+            label: "Peso (lb)",
+            data: dataVals,
+            borderColor: "#06b6d4",
+            backgroundColor: "rgba(6, 182, 212, 0.1)",
+            borderWidth: 2,
+            tension: 0.3,
             fill: true,
-            tension: 0.35
+            pointBackgroundColor: "#10b981"
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => ` ${ctx.parsed.y} lbs`
-              }
-            }
-          },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: '#64748b' }
-            },
-            y: {
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: {
-                color: '#64748b',
-                callback: (v) => `${v}`
-              }
-            }
-          }
+            y: { grid: { color: "#1e2d4a" }, ticks: { color: "#94a3b8" } },
+            x: { grid: { display: false }, ticks: { color: "#94a3b8" } }
+          },
+          plugins: { legend: { display: false } }
         }
       });
     }
 
-    function openWeightModal() {
-      document.getElementById('weight-input-date').value = state.selectedDate;
-      document.getElementById('modal-weight').classList.remove('hidden');
-      document.getElementById('modal-weight').classList.add('flex');
-    }
-
-    function closeWeightModal() {
-      document.getElementById('modal-weight').classList.add('hidden');
-      document.getElementById('modal-weight').classList.remove('flex');
-    }
-
-    function saveWeightEntry() {
-      const date = document.getElementById('weight-input-date').value || state.selectedDate;
-      const weight = parseFloat(document.getElementById('weight-input-val').value);
-
-      if (!weight || isNaN(weight)) {
-        showToast("Ingresa un número de peso válido.");
-        return;
-      }
-
-      const idx = state.weights.findIndex(w => w.date === date);
-      if (idx >= 0) state.weights[idx].weight = weight;
-      else state.weights.push({ date, weight });
-
-      state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      persistState();
-      closeWeightModal();
-      renderToolsView();
-      showToast(`Peso guardado: ${weight} lbs`);
-    }
-
-    function openMeasurementModal() {
-      document.getElementById('meas-date').value = state.selectedDate;
-      document.getElementById('modal-measurement').classList.remove('hidden');
-      document.getElementById('modal-measurement').classList.add('flex');
-    }
-
-    function closeMeasurementModal() {
-      document.getElementById('modal-measurement').classList.add('hidden');
-      document.getElementById('modal-measurement').classList.remove('flex');
-    }
-
-    function saveMeasurementEntry() {
-      const date = document.getElementById('meas-date').value || state.selectedDate;
-      const waist = parseFloat(document.getElementById('meas-waist').value) || 0;
-      const chest = parseFloat(document.getElementById('meas-chest').value) || 0;
-      const hips = parseFloat(document.getElementById('meas-hips').value) || 0;
-      const neck = parseFloat(document.getElementById('meas-neck').value) || 0;
-
-      const idx = state.measurements.findIndex(m => m.date === date);
-      if (idx >= 0) state.measurements[idx] = { date, waist, chest, hips, neck };
-      else state.measurements.push({ date, waist, chest, hips, neck });
-
-      state.measurements.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      persistState();
-      closeMeasurementModal();
-      renderToolsView();
-      showToast("Medidas corporales guardadas.");
-    }
-
-    /* ==========================================================================
-       MEAL PACING TIMER (20 MINUTES) & WEB AUDIO CHIMES
-       ========================================================================== */
-    function playGentleChime(freq = 587.33) {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.4);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1.4);
-      } catch (e) {
-        console.log("Audio awaiting user interaction");
-      }
-    }
-
-    function startMealPacingTimer() {
-      if (pacingTimerInterval) return;
-      playGentleChime(523.25); // C5
-      showToast("Cronómetro de 20 min iniciado. Reposa el tenedor entre bocados.");
-
-      const btn = document.getElementById('btn-start-pacing');
-      btn.innerText = "Pausar";
-
-      pacingTimerInterval = setInterval(() => {
-        pacingSecondsLeft--;
-        const m = Math.floor(pacingSecondsLeft / 60);
-        const s = pacingSecondsLeft % 60;
-        document.getElementById('pacing-timer-badge').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-
-        if (pacingSecondsLeft === 600) {
-          playGentleChime(659.25); // E5
-          showToast("10 minutos transcurridos: Evalúa tu saciedad. ¿Sientes plenitud?");
-        }
-
-        if (pacingSecondsLeft <= 0) {
-          clearInterval(pacingTimerInterval);
-          pacingTimerInterval = null;
-          playGentleChime(783.99); // G5
-          showToast("¡20 minutos completados! Excelente ritmo digestivo.");
-          btn.innerText = "Iniciar al comer";
-        }
-      }, 1000);
-    }
-
-    function resetMealPacingTimer() {
-      if (pacingTimerInterval) {
-        clearInterval(pacingTimerInterval);
-        pacingTimerInterval = null;
-      }
-      pacingSecondsLeft = 20 * 60;
-      document.getElementById('pacing-timer-badge').innerText = "20:00";
-      document.getElementById('btn-start-pacing').innerText = "Iniciar al comer";
-    }
-
-    /* ==========================================================================
-       INTERMITTENT FASTING CLOCK
-       ========================================================================== */
-    function toggleFastingTimer() {
-      const btn = document.getElementById('btn-toggle-fasting');
-      const pill = document.getElementById('fasting-status-pill');
+    // Exportación clínica a notas
+    window.copyDoctorReport = function() {
+      const lastW = appState.weights.length ? appState.weights[appState.weights.length - 1].weight + " lb" : "Sin registro";
+      const lastInj = appState.injections.length ? `${appState.injections[0].dose} mg (${appState.injections[0].site})` : "Sin dosis";
       
-      if (!state.settings.isFasting) {
-        state.settings.isFasting = true;
-        state.settings.fastingStart = Date.now();
-        btn.innerText = "Detener ayuno";
-        btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Ayuno activo";
-        pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        showToast("Ventana de ayuno iniciada.");
-      } else {
-        state.settings.isFasting = false;
-        state.settings.fastingStart = null;
-        btn.innerText = "Iniciar ayuno";
-        btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
-        pill.innerText = "Pausa / Comiendo";
-        pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
-        document.getElementById('fasting-timer-display').innerText = "00h 00m";
-        showToast("Ventana de ayuno finalizada.");
-      }
-      persistState();
-    }
+      const report = `Informe de seguimiento Mounjaro:
+- Fecha de generación: ${new Date().toLocaleDateString()}
+- Peso actual: ${lastW}
+- Dosis activa: ${lastInj}
+- Plumas en refrigerador: ${appState.penInventory}
+- Estado de hidratación: ${appState.waterOz} oz registradas hoy`;
 
-    function updateFastingDisplay() {
-      if (state.settings.isFasting && state.settings.fastingStart) {
-        const elapsedMs = Date.now() - state.settings.fastingStart;
-        const totalMin = Math.floor(elapsedMs / (1000 * 60));
-        const hours = Math.floor(totalMin / 60);
-        const mins = totalMin % 60;
-        document.getElementById('fasting-timer-display').innerText = `${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`;
-      }
-    }
-    setInterval(updateFastingDisplay, 30000);
-
-    /* ==========================================================================
-       SOS RELIEF GUIDE & APPLE HEALTH MODAL CONTROLLERS
-       ========================================================================== */
-    function openSosModal() {
-      document.getElementById('modal-sos').classList.remove('hidden');
-      document.getElementById('modal-sos').classList.add('flex');
-      lucide.createIcons();
-    }
-
-    function closeSosModal() {
-      document.getElementById('modal-sos').classList.add('hidden');
-      document.getElementById('modal-sos').classList.remove('flex');
-    }
-
-    function openAppleHealthModal() {
-      const curW = state.weights.length ? state.weights[state.weights.length - 1].weight : 214.8;
-      document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
-      document.getElementById('btn-run-health-shortcut').href = `shortcuts://run-shortcut?name=LogWeight&input=${curW}`;
-      document.getElementById('modal-apple-health').classList.remove('hidden');
-      document.getElementById('modal-apple-health').classList.add('flex');
-    }
-
-    function closeAppleHealthModal() {
-      document.getElementById('modal-apple-health').classList.add('hidden');
-      document.getElementById('modal-apple-health').classList.remove('flex');
-    }
-
-    /* ==========================================================================
-       EXPORT CLINICAL REPORT FOR APPLE NOTES / PHYSICIAN
-       ========================================================================== */
-    function copyDoctorSummary() {
-      const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
-      const startW = sortedW.length > 0 ? sortedW[0].weight : '--';
-      const curW = sortedW.length > 0 ? sortedW[sortedW.length - 1].weight : '--';
-      const totalLost = (sortedW.length > 1) ? (sortedW[0].weight - sortedW[sortedW.length - 1].weight).toFixed(1) : 0;
-
-      const sortedInj = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const lastInj = sortedInj.length > 0 ? sortedInj[0] : null;
-
-      const day = getSelectedDay();
-      const sym = day.symptoms || {};
-
-      let totalCal = 0, totalProtein = 0;
-      (day.meals || []).forEach(m => {
-        totalCal += Number(m.calories || 0);
-        totalProtein += Number(m.protein || 0);
+      navigator.clipboard.writeText(report).then(() => {
+        alert("Informe copiado al portapapeles. Puedes pegarlo directamente en Apple Notes o enviarlo a tu médico.");
       });
+    };
 
-      const report = `📋 REPORTE DE SEGUIMIENTO CLÍNICO - MOUNJARO (TIRZEPATIDE)
-Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-
-⚖️ EVOLUCIÓN DE PESO & METAS:
-• Peso inicial: ${startW} lbs
-• Peso actual: ${curW} lbs
-• Pérdida acumulada: ${totalLost} lbs
-
-💉 TRATAMIENTO & DOSIS FARMACOLÓGICA:
-• Dosis actual: ${lastInj ? `${lastInj.dose} (${lastInj.site}) administrada el ${lastInj.date}` : 'Sin registrar'}
-• Plumas en inventario refrigerado: ${state.settings.pensInStock || 0}
-• Frecuencia: Cada 7 días
-
-🍽️ NUTRICIÓN & MACRONUTRIENTES CLAVE:
-• Calorías consumidas: ${totalCal} kcal (Meta: ${state.settings.calGoal} kcal)
-• Proteína alcanzada: ${totalProtein} g (Meta preventiva muscular: ${state.settings.proteinGoal} g)
-• Agua registrada: ${day.water || 0} oz (Meta: ${state.settings.waterGoal} oz)
-
-🩺 TOLERANCIA DIGESTIVA & EFECTOS SECUNDARIOS:
-• Nivel de apetito / Satiety: ${sym.hunger || 3}/10
-• Náuseas: ${sym.nausea || 'Ninguna'}
-• Reflujo / Acidez: ${sym.heartburn || 'Ninguna'}
-• Eructos de azufre (*sulfur burps*): ${sym.sulfur || 'Ninguno'}
-• Fatiga / Energía: ${sym.fatigue || 'Normal'}
-• Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
-
-Generado con Mounjaro Companion Web App.`;
-
-      copyToClipboardText(report);
-      showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
-    }
-
-    function copyToClipboardText(text) {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      try {
-        document.execCommand('copy');
-      } catch (err) {
-        console.error("ExecCommand error:", err);
-      }
-      document.body.removeChild(textarea);
-    }
-
-    /* ==========================================================================
-       SETTINGS & JSON BACKUP / RESTORE
-       ========================================================================== */
-    function saveNutritionalSettings() {
-      state.settings.calGoal = Number(document.getElementById('setting-cal-goal').value) || 1400;
-      state.settings.tdee = Number(document.getElementById('setting-tdee').value) || 2000;
-      state.settings.proteinGoal = Number(document.getElementById('setting-protein-goal').value) || 110;
-      state.settings.waterGoal = Number(document.getElementById('setting-water-goal').value) || 96;
-
-      persistState();
-      updateDashboardView();
-      showToast("Metas nutricionales guardadas.");
-    }
-
-    function saveApiKeySetting() {
-      state.settings.apiKey = document.getElementById('setting-api-key').value.trim();
-      persistState();
-      showToast("Clave de API Gemini configurada.");
-    }
-
-    function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-      const a = document.createElement('a');
-      a.setAttribute("href", dataStr);
-      a.setAttribute("download", `mounjaro_backup_${state.selectedDate}.json`);
-      document.body.appendChild(a);
+    window.exportDataJson = function() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mounjaro_backup_${new Date().toISOString().split("T")[0]}.json`;
       a.click();
-      a.remove();
-      showToast("Copia de seguridad descargada.");
-    }
+    };
 
-    function importDataJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (imported.settings) state.settings = imported.settings;
-          if (imported.daysData) state.daysData = imported.daysData;
-          if (imported.injections) state.injections = imported.injections;
-          if (imported.weights) state.weights = imported.weights;
-          if (imported.measurements) state.measurements = imported.measurements;
-
-          persistState();
-          renderCurrentDay();
-          showToast("Datos restaurados exitosamente.");
-        } catch (err) {
-          showToast("Error al importar el archivo JSON.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function openResetModal() {
-      document.getElementById('modal-reset').classList.remove('hidden');
-      document.getElementById('modal-reset').classList.add('flex');
-    }
-
-    function closeResetModal() {
-      document.getElementById('modal-reset').classList.add('hidden');
-      document.getElementById('modal-reset').classList.remove('flex');
-    }
-
-    function executeFactoryReset() {
-      localStorage.removeItem(STORAGE_KEY);
-      state.daysData = {};
-      state.injections = [];
-      state.weights = [];
-      state.measurements = [];
-      initData();
-      closeResetModal();
-      renderCurrentDay();
-      showToast("Todos los datos han sido reiniciados.");
-    }
-
-    /* ==========================================================================
-       TOAST NOTIFICATIONS SYSTEM
-       ========================================================================== */
-    let toastTimer = null;
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-msg').innerText = msg;
-
-      toast.classList.remove('opacity-0', 'translate-y-12', 'pointer-events-none');
-      toast.classList.add('opacity-100', 'translate-y-0');
-
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none');
-      }, 3500);
-    }
-
-    /* ==========================================================================
-       APPLICATION INITIALIZATION
-       ========================================================================== */
-    window.addEventListener('DOMContentLoaded', () => {
-      initData();
-
-      // Preload settings inputs
-      document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
-      document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
-      document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
-      document.getElementById('setting-water-goal').value = state.settings.waterGoal || 96;
-      if (state.settings.apiKey) document.getElementById('setting-api-key').value = state.settings.apiKey;
-
-      // Date event listeners
-      document.getElementById('btn-prev-day').addEventListener('click', () => changeDate(-1));
-      document.getElementById('btn-next-day').addEventListener('click', () => changeDate(1));
-
-      // Initial rendering
-      updateDateBadge();
-      lucide.createIcons();
-    });
+    renderAll();
   </script>
 </body>
 </html>
