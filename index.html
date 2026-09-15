@@ -167,7 +167,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.0</p>
+          <p id="print-app-version">Versión: v3.1</p>
         </div>
       </div>
     </div>
@@ -184,7 +184,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.0</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.1</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -415,6 +415,44 @@
               <p>&bull; <strong>Amarillo oscuro / Ámbar:</strong> Alerta de deshidratación. Puede provocar mareos o cefaleas.</p>
             </div>
           </div>
+        </div>
+
+        <!-- Resumen semanal automático -->
+        <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Resumen semanal</span>
+              <h3 class="text-sm font-bold text-white">Tus últimos 7 días</h3>
+            </div>
+            <span id="weekly-summary-range" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-[#111a2e] text-slate-400 border border-[#223455]">--</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Peso 7d</span>
+              <p id="weekly-weight-change" class="text-sm font-black text-cyan-300">--</p>
+            </div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Agua prom.</span>
+              <p id="weekly-water-avg" class="text-sm font-black text-cyan-300">--</p>
+            </div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Proteína prom.</span>
+              <p id="weekly-protein-avg" class="text-sm font-black text-amber-300">--</p>
+            </div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Días registrados</span>
+              <p id="weekly-tracked-days" class="text-sm font-black text-emerald-300">0/7</p>
+            </div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Con síntomas</span>
+              <p id="weekly-symptom-days" class="text-sm font-black text-rose-300">0</p>
+            </div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Dosis</span>
+              <p id="weekly-dose-count" class="text-sm font-black text-emerald-300">0</p>
+            </div>
+          </div>
+          <p id="weekly-summary-note" class="text-[10px] text-slate-400 leading-relaxed">Se actualiza automáticamente con tus registros.</p>
         </div>
 
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
@@ -748,7 +786,7 @@
           <div class="flex items-center justify-between bg-[#111a2e] p-3 rounded-xl border border-[#223455]">
             <div>
               <span class="text-[10px] text-slate-400 block font-semibold">Tiempo acumulado de ayuno</span>
-              <p id="fasting-timer-display" class="text-lg font-black text-white">00h 00m</p>
+              <p id="fasting-timer-display" class="text-lg font-black text-white">00h 00m 00s</p>
             </div>
             <button id="btn-toggle-fasting" onclick="toggleFastingTimer()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all">
               Iniciar ayuno
@@ -766,7 +804,7 @@
               <p class="text-[10px] text-slate-300">Formatos para consulta médica, Apple Notes o impresión directa en PDF</p>
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             <button onclick="copyDoctorSummary()" class="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/20">
               <i data-lucide="copy" class="w-4 h-4"></i>
               <span>Copiar para Notes</span>
@@ -778,6 +816,10 @@
             <button onclick="openAppleHealthModal()" class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
               <i data-lucide="heart" class="w-4 h-4 text-rose-400"></i>
               <span>Apple Health</span>
+            </button>
+            <button onclick="openAppointmentPrepModal()" class="py-2.5 bg-violet-600/30 hover:bg-violet-600/45 border border-violet-500/40 text-violet-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="clipboard-list" class="w-4 h-4 text-violet-300"></i>
+              <span>Preparar mi cita</span>
             </button>
           </div>
         </div>
@@ -1226,6 +1268,48 @@
       </div>
     </div>
 
+    <!-- Modal Preparar mi cita -->
+    <div id="modal-appointment-prep" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="bg-[#162238] border border-violet-500/30 w-full max-w-lg rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-violet-500/20 text-violet-300 flex items-center justify-center">
+              <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Preparar mi cita</h3>
+              <p class="text-[10px] text-slate-400">Resumen de tus registros para conversar con tu profesional de salud</p>
+            </div>
+          </div>
+          <button onclick="closeAppointmentPrepModal()" class="text-slate-400 hover:text-white p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Periodo del resumen</label>
+          <select id="appointment-range" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl text-white text-xs">
+            <option value="30">Últimos 30 días</option>
+            <option value="90">Últimos 90 días</option>
+            <option value="all">Desde el inicio</option>
+          </select>
+        </div>
+
+        <textarea id="appointment-summary-text" readonly class="w-full min-h-[330px] p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-[11px] leading-relaxed text-slate-200 font-mono resize-none"></textarea>
+
+        <p class="text-[10px] text-slate-500 leading-relaxed">Este resumen organiza los datos que registraste. No diagnostica ni modifica tu tratamiento.</p>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="copyAppointmentSummary()" class="py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+          </button>
+          <button onclick="printAppointmentSummary()" class="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir / PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Apple Health -->
     <div id="modal-apple-health" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-sm rounded-3xl p-5 space-y-3 shadow-2xl text-center">
@@ -1289,7 +1373,48 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.0";
+    const APP_VERSION = "v3.1";
+    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_1";
+
+    function formatSyncTime(timestamp) {
+      if (!timestamp) return "";
+      try {
+        return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function setSyncStatus(mode, timestamp = null) {
+      const syncDot = document.getElementById('sync-dot');
+      const syncText = document.getElementById('sync-text');
+      if (!syncDot || !syncText) return;
+
+      if (mode === 'syncing') {
+        syncDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
+        syncText.innerText = "Sincronizando…";
+        return;
+      }
+
+      if (mode === 'error') {
+        syncDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+        syncText.innerText = "Error de sincronización";
+        return;
+      }
+
+      if (mode === 'synced') {
+        const ts = timestamp || Date.now();
+        localStorage.setItem(LAST_SYNC_KEY, String(ts));
+        syncDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]";
+        syncText.innerText = `Sincronizado · ${formatSyncTime(ts)}`;
+        if (currentUser && currentUser.email) syncText.title = currentUser.email;
+        return;
+      }
+
+      syncDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
+      syncText.innerText = "Solo local";
+      syncText.removeAttribute('title');
+    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1512,8 +1637,13 @@
       if (currentUser) {
         try {
           const cleanCopy = getCloudSafeStateSnapshot();
+          setSyncStatus('syncing');
           db.collection("trackers").doc(currentUser.uid).set(cleanCopy)
-            .catch(err => console.error("Error sincronizando en Firestore:", err));
+            .then(() => setSyncStatus('synced'))
+            .catch(err => {
+              setSyncStatus('error');
+              console.error("Error sincronizando en Firestore:", err);
+            });
         } catch (e) {
           console.error("Error preparando sincronización en la nube:", e);
         }
@@ -1531,8 +1661,13 @@
 
         if (stableStringify(mergedCopy) === stableStringify(incomingCopy)) return;
 
+        setSyncStatus('syncing');
         db.collection("trackers").doc(currentUser.uid).set(mergedCopy)
-          .catch(err => console.error("Error guardando fusión en Firestore:", err));
+          .then(() => setSyncStatus('synced'))
+          .catch(err => {
+            setSyncStatus('error');
+            console.error("Error guardando fusión en Firestore:", err);
+          });
       } catch (err) {
         console.error("Error comparando la fusión con Firestore:", err);
       }
@@ -1779,13 +1914,10 @@
     function setupFirebaseAuthListener() {
       auth.onAuthStateChanged((user) => {
         currentUser = user;
-        const syncDot = document.getElementById('sync-dot');
-        const syncText = document.getElementById('sync-text');
         const authLabel = document.getElementById('auth-label-header');
 
         if (user) {
-          if (syncDot) syncDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]";
-          if (syncText) syncText.innerText = user.email ? user.email.split('@')[0] : 'Conectado';
+          setSyncStatus('syncing');
           if (authLabel) authLabel.innerText = "Salir";
 
           const docRef = db.collection("trackers").doc(user.uid);
@@ -1795,10 +1927,12 @@
             if (docSnap.exists) {
               const cloud = docSnap.data();
               applyCloudDataMerge(cloud);
+              setSyncStatus('synced');
             } else {
               persistState();
             }
           }, (err) => {
+            setSyncStatus('error');
             console.error("Error en escucha Firestore:", err);
           });
 
@@ -1808,8 +1942,7 @@
             unsubscribeFirestore();
             unsubscribeFirestore = null;
           }
-          if (syncDot) syncDot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
-          if (syncText) syncText.innerText = "Local storage";
+          setSyncStatus('local');
           if (authLabel) authLabel.innerText = "Sign in";
         }
         lucide.createIcons();
@@ -2119,11 +2252,102 @@
       checkBowelMovementAlert();
     }
 
+    function getRollingDateKeys(endDateKey, days) {
+      const result = [];
+      const end = new Date(endDateKey + "T12:00:00");
+      for (let offset = days - 1; offset >= 0; offset--) {
+        const d = new Date(end);
+        d.setDate(end.getDate() - offset);
+        result.push(getFormattedDate(d));
+      }
+      return result;
+    }
+
+    function dayHasMeaningfulTracking(day) {
+      if (!day || typeof day !== 'object') return false;
+      if (Number(day.water || 0) > 0) return true;
+      if (Array.isArray(day.meals) && day.meals.length > 0) return true;
+      if (Array.isArray(day.bowelMovements) && day.bowelMovements.length > 0) return true;
+      const s = day.symptoms || {};
+      if ((s.nausea && s.nausea !== 'none') || (s.heartburn && s.heartburn !== 'none') ||
+          (s.sulfur && s.sulfur !== 'none') || (s.fatigue && s.fatigue !== 'none') ||
+          String(s.notes || '').trim()) return true;
+      const e = day.electrolytes || {};
+      if (Object.values(e).some(Boolean)) return true;
+      return false;
+    }
+
+    function renderWeeklySummary() {
+      const keys = getRollingDateKeys(state.selectedDate, 7);
+      const startKey = keys[0];
+      const endKey = keys[keys.length - 1];
+      let trackedDays = 0;
+      let symptomDays = 0;
+      let waterTotal = 0;
+      let waterDays = 0;
+      let proteinTotal = 0;
+      let proteinDays = 0;
+
+      keys.forEach(key => {
+        const day = state.daysData[key];
+        if (!day) return;
+        if (dayHasMeaningfulTracking(day)) trackedDays++;
+
+        const water = Number(day.water || 0);
+        if (water > 0) {
+          waterTotal += water;
+          waterDays++;
+        }
+
+        if (Array.isArray(day.meals) && day.meals.length > 0) {
+          proteinTotal += day.meals.reduce((sum, meal) => sum + Number(meal && meal.protein || 0), 0);
+          proteinDays++;
+        }
+
+        const s = day.symptoms || {};
+        if ((s.nausea && s.nausea !== 'none') || (s.heartburn && s.heartburn !== 'none') ||
+            (s.sulfur && s.sulfur !== 'none') || (s.fatigue && s.fatigue !== 'none')) {
+          symptomDays++;
+        }
+      });
+
+      const rangeWeights = (Array.isArray(state.weights) ? state.weights : [])
+        .filter(w => w && w.date >= startKey && w.date <= endKey && Number.isFinite(Number(w.weight)))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let weightText = '--';
+      if (rangeWeights.length >= 2) {
+        const delta = Number(rangeWeights[rangeWeights.length - 1].weight) - Number(rangeWeights[0].weight);
+        weightText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} lb`;
+      } else if (rangeWeights.length === 1) {
+        weightText = `${Number(rangeWeights[0].weight).toFixed(1)} lb`;
+      }
+
+      const doseCount = (Array.isArray(state.injections) ? state.injections : [])
+        .filter(i => i && i.date >= startKey && i.date <= endKey).length;
+
+      const pStart = startKey.split('-');
+      const pEnd = endKey.split('-');
+      document.getElementById('weekly-summary-range').innerText = `${pStart[2]}/${pStart[1]}–${pEnd[2]}/${pEnd[1]}`;
+      document.getElementById('weekly-weight-change').innerText = weightText;
+      document.getElementById('weekly-water-avg').innerText = waterDays ? `${Math.round(waterTotal / waterDays)} oz` : '--';
+      document.getElementById('weekly-protein-avg').innerText = proteinDays ? `${Math.round(proteinTotal / proteinDays)} g` : '--';
+      document.getElementById('weekly-tracked-days').innerText = `${trackedDays}/7`;
+      document.getElementById('weekly-symptom-days').innerText = String(symptomDays);
+      document.getElementById('weekly-dose-count').innerText = String(doseCount);
+
+      const note = document.getElementById('weekly-summary-note');
+      if (trackedDays === 0) note.innerText = "Aún no hay registros suficientes en estos 7 días.";
+      else if (trackedDays < 4) note.innerText = "Hay pocos días registrados; el resumen será más útil con mayor continuidad.";
+      else note.innerText = "Resumen calculado con tus registros de los últimos 7 días.";
+    }
+
     /* ==========================================================================
        DASHBOARD METRICS & CURVA BIOLÓGICA CALIBRADA
        ========================================================================== */
     function updateDashboardView() {
       const day = getSelectedDay();
+      renderWeeklySummary();
 
       let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
       (day.meals || []).forEach(m => {
@@ -3210,10 +3434,43 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       lucide.createIcons();
     }
 
+    let fastingTimerInterval = null;
+
+    function stopFastingTicker() {
+      if (fastingTimerInterval) {
+        clearInterval(fastingTimerInterval);
+        fastingTimerInterval = null;
+      }
+    }
+
+    function updateFastingDisplay() {
+      const display = document.getElementById('fasting-timer-display');
+      if (!display) return;
+
+      if (state.settings.isFasting && state.settings.fastingStart) {
+        const elapsedMs = Math.max(0, Date.now() - Number(state.settings.fastingStart));
+        const totalSeconds = Math.floor(elapsedMs / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        display.innerText = `${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+      } else {
+        display.innerText = "00h 00m 00s";
+      }
+    }
+
+    function startFastingTicker() {
+      stopFastingTicker();
+      updateFastingDisplay();
+      if (state.settings.isFasting && state.settings.fastingStart) {
+        fastingTimerInterval = setInterval(updateFastingDisplay, 1000);
+      }
+    }
+
     function toggleFastingTimer() {
       const btn = document.getElementById('btn-toggle-fasting');
       const pill = document.getElementById('fasting-status-pill');
-      
+
       if (!state.settings.isFasting) {
         state.settings.isFasting = true;
         state.settings.fastingStart = Date.now();
@@ -3221,47 +3478,41 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = "Ayuno activo";
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        persistState();
+        startFastingTicker();
         showToast("Ventana de ayuno iniciada.");
       } else {
         state.settings.isFasting = false;
         state.settings.fastingStart = null;
+        stopFastingTicker();
         btn.innerText = "Iniciar ayuno";
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = "Pausa / Comiendo";
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
-        document.getElementById('fasting-timer-display').innerText = "00h 00m";
+        updateFastingDisplay();
+        persistState();
         showToast("Ventana de ayuno finalizada.");
       }
-      persistState();
     }
-
-    function updateFastingDisplay() {
-      if (state.settings.isFasting && state.settings.fastingStart) {
-        const elapsedMs = Date.now() - state.settings.fastingStart;
-        const totalMin = Math.floor(elapsedMs / (1000 * 60));
-        const hours = Math.floor(totalMin / 60);
-        const mins = totalMin % 60;
-        document.getElementById('fasting-timer-display').innerText = `${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`;
-      }
-    }
-    setInterval(updateFastingDisplay, 30000);
 
     function initFastingUI() {
       const btn = document.getElementById('btn-toggle-fasting');
       const pill = document.getElementById('fasting-status-pill');
       if (!btn || !pill) return;
+
       if (state.settings.isFasting && state.settings.fastingStart) {
         btn.innerText = "Detener ayuno";
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = "Ayuno activo";
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        updateFastingDisplay();
+        startFastingTicker();
       } else {
+        stopFastingTicker();
         btn.innerText = "Iniciar ayuno";
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = "Pausa / Comiendo";
         pill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
-        document.getElementById('fasting-timer-display').innerText = "00h 00m";
+        updateFastingDisplay();
       }
     }
 
@@ -3274,6 +3525,179 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     function closeSosModal() {
       document.getElementById('modal-sos').classList.add('hidden');
       document.getElementById('modal-sos').classList.remove('flex');
+    }
+
+    function getAppointmentDateBounds(rangeValue) {
+      const end = new Date();
+      end.setHours(12, 0, 0, 0);
+      let start = null;
+      if (rangeValue !== 'all') {
+        const days = Math.max(1, Number(rangeValue) || 30);
+        start = new Date(end);
+        start.setDate(end.getDate() - (days - 1));
+      }
+      return {
+        startKey: start ? getFormattedDate(start) : null,
+        endKey: getFormattedDate(end)
+      };
+    }
+
+    function buildAppointmentSummary(rangeValue) {
+      const bounds = getAppointmentDateBounds(rangeValue);
+      const inRange = (dateKey) => dateKey && (!bounds.startKey || dateKey >= bounds.startKey) && dateKey <= bounds.endKey;
+      const medication = state.settings.medication === 'ozempic' ? 'Ozempic (semaglutide)' : 'Mounjaro (tirzepatide)';
+
+      const weights = (Array.isArray(state.weights) ? state.weights : [])
+        .filter(w => w && inRange(w.date) && Number.isFinite(Number(w.weight)))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const injections = (Array.isArray(state.injections) ? state.injections : [])
+        .filter(i => i && inRange(i.date))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const measurements = (Array.isArray(state.measurements) ? state.measurements : [])
+        .filter(m => m && inRange(m.date))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let trackedDays = 0;
+      let waterTotal = 0;
+      let waterDays = 0;
+      let proteinTotal = 0;
+      let proteinDays = 0;
+      const symptomCounts = { nausea: 0, heartburn: 0, sulfur: 0, fatigue: 0 };
+      const doctorNotes = [];
+
+      Object.keys(state.daysData || {}).sort().forEach(dateKey => {
+        if (!inRange(dateKey)) return;
+        const day = state.daysData[dateKey];
+        if (!day || typeof day !== 'object') return;
+        if (dayHasMeaningfulTracking(day)) trackedDays++;
+
+        const water = Number(day.water || 0);
+        if (water > 0) { waterTotal += water; waterDays++; }
+
+        if (Array.isArray(day.meals) && day.meals.length) {
+          proteinTotal += day.meals.reduce((sum, m) => sum + Number(m && m.protein || 0), 0);
+          proteinDays++;
+        }
+
+        const sy = day.symptoms || {};
+        if (sy.nausea && sy.nausea !== 'none') symptomCounts.nausea++;
+        if (sy.heartburn && sy.heartburn !== 'none') symptomCounts.heartburn++;
+        if (sy.sulfur && sy.sulfur !== 'none') symptomCounts.sulfur++;
+        if (sy.fatigue && sy.fatigue !== 'none') symptomCounts.fatigue++;
+        if (String(sy.notes || '').trim()) doctorNotes.push(`${dateKey}: ${String(sy.notes).trim()}`);
+      });
+
+      const rangeLabel = rangeValue === 'all'
+        ? 'Desde el inicio de los registros'
+        : `Últimos ${rangeValue} días`;
+      const lines = [];
+      lines.push('GLP-1 COMPANION — RESUMEN PARA CITA');
+      lines.push(`Generado: ${new Date().toLocaleString()}`);
+      lines.push(`Periodo: ${rangeLabel}`);
+      lines.push(`Medicamento registrado: ${medication}`);
+      lines.push('');
+
+      lines.push('PESO');
+      if (weights.length) {
+        const first = weights[0];
+        const last = weights[weights.length - 1];
+        lines.push(`• Primer peso del periodo: ${Number(first.weight).toFixed(1)} lb (${first.date})`);
+        lines.push(`• Peso más reciente: ${Number(last.weight).toFixed(1)} lb (${last.date})`);
+        if (weights.length >= 2) {
+          const delta = Number(last.weight) - Number(first.weight);
+          lines.push(`• Cambio en el periodo: ${delta > 0 ? '+' : ''}${delta.toFixed(1)} lb`);
+        }
+      } else {
+        lines.push('• Sin pesajes registrados en este periodo.');
+      }
+      lines.push('');
+
+      lines.push('DOSIS');
+      lines.push(`• Inyecciones registradas: ${injections.length}`);
+      if (injections.length) {
+        const last = injections[injections.length - 1];
+        lines.push(`• Última dosis: ${last.dose || '--'} el ${last.date}${last.site ? ` · ${last.site}` : ''}`);
+      }
+      lines.push('');
+
+      lines.push('NUTRICIÓN E HIDRATACIÓN');
+      lines.push(`• Días con seguimiento: ${trackedDays}`);
+      lines.push(`• Agua promedio en días registrados: ${waterDays ? Math.round(waterTotal / waterDays) + ' oz/día' : '--'}`);
+      lines.push(`• Proteína promedio en días con comidas: ${proteinDays ? Math.round(proteinTotal / proteinDays) + ' g/día' : '--'}`);
+      lines.push('');
+
+      lines.push('SÍNTOMAS REGISTRADOS');
+      lines.push(`• Náuseas: ${symptomCounts.nausea} día(s)`);
+      lines.push(`• Acidez / reflujo: ${symptomCounts.heartburn} día(s)`);
+      lines.push(`• Eructos de azufre: ${symptomCounts.sulfur} día(s)`);
+      lines.push(`• Fatiga: ${symptomCounts.fatigue} día(s)`);
+      lines.push('');
+
+      lines.push('MEDIDAS CORPORALES');
+      if (measurements.length) {
+        const latest = measurements[measurements.length - 1];
+        lines.push(`• Últimas (${latest.date}): cintura ${Number(latest.waist || 0).toFixed(1)} in · pecho ${Number(latest.chest || 0).toFixed(1)} in · cadera ${Number(latest.hips || 0).toFixed(1)} in · cuello ${Number(latest.neck || 0).toFixed(1)} in`);
+      } else {
+        lines.push('• Sin medidas registradas en este periodo.');
+      }
+      lines.push('');
+
+      lines.push('NOTAS / PREGUNTAS REGISTRADAS');
+      if (doctorNotes.length) doctorNotes.slice(-12).forEach(note => lines.push(`• ${note}`));
+      else lines.push('• Sin notas registradas en este periodo.');
+      lines.push('');
+      lines.push('Nota: Este resumen organiza registros personales y no sustituye evaluación ni indicaciones médicas.');
+
+      return lines.join('\n');
+    }
+
+    function refreshAppointmentSummary() {
+      const rangeEl = document.getElementById('appointment-range');
+      const textEl = document.getElementById('appointment-summary-text');
+      if (!rangeEl || !textEl) return;
+      textEl.value = buildAppointmentSummary(rangeEl.value);
+    }
+
+    function openAppointmentPrepModal() {
+      const modal = document.getElementById('modal-appointment-prep');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      refreshAppointmentSummary();
+      lucide.createIcons();
+    }
+
+    function closeAppointmentPrepModal() {
+      const modal = document.getElementById('modal-appointment-prep');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function copyAppointmentSummary() {
+      const textEl = document.getElementById('appointment-summary-text');
+      if (!textEl) return;
+      try {
+        await navigator.clipboard.writeText(textEl.value);
+        showToast('Resumen para la cita copiado.');
+      } catch (_) {
+        textEl.select();
+        document.execCommand('copy');
+        showToast('Resumen para la cita copiado.');
+      }
+    }
+
+    function printAppointmentSummary() {
+      const textEl = document.getElementById('appointment-summary-text');
+      if (!textEl) return;
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        showToast('El navegador bloqueó la ventana de impresión.');
+        return;
+      }
+      const safe = escapeHtml(textEl.value).replace(/\n/g, '<br>');
+      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Resumen para cita GLP-1</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.45;font-size:12px}h1{font-size:18px;margin-bottom:16px}</style></head><body><h1>Resumen para cita GLP-1</h1><div>${safe}</div></body></html>`);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 250);
     }
 
     function openAppleHealthModal() {
@@ -3338,7 +3762,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Fatiga / Energía: ${sym.fatigue || 'Normal'}
 • Observaciones del paciente: ${sym.notes || 'Buena tolerancia general'}
 
-Generado con GLP-1 Companion Web App (v3.0).`;
+Generado con GLP-1 Companion Web App (v3.1).`;
 
       copyToClipboardText(report);
       showToast("¡Reporte copiado! Listo para pegar en Apple Notes o consulta médica.");
@@ -3623,6 +4047,10 @@ Generado con GLP-1 Companion Web App (v3.0).`;
       if (state.selectedDate !== realToday) {
         state.selectedDate = realToday;
         updateDateBadge();
+      }
+      updateFastingDisplay();
+      if (state.settings.isFasting && state.settings.fastingStart && !fastingTimerInterval) {
+        startFastingTicker();
       }
     }
 
