@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Firebase SDKs (Compat para mantener la compatibilidad con todas tus funciones) -->
+  <!-- Firebase SDKs (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -134,7 +134,6 @@
 
         <!-- Date Navigation Controls, Cloud Sync & SOS Shortcut Button -->
         <div class="flex items-center space-x-1.5">
-          <!-- Botón de sincronización con Google -->
           <button id="btn-auth-header" onclick="handleAuthAction()" class="px-2 py-1 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-bold rounded-xl flex items-center gap-1 transition-all" title="Sincronizar cuenta">
             <i data-lucide="cloud" class="w-3.5 h-3.5 text-cyan-400"></i>
             <span id="auth-label-header" class="text-[10px]">Sign in</span>
@@ -174,12 +173,9 @@
 
     <main class="flex-1 p-4 overflow-y-auto hide-scrollbar space-y-4">
       
-      <!-- ======================================================================
-           TAB 1: PANEL Y DIARIO (DASHBOARD, QUICK LOG & MEALS)
-           ====================================================================== -->
+      <!-- TAB 1: PANEL Y DIARIO -->
       <section id="tab-dashboard" class="tab-content space-y-4">
         
-        <!-- Injection Status Summary Card -->
         <div class="glass-panel rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10 mb-2.5">
             <div>
@@ -198,7 +194,6 @@
             </button>
           </div>
 
-          <!-- Tirzepatide Half-Life Visualizer Bar -->
           <div class="bg-[#111a2e]/90 rounded-xl p-2.5 border border-[#223455] space-y-1 relative z-10">
             <div class="flex items-center justify-between text-xs">
               <span class="text-slate-400 flex items-center gap-1 text-[11px]">
@@ -216,7 +211,6 @@
           </div>
         </div>
 
-        <!-- Calories & Deficit Live Counter -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -257,7 +251,6 @@
           </div>
         </div>
 
-        <!-- High-Priority Protein Card (Muscle Loss Prevention) -->
         <div class="glass-panel rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -290,7 +283,6 @@
           </div>
         </div>
 
-        <!-- Interactive Water Tracker (in oz) & Urine Color Reference -->
         <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -307,7 +299,6 @@
             </span>
           </div>
 
-          <!-- Water Progress Bar -->
           <div class="relative w-full h-7 bg-[#111a2e] rounded-xl overflow-hidden border border-cyan-500/30">
             <div id="dash-water-fill-bar" class="water-fill h-full" style="width: 0%"></div>
             <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow">
@@ -315,7 +306,6 @@
             </div>
           </div>
 
-          <!-- Quick Water Add and Subtraction Buttons -->
           <div class="grid grid-cols-4 gap-2">
             <button onclick="addWater(-8)" class="py-2 px-1 rounded-xl bg-[#111a2e] hover:bg-slate-800 text-slate-400 font-bold text-xs border border-[#223455] flex items-center justify-center gap-1 active:scale-95 transition-all" title="Restar 8 oz">
               -8 oz
@@ -331,7 +321,6 @@
             </button>
           </div>
 
-          <!-- Urine Color Hydration Reference Indicator -->
           <div class="pt-2 border-t border-[#223455]">
             <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
               <span>Guía visual de hidratación (color de orina):</span>
@@ -350,7 +339,6 @@
           </div>
         </div>
 
-        <!-- Food Diary List and AI Scanner Action Buttons -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -367,20 +355,14 @@
             </div>
           </div>
 
-          <!-- Daily Meals Container -->
-          <div id="daily-meals-container" class="space-y-2.5 pt-1">
-            <!-- Populated dynamically via JS -->
-          </div>
+          <div id="daily-meals-container" class="space-y-2.5 pt-1"></div>
         </div>
 
       </section>
 
-      <!-- ======================================================================
-           TAB 2: MOUNJARO Y SALUD (INJECTIONS, ROOM TEMP, BOWEL & SYMPTOMS)
-           ====================================================================== -->
+      <!-- TAB 2: MOUNJARO Y SALUD -->
       <section id="tab-mounjaro" class="tab-content hidden space-y-4">
         
-        <!-- Injection Cycle & Anatomical Rotation Card -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -407,7 +389,6 @@
             </div>
           </div>
 
-          <!-- Anatomical Rotation Guide -->
           <div>
             <h4 class="text-xs font-bold text-slate-300 mb-2">Zonas de aplicación recomendadas</h4>
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -427,9 +408,7 @@
           </div>
         </div>
 
-        <!-- 21-Day Room Temperature Tracker & Pen Stock Inventory -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <!-- Room Temperature Pen Countdown (21 days max <86°F) -->
           <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
@@ -454,7 +433,6 @@
             </div>
           </div>
 
-          <!-- Refrigerated Pens Inventory Card -->
           <div class="glass-panel rounded-2xl p-3.5 border border-[#223455] space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
@@ -476,7 +454,6 @@
           </div>
         </div>
 
-        <!-- Bowel Movement Safety Logger -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2.5">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -497,7 +474,6 @@
           </div>
         </div>
 
-        <!-- Daily Symptoms & Tolerance Log -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -510,7 +486,6 @@
           </div>
 
           <div class="space-y-3 text-xs">
-            <!-- Hunger Scale Slider -->
             <div>
               <div class="flex justify-between items-center mb-1">
                 <span class="text-slate-300 font-medium">Nivel de apetito ("Ruido mental de comida"):</span>
@@ -519,7 +494,6 @@
               <input id="input-symptom-hunger" type="range" min="1" max="10" value="3" class="w-full accent-emerald-500" oninput="updateHungerLabel(this.value)">
             </div>
 
-            <!-- Adverse Effects Selects -->
             <div class="grid grid-cols-2 gap-2.5 pt-1">
               <div>
                 <label class="block text-slate-400 font-medium mb-1">Náuseas:</label>
@@ -568,22 +542,16 @@
           </div>
         </div>
 
-        <!-- History of Injections List -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
           <h4 class="text-xs font-bold text-white">Historial de inyecciones</h4>
-          <div id="hub-injections-list" class="space-y-2 text-xs">
-            <!-- Populated via JS -->
-          </div>
+          <div id="hub-injections-list" class="space-y-2 text-xs"></div>
         </div>
 
       </section>
 
-      <!-- ======================================================================
-           TAB 3: PROGRESO Y HERRAMIENTAS (CHART, TIMERS, SOS & BACKUP)
-           ====================================================================== -->
+      <!-- TAB 3: PROGRESO Y HERRAMIENTAS -->
       <section id="tab-tools" class="tab-content hidden space-y-4">
         
-        <!-- Weight Metric KPI Cards -->
         <div class="grid grid-cols-3 gap-2 text-center">
           <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Inicial</span>
@@ -602,7 +570,6 @@
           </div>
         </div>
 
-        <!-- Interactive Weight Line Chart -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -619,7 +586,6 @@
           </div>
         </div>
 
-        <!-- Non-Scale Victories (Inches: Waist, Chest, Hips, Neck) -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
@@ -631,12 +597,9 @@
             </button>
           </div>
 
-          <div id="measurements-history-list" class="space-y-1.5 text-xs">
-            <!-- Populated via JS -->
-          </div>
+          <div id="measurements-history-list" class="space-y-1.5 text-xs"></div>
         </div>
 
-        <!-- 20-Minute Meal Pacing Timer (Prevents GLP-1 Overeating & Sudden Nausea) -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -661,7 +624,6 @@
           </div>
         </div>
 
-        <!-- Intermittent Fasting Widget (Designed for Breakfast Skippers) -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -689,7 +651,6 @@
           </div>
         </div>
 
-        <!-- Apple Health Shortcut & Clinical Report Export -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-[#162238] space-y-3">
           <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -712,7 +673,6 @@
           </div>
         </div>
 
-        <!-- Nutritional & Target Calculator -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
           <div class="grid grid-cols-2 gap-3 text-xs">
@@ -738,7 +698,6 @@
           </button>
         </div>
 
-        <!-- Gemini API Key Setup (Optional) -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
           <div class="flex items-center space-x-2">
             <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i>
@@ -755,7 +714,6 @@
           </div>
         </div>
 
-        <!-- Local Storage Backup & Restore -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <h3 class="text-sm font-bold text-white">Copia de seguridad local (Backup)</h3>
           <p class="text-xs text-slate-400">
@@ -779,7 +737,7 @@
 
     </main>
 
-    <!-- Bottom 3-Tab Navigation Bar -->
+    <!-- Bottom Navigation Bar -->
     <nav class="fixed bottom-0 w-full max-w-lg bg-[#090d16]/95 backdrop-blur-lg border-t border-[#223455] px-3 py-2.5 z-30 flex justify-around">
       <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center py-1 px-3 text-slate-400 hover:text-white transition-all tab-active">
         <i data-lucide="layout-grid" class="w-5 h-5 transition-transform"></i>
@@ -797,11 +755,7 @@
       </button>
     </nav>
 
-    <!-- ======================================================================
-         MODALS CONTAINER
-         ====================================================================== -->
-
-    <!-- MODAL 1: AI PHOTO & TEXT SCANNER -->
+    <!-- Modals -->
     <div id="modal-scanner" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -816,7 +770,6 @@
           </button>
         </div>
 
-        <!-- Camera / Image Upload Box -->
         <div class="space-y-3">
           <div id="scanner-image-preview-box" class="relative w-full h-44 bg-[#090d16] border-2 border-dashed border-[#223455] rounded-2xl flex flex-col items-center justify-center overflow-hidden">
             <img id="scanner-preview-img" src="" class="w-full h-full object-cover hidden">
@@ -849,7 +802,6 @@
           </button>
         </div>
 
-        <!-- AI Results Review Container (Editable before commit) -->
         <div id="ai-results-container" class="hidden p-4 bg-[#090d16] border border-emerald-500/30 rounded-2xl space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
@@ -882,7 +834,6 @@
             </div>
           </div>
 
-          <!-- Mounjaro Digestive Warning Box -->
           <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs space-y-1">
             <span class="font-bold text-emerald-400 flex items-center gap-1">
               <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Advertencia digestiva Mounjaro:
@@ -900,7 +851,7 @@
       </div>
     </div>
 
-    <!-- MODAL 2: MANUAL MEAL ENTRY -->
+    <!-- Modal 2: Manual Meal -->
     <div id="modal-manual-meal" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -954,7 +905,7 @@
       </div>
     </div>
 
-    <!-- MODAL 3: INJECTION LOGGING -->
+    <!-- Modal 3: Inyecciones -->
     <div id="modal-injection" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1006,7 +957,7 @@
       </div>
     </div>
 
-    <!-- MODAL 4: WEIGHT ENTRY -->
+    <!-- Modal 4: Peso -->
     <div id="modal-weight" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1034,7 +985,7 @@
       </div>
     </div>
 
-    <!-- MODAL 5: NON-SCALE MEASUREMENTS (WAIST, CHEST, HIPS, NECK IN INCHES) -->
+    <!-- Modal 5: Medidas -->
     <div id="modal-measurement" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1076,7 +1027,7 @@
       </div>
     </div>
 
-    <!-- MODAL 6: SOS RELIEF GUIDE (GUÍA RÁPIDA DE ALIVIO) -->
+    <!-- Modal 6: SOS -->
     <div id="modal-sos" class="fixed inset-0 z-50 bg-[#090d16]/90 backdrop-blur-md hidden items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-[#162238] border border-rose-500/30 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
@@ -1095,7 +1046,6 @@
         </div>
 
         <div class="space-y-3 text-xs">
-          <!-- Item 1: Náuseas súbitas -->
           <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
             <div class="flex items-center space-x-2 text-rose-400 font-bold">
               <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
@@ -1108,7 +1058,6 @@
             </p>
           </div>
 
-          <!-- Item 2: Acidez y reflujo nocturno -->
           <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
             <div class="flex items-center space-x-2 text-amber-400 font-bold">
               <i data-lucide="flame" class="w-4 h-4 shrink-0"></i>
@@ -1121,7 +1070,6 @@
             </p>
           </div>
 
-          <!-- Item 3: Eructos de azufre -->
           <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
             <div class="flex items-center space-x-2 text-yellow-300 font-bold">
               <i data-lucide="wind" class="w-4 h-4 shrink-0"></i>
@@ -1133,7 +1081,6 @@
             </p>
           </div>
 
-          <!-- Item 4: Mareos ortostáticos o fatiga -->
           <div class="p-3 bg-[#090d16] border border-[#223455] rounded-2xl space-y-1">
             <div class="flex items-center space-x-2 text-cyan-400 font-bold">
               <i data-lucide="zap-off" class="w-4 h-4 shrink-0"></i>
@@ -1145,7 +1092,6 @@
             </p>
           </div>
 
-          <!-- Item 5: Estreñimiento prolongado -->
           <div class="p-3 bg-[#090d16] border border-rose-500/40 rounded-2xl space-y-1">
             <div class="flex items-center space-x-2 text-rose-300 font-bold">
               <i data-lucide="shield-alert" class="w-4 h-4 shrink-0"></i>
@@ -1164,7 +1110,7 @@
       </div>
     </div>
 
-    <!-- MODAL 7: APPLE HEALTH SHORTCUT INTEGRATION -->
+    <!-- Modal 7: Apple Health -->
     <div id="modal-apple-health" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-sm rounded-3xl p-5 space-y-3 shadow-2xl text-center">
         <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -1192,7 +1138,7 @@
       </div>
     </div>
 
-    <!-- MODAL 8: RESET CONFIRMATION (NO ALERT/CONFIRM) -->
+    <!-- Modal 8: Reset -->
     <div id="modal-reset" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-rose-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl text-center">
         <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -1225,7 +1171,7 @@
 
   <script>
     /* ==========================================================================
-       FIREBASE INITIALIZATION & MULTI-DEVICE CLOUD SYNC
+       FIREBASE CONFIGURATION & MULTI-DEVICE SYNC
        ========================================================================== */
     const firebaseConfig = {
       apiKey: "AIzaSyAUh3I2MnmteoyMXc_qgMKJodcgZPiYEIM",
@@ -1257,22 +1203,22 @@
         proteinGoal: 110,
         waterGoal: 96,
         pensInStock: 4,
-        roomTempPenStart: null, // Timestamp when active pen was taken out
+        roomTempPenStart: null,
         apiKey: "",
         fastingStart: null,
         isFasting: false
       },
-      daysData: {},     // 'YYYY-MM-DD': { water: 0, meals: [], symptoms: {}, bowelMovements: [], electrolytes: {} }
-      injections: [],   // [ { id, date, dose, site, notes } ]
-      weights: [],      // [ { date, weight } ]
-      measurements: []  // [ { date, waist, chest, hips, neck } ]
+      daysData: {},
+      injections: [],
+      weights: [],
+      measurements: []
     };
 
     let activeTab = 'dashboard';
     let weightChartInstance = null;
     let selectedImageBase64 = null;
     let pacingTimerInterval = null;
-    let pacingSecondsLeft = 20 * 60; // 20 minutes
+    let pacingSecondsLeft = 20 * 60;
 
     function getFormattedDate(d) {
       const year = d.getFullYear();
@@ -1318,7 +1264,6 @@
         { date: getFormattedDate(today), waist: 39.0, chest: 42.5, hips: 41.5, neck: 16.2 }
       ];
 
-      // Mark an initial bowel movement 24 hours ago
       const yesterday = new Date(today);
       yesterday.setDate(today.getDate() - 1);
       const yDate = getFormattedDate(yesterday);
@@ -1326,11 +1271,10 @@
         state.daysData[yDate] = { water: 80, meals: [], bowelMovements: [yesterday.toISOString()], symptoms: {}, electrolytes: {} };
       }
 
-      state.settings.roomTempPenStart = Date.now() - (3 * 24 * 60 * 60 * 1000); // 3 days ago
+      state.settings.roomTempPenStart = Date.now() - (3 * 24 * 60 * 60 * 1000);
       persistState();
     }
 
-    // Persistencia unificada: LocalStorage + Nube en tiempo real
     function persistState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       if (currentUser) {
@@ -1344,7 +1288,6 @@
       }
     }
 
-    // Conexión y escucha de sesión en Firebase
     function setupFirebaseAuthListener() {
       auth.onAuthStateChanged((user) => {
         currentUser = user;
@@ -1357,7 +1300,6 @@
           if (syncText) syncText.innerText = user.email ? user.email.split('@')[0] : 'Conectado';
           if (authLabel) authLabel.innerText = "Salir";
 
-          // Sincronización bidireccional continua con Firestore
           const docRef = db.collection("trackers").doc(user.uid);
           if (unsubscribeFirestore) unsubscribeFirestore();
 
@@ -1367,16 +1309,19 @@
               if (cloud) {
                 if (cloud.settings) state.settings = Object.assign(state.settings, cloud.settings);
                 if (cloud.daysData) state.daysData = Object.assign(state.daysData, cloud.daysData);
-                if (cloud.injections) state.injections = cloud.injections;
-                if (cloud.weights) state.weights = cloud.weights;
-                if (cloud.measurements) state.measurements = cloud.measurements;
+                if (cloud.injections && Array.isArray(cloud.injections) && cloud.injections.length > 0) {
+                  state.injections = cloud.injections;
+                } else if (state.injections && state.injections.length > 0) {
+                  persistState();
+                }
+                if (cloud.weights && cloud.weights.length > 0) state.weights = cloud.weights;
+                if (cloud.measurements && cloud.measurements.length > 0) state.measurements = cloud.measurements;
 
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
                 renderCurrentDay();
                 if (activeTab === 'tools') renderToolsView();
               }
             } else {
-              // Si la nube está vacía, sube tus datos locales
               persistState();
             }
           }, (err) => {
@@ -1482,12 +1427,11 @@
     }
 
     /* ==========================================================================
-       DASHBOARD METRICS & MACRO COUNTERS
+       DASHBOARD METRICS & CURVA DE CONCENTRACIÓN PROTEGIDA
        ========================================================================== */
     function updateDashboardView() {
       const day = getSelectedDay();
 
-      // Consumed Macros
       let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
       (day.meals || []).forEach(m => {
         totalCal += Number(m.calories || 0);
@@ -1520,17 +1464,14 @@
         defBadge.innerText = "Superávit calórico";
       }
 
-      // Protein Goal
       const proteinGoal = state.settings.proteinGoal || 110;
       document.getElementById('dash-protein-badge').innerText = `${totalP} / ${proteinGoal} g`;
       const pPct = Math.min(100, Math.round((totalP / proteinGoal) * 100));
       document.getElementById('dash-protein-bar').style.width = `${pPct}%`;
 
-      // Secondary Macros
       document.getElementById('dash-carbs-val').innerText = `${totalC} g`;
       document.getElementById('dash-fat-val').innerText = `${totalF} g`;
 
-      // Hydration
       const waterGoal = state.settings.waterGoal || 96;
       const curWater = day.water || 0;
       document.getElementById('dash-water-badge').innerText = `${curWater} / ${waterGoal} oz`;
@@ -1538,14 +1479,13 @@
       document.getElementById('dash-water-fill-bar').style.width = `${wPct}%`;
       document.getElementById('dash-water-fill-text').innerText = `${wPct}% (${curWater} oz)`;
 
-      // Injection summary and concentration
       updateHalfLifeAndNextDose();
       checkBowelMovementAlert();
       renderMealsList();
     }
 
     function updateHalfLifeAndNextDose() {
-      if (state.injections.length === 0) {
+      if (!state.injections || state.injections.length === 0) {
         document.getElementById('dash-next-inj-text').innerText = "Sin dosis registrada";
         document.getElementById('dash-rotation-hint').innerText = "Toca Hub para registrar tu primera inyección";
         document.getElementById('dash-halflife-pct').innerText = "0%";
@@ -1555,7 +1495,15 @@
 
       const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
       const latest = sorted[0];
-      const lastDate = new Date(latest.date + "T12:00:00");
+
+      const dateStr = typeof latest.date === 'string' ? latest.date.split('T')[0] : '';
+      const lastDate = dateStr ? new Date(dateStr + "T12:00:00") : new Date(latest.date);
+
+      if (isNaN(lastDate.getTime())) {
+        document.getElementById('dash-next-inj-text').innerText = "Revisar fecha de dosis";
+        return;
+      }
+
       const nextDate = new Date(lastDate);
       nextDate.setDate(lastDate.getDate() + 7);
 
@@ -1571,7 +1519,6 @@
 
       document.getElementById('dash-next-inj-text').innerText = text;
 
-      // Anatomical rotation suggestions
       const rotations = {
         "Abdomen derecho": "Abdomen izquierdo",
         "Abdomen izquierdo": "Muslo derecho",
@@ -1586,8 +1533,6 @@
         <span>Rotación sugerida: <strong>${nextSite}</strong> (Última: ${latest.site})</span>
       `;
 
-      // Pharmacokinetic estimated concentration curve:
-      // Tirzepatide elimination half-life is ~5 days. C(t) = C0 * (0.5)^(t/5)
       const daysSince = Math.max(0, (now - lastDate) / (1000 * 60 * 60 * 24));
       const remainingPct = Math.round(Math.pow(0.5, daysSince / 5) * 100);
       document.getElementById('dash-halflife-pct').innerText = `${remainingPct}%`;
@@ -1618,7 +1563,7 @@
     }
 
     /* ==========================================================================
-       BOWEL MOVEMENT SAFETY & 48H ALERT
+       BOWEL MOVEMENT & SÍNTOMAS
        ========================================================================== */
     function logBowelMovementNow() {
       const day = getSelectedDay();
@@ -1667,9 +1612,6 @@
       }
     }
 
-    /* ==========================================================================
-       MEAL DIARY LIST RENDERING
-       ========================================================================== */
     function renderMealsList() {
       const day = getSelectedDay();
       const container = document.getElementById('daily-meals-container');
@@ -1746,7 +1688,7 @@
     }
 
     /* ==========================================================================
-       AI MEAL SCANNER & GEMINI INTEGRATION
+       AI SCANNER
        ========================================================================== */
     function openScannerModal() {
       document.getElementById('modal-scanner').classList.remove('hidden');
@@ -1964,7 +1906,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     /* ==========================================================================
-       MOUNJARO HUB, ROOM TEMPERATURE TRACKER & INJECTIONS
+       INYECCIONES Y REFRIGERADOR
        ========================================================================== */
     function openLogInjectionModal() {
       document.getElementById('inj-date').value = state.selectedDate;
@@ -2021,11 +1963,10 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       if (sorted.length > 0) {
         const latest = sorted[0];
         document.getElementById('hub-last-dose').innerText = latest.dose;
-        document.getElementById('hub-last-date').innerText = latest.date;
+        document.getElementById('hub-last-date').innerText = latest.date.split('T')[0];
         document.getElementById('hub-last-site').innerText = latest.site;
       }
 
-      // Pen inventory
       document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} plumas`;
       const warningEl = document.getElementById('dash-pen-warning');
       if (state.settings.pensInStock <= 2) {
@@ -2034,7 +1975,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         warningEl.classList.add('hidden');
       }
 
-      // Room Temp Pen Countdown (21 days)
       if (state.settings.roomTempPenStart) {
         const elapsedDays = (Date.now() - state.settings.roomTempPenStart) / (1000 * 60 * 60 * 24);
         const daysLeft = Math.max(0, Math.ceil(21 - elapsedDays));
@@ -2051,7 +1991,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         }
       }
 
-      // Injections list
       const listEl = document.getElementById('hub-injections-list');
       listEl.innerHTML = '';
 
@@ -2064,7 +2003,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
           item.innerHTML = `
             <div>
               <span class="font-bold text-white">${inj.dose} &bull; ${inj.site}</span>
-              <p class="text-[10px] text-slate-500">${inj.date} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
+              <p class="text-[10px] text-slate-500">${inj.date.split('T')[0]} ${inj.notes ? `&bull; ${inj.notes}` : ''}</p>
             </div>
             <button onclick="removeInjection('${inj.id}')" class="text-slate-500 hover:text-rose-400 p-1">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -2074,7 +2013,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         });
       }
 
-      // Load Symptoms
       const day = getSelectedDay();
       const s = day.symptoms || {};
       document.getElementById('input-symptom-hunger').value = s.hunger || 3;
@@ -2123,7 +2061,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
 
     /* ==========================================================================
-       PROGRESS, WEIGHT CHART, BODY MEASUREMENTS & TOOLS
+       HERRAMIENTAS, PESO Y CRONÓMETROS
        ========================================================================== */
     function renderToolsView() {
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -2139,7 +2077,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('apple-health-weight-val').innerText = `${curW.toFixed(1)} lbs`;
       }
 
-      // Measurements List
       const mList = document.getElementById('measurements-history-list');
       mList.innerHTML = '';
       if (state.measurements.length === 0) {
@@ -2161,7 +2098,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         });
       }
 
-      // Chart.js Setup
       renderChartJs();
     }
 
@@ -2287,9 +2223,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       showToast("Medidas corporales guardadas.");
     }
 
-    /* ==========================================================================
-       MEAL PACING TIMER (20 MINUTES) & WEB AUDIO CHIMES
-       ========================================================================== */
     function playGentleChime(freq = 587.33) {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2310,7 +2243,7 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
 
     function startMealPacingTimer() {
       if (pacingTimerInterval) return;
-      playGentleChime(523.25); // C5
+      playGentleChime(523.25);
       showToast("Cronómetro de 20 min iniciado. Reposa el tenedor entre bocados.");
 
       const btn = document.getElementById('btn-start-pacing');
@@ -2323,14 +2256,14 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
         document.getElementById('pacing-timer-badge').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         if (pacingSecondsLeft === 600) {
-          playGentleChime(659.25); // E5
+          playGentleChime(659.25);
           showToast("10 minutos transcurridos: Evalúa tu saciedad. ¿Sientes plenitud?");
         }
 
         if (pacingSecondsLeft <= 0) {
           clearInterval(pacingTimerInterval);
           pacingTimerInterval = null;
-          playGentleChime(783.99); // G5
+          playGentleChime(783.99);
           showToast("¡20 minutos completados! Excelente ritmo digestivo.");
           btn.innerText = "Iniciar al comer";
         }
@@ -2347,9 +2280,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.getElementById('btn-start-pacing').innerText = "Iniciar al comer";
     }
 
-    /* ==========================================================================
-       INTERMITTENT FASTING CLOCK
-       ========================================================================== */
     function toggleFastingTimer() {
       const btn = document.getElementById('btn-toggle-fasting');
       const pill = document.getElementById('fasting-status-pill');
@@ -2386,9 +2316,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
     }
     setInterval(updateFastingDisplay, 30000);
 
-    /* ==========================================================================
-       SOS RELIEF GUIDE & APPLE HEALTH MODAL CONTROLLERS
-       ========================================================================== */
     function openSosModal() {
       document.getElementById('modal-sos').classList.remove('hidden');
       document.getElementById('modal-sos').classList.add('flex');
@@ -2413,9 +2340,6 @@ Asume porciones medianas/pequeñas caseras (~7-8 pulgadas).`;
       document.getElementById('modal-apple-health').classList.remove('flex');
     }
 
-    /* ==========================================================================
-       EXPORT CLINICAL REPORT FOR APPLE NOTES / PHYSICIAN
-       ========================================================================== */
     function copyDoctorSummary() {
       const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
       const startW = sortedW.length > 0 ? sortedW[0].weight : '--';
@@ -2443,7 +2367,7 @@ Fecha de emisión: ${new Date().toLocaleDateString('es-ES', { weekday: 'long', y
 • Pérdida acumulada: ${totalLost} lbs
 
 💉 TRATAMIENTO & DOSIS FARMACOLÓGICA:
-• Dosis actual: ${lastInj ? `${lastInj.dose} (${lastInj.site}) administrada el ${lastInj.date}` : 'Sin registrar'}
+• Dosis actual: ${lastInj ? `${lastInj.dose} (${lastInj.site}) administrada el ${lastInj.date.split('T')[0]}` : 'Sin registrar'}
 • Plumas en inventario refrigerado: ${state.settings.pensInStock || 0}
 • Frecuencia: Cada 7 días
 
@@ -2482,9 +2406,6 @@ Generado con Mounjaro Companion Web App.`;
       document.body.removeChild(textarea);
     }
 
-    /* ==========================================================================
-       SETTINGS & JSON BACKUP / RESTORE
-       ========================================================================== */
     function saveNutritionalSettings() {
       state.settings.calGoal = Number(document.getElementById('setting-cal-goal').value) || 1400;
       state.settings.tdee = Number(document.getElementById('setting-tdee').value) || 2000;
@@ -2559,9 +2480,6 @@ Generado con Mounjaro Companion Web App.`;
       showToast("Todos los datos han sido reiniciados.");
     }
 
-    /* ==========================================================================
-       TOAST NOTIFICATIONS SYSTEM
-       ========================================================================== */
     let toastTimer = null;
     function showToast(msg) {
       const toast = document.getElementById('toast');
@@ -2577,25 +2495,19 @@ Generado con Mounjaro Companion Web App.`;
       }, 3500);
     }
 
-    /* ==========================================================================
-       APPLICATION INITIALIZATION
-       ========================================================================== */
     window.addEventListener('DOMContentLoaded', () => {
       initData();
       setupFirebaseAuthListener();
 
-      // Preload settings inputs
       document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
       document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
       document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
       document.getElementById('setting-water-goal').value = state.settings.waterGoal || 96;
       if (state.settings.apiKey) document.getElementById('setting-api-key').value = state.settings.apiKey;
 
-      // Date event listeners
       document.getElementById('btn-prev-day').addEventListener('click', () => changeDate(-1));
       document.getElementById('btn-next-day').addEventListener('click', () => changeDate(1));
 
-      // Initial rendering
       updateDateBadge();
       lucide.createIcons();
     });
