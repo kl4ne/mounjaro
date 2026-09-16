@@ -168,7 +168,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.5</p>
+          <p id="print-app-version">Versión: v3.6</p>
         </div>
       </div>
     </div>
@@ -185,7 +185,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.5</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.6</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1511,7 +1511,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.5";
+    const APP_VERSION = "v3.6";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_3";
 
     function formatSyncTime(timestamp) {
@@ -1585,6 +1585,13 @@
 
     let currentUser = null;
     let unsubscribeFirestore = null;
+
+    // v3.6 cloud-first bootstrap safety.
+    // Firestore writes stay locked until the first server snapshot has been read.
+    let hadLocalStateAtBoot = false;
+    let localDirtySinceBoot = false;
+    let cloudInitialReadComplete = false;
+    let cloudSyncDeferredUntilBootstrap = false;
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1826,7 +1833,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v3.5": "Version: v3.5",
+      "Versión: v3.6": "Version: v3.6",
       "Semana 1/4": "Week 1/4",
       "21 días máx.": "21 days max.",
       "21 días": "21 days",
@@ -2159,15 +2166,19 @@
     }
 
     function initData() {
+      hadLocalStateAtBoot = false;
+      localDirtySinceBoot = false;
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid local state');
           if (parsed.settings && parsed.settings.apiKey) {
             setStoredApiKey(parsed.settings.apiKey);
             delete parsed.settings.apiKey;
           }
           state = Object.assign(state, parsed);
+          if (!state.settings || typeof state.settings !== 'object' || Array.isArray(state.settings)) state.settings = {};
           if (!state.settings.medication) state.settings.medication = "mounjaro";
           if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
           if (!state.settings.goalWeight) state.settings.goalWeight = 180;
@@ -2175,67 +2186,58 @@
           if (!state.settings.units) state.settings.units = "imperial";
           if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
           if (!Number.isFinite(Number(state.settings.maintenanceRangeLb))) state.settings.maintenanceRangeLb = 3;
-          if (!state.deletedRecords) {
+          if (!state.daysData || typeof state.daysData !== 'object' || Array.isArray(state.daysData)) state.daysData = {};
+          if (!Array.isArray(state.injections)) state.injections = [];
+          if (!Array.isArray(state.weights)) state.weights = [];
+          if (!Array.isArray(state.measurements)) state.measurements = [];
+          if (!state.deletedRecords || typeof state.deletedRecords !== 'object' || Array.isArray(state.deletedRecords)) {
             state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
           }
           cleanupTombstones();
           ensureInjectionIds();
-        } else {
-          setupInitialDemoData();
+          hadLocalStateAtBoot = true;
         }
+        // IMPORTANT: when localStorage is empty (fresh install / deleted PWA),
+        // keep the neutral in-memory defaults only. Never create demo records and
+        // never write anything to Firestore before the first cloud read.
       } catch (err) {
         console.error("Error loading LocalStorage:", err);
+        hadLocalStateAtBoot = false;
       }
       state.selectedDate = getFormattedDate(new Date());
     }
 
-    function setupInitialDemoData() {
-      const today = new Date();
-      const twoWeeksAgo = new Date(today);
-      twoWeeksAgo.setDate(today.getDate() - 14);
-      const oneWeekAgo = new Date(today);
-      oneWeekAgo.setDate(today.getDate() - 7);
-
-      state.injections = [
-        { id: "inj_demo_1", date: getFormattedDate(twoWeeksAgo), dose: "2.5 mg", site: "Abdomen derecho", notes: "Semana 1 dosis de inicio", updatedAt: Date.now() },
-        { id: "inj_demo_2", date: getFormattedDate(oneWeekAgo), dose: "2.5 mg", site: "Abdomen izquierdo", notes: "Semana 2 buena tolerancia", updatedAt: Date.now() }
-      ];
-
-      state.weights = [
-        { date: getFormattedDate(twoWeeksAgo), weight: 216.0, updatedAt: Date.now() },
-        { date: getFormattedDate(oneWeekAgo), weight: 215.2, updatedAt: Date.now() },
-        { date: getFormattedDate(today), weight: 214.8, updatedAt: Date.now() }
-      ];
-
-      state.measurements = [
-        { date: getFormattedDate(twoWeeksAgo), waist: 40.0, chest: 43.0, hips: 42.0, neck: 16.5, updatedAt: Date.now() },
-        { date: getFormattedDate(today), waist: 39.0, chest: 42.5, hips: 41.5, neck: 16.2, updatedAt: Date.now() }
-      ];
-
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const yDate = getFormattedDate(yesterday);
-      if (!state.daysData[yDate]) {
-        state.daysData[yDate] = {
-          water: 80,
-          waterUpdatedAt: Date.now(),
-          meals: [],
-          bowelMovements: [yesterday.toISOString()],
-          symptoms: {},
-          symptomsUpdatedAt: Date.now(),
-          electrolytes: {},
-          electrolytesUpdatedAt: Date.now()
-        };
-      }
-
-      state.settings.roomTempPenStart = Date.now() - (3 * 24 * 60 * 60 * 1000);
-      persistState();
+    function isPassiveEmptyDay(day) {
+      if (!day || typeof day !== 'object' || Array.isArray(day)) return true;
+      const symptoms = (day.symptoms && typeof day.symptoms === 'object' && !Array.isArray(day.symptoms)) ? day.symptoms : {};
+      const electrolytes = (day.electrolytes && typeof day.electrolytes === 'object' && !Array.isArray(day.electrolytes)) ? day.electrolytes : {};
+      const symptomsAreDefault = Number(symptoms.hunger ?? 3) === 3 &&
+        (!symptoms.nausea || symptoms.nausea === 'none') &&
+        (!symptoms.heartburn || symptoms.heartburn === 'none') &&
+        (!symptoms.sulfur || symptoms.sulfur === 'none') &&
+        (!symptoms.fatigue || symptoms.fatigue === 'none') &&
+        !String(symptoms.notes || '').trim();
+      return Number(day.water || 0) <= 0 &&
+        (!Array.isArray(day.meals) || day.meals.length === 0) &&
+        (!Array.isArray(day.bowelMovements) || day.bowelMovements.length === 0) &&
+        symptomsAreDefault &&
+        !Object.values(electrolytes).some(Boolean) &&
+        (Number(day.waterUpdatedAt) || 0) === 0 &&
+        (Number(day.symptomsUpdatedAt) || 0) === 0 &&
+        (Number(day.electrolytesUpdatedAt) || 0) === 0;
     }
 
     function getCloudSafeStateSnapshot() {
       const cleanCopy = JSON.parse(JSON.stringify(state));
       if (cleanCopy.settings && cleanCopy.settings.apiKey) {
         delete cleanCopy.settings.apiKey;
+      }
+      // Rendering a date can create an in-memory placeholder. Never upload a
+      // passive/untouched placeholder as if it were user data.
+      if (cleanCopy.daysData && typeof cleanCopy.daysData === 'object' && !Array.isArray(cleanCopy.daysData)) {
+        Object.keys(cleanCopy.daysData).forEach(dateKey => {
+          if (isPassiveEmptyDay(cleanCopy.daysData[dateKey])) delete cleanCopy.daysData[dateKey];
+        });
       }
       return cleanCopy;
     }
@@ -2259,11 +2261,28 @@
     function persistState(options = {}) {
       cleanupTombstones();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      if (currentUser) scheduleCloudSync(Boolean(options.immediateCloud));
+      localDirtySinceBoot = true;
+
+      if (!currentUser) return;
+
+      // Never push local state until Firestore has been read at least once for
+      // this signed-in session. This prevents an empty/reinstalled PWA from
+      // overwriting the server before hydration completes.
+      if (!cloudInitialReadComplete) {
+        cloudSyncDeferredUntilBootstrap = true;
+        setSyncStatus('syncing');
+        return;
+      }
+
+      scheduleCloudSync(Boolean(options.immediateCloud));
     }
 
     function scheduleCloudSync(immediate = false) {
       if (!currentUser) return;
+      if (!cloudInitialReadComplete) {
+        cloudSyncDeferredUntilBootstrap = true;
+        return;
+      }
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
       setSyncStatus('syncing');
       cloudSyncTimer = setTimeout(() => {
@@ -2273,13 +2292,17 @@
     }
 
     async function flushCloudSync() {
-      if (!currentUser) return;
+      if (!currentUser || !cloudInitialReadComplete) {
+        if (currentUser) cloudSyncDeferredUntilBootstrap = true;
+        return;
+      }
       if (cloudSyncInFlight) { cloudSyncPending = true; return; }
       cloudSyncInFlight = true;
       cloudSyncPending = false;
       try {
         const cleanCopy = getCloudSafeStateSnapshot();
         await db.collection("trackers").doc(currentUser.uid).set(cleanCopy);
+        localDirtySinceBoot = false;
         setSyncStatus('synced');
       } catch (err) {
         setSyncStatus('error');
@@ -2304,7 +2327,7 @@
     }
 
     /* Fusión bidireccional profunda con timestamps y tombstones */
-    function applyCloudDataMerge(cloud) {
+    function applyCloudDataMerge(cloud, options = {}) {
       if (!cloud || typeof cloud !== 'object' || Array.isArray(cloud)) return;
       if (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) {
         const cloudSettings = Object.assign({}, cloud.settings);
@@ -2384,9 +2407,15 @@
             // Fusión de agua mediante timestamp
             const localWaterTs = Number(localDay.waterUpdatedAt) || 0;
             const cloudWaterTs = Number(cloudDay.waterUpdatedAt) || 0;
-            if (localWaterTs && cloudWaterTs) {
+            const localWaterValue = Number(localDay.water) || 0;
+            const cloudWaterValue = Number(cloudDay.water) || 0;
+            if (cloudWaterValue > 0 && localWaterValue <= 0) {
+              // A blank/default local day must never erase meaningful cloud hydration.
+              localDay.water = cloudWaterValue;
+              localDay.waterUpdatedAt = cloudWaterTs;
+            } else if (localWaterTs && cloudWaterTs) {
               if (cloudWaterTs > localWaterTs) {
-                localDay.water = Number(cloudDay.water) || 0;
+                localDay.water = cloudWaterValue;
                 localDay.waterUpdatedAt = cloudWaterTs;
               }
             } else if (cloudWaterTs && !localWaterTs) {
@@ -2539,14 +2568,23 @@
       if (activeTab === 'tools') renderToolsView();
 
       // Si la fusión produjo datos que aún no estaban en Firestore, súbelos una sola vez.
-      // La comparación estable evita un ciclo infinito con onSnapshot.
-      syncMergedStateToCloudIfNeeded(cloud);
+      // During the first cloud hydration v3.6 explicitly suppresses this writeback
+      // until the server snapshot has been safely applied.
+      if (!options.skipCloudWrite) syncMergedStateToCloudIfNeeded(cloud);
     }
 
     function setupFirebaseAuthListener() {
       auth.onAuthStateChanged((user) => {
         currentUser = user;
         const authLabel = document.getElementById('auth-label-header');
+
+        // Every sign-in starts with writes locked until Firestore answers once.
+        cloudInitialReadComplete = false;
+        cloudSyncDeferredUntilBootstrap = false;
+        if (cloudSyncTimer) {
+          clearTimeout(cloudSyncTimer);
+          cloudSyncTimer = null;
+        }
 
         if (user) {
           setSyncStatus('syncing');
@@ -2555,13 +2593,46 @@
           const docRef = db.collection("trackers").doc(user.uid);
           if (unsubscribeFirestore) unsubscribeFirestore();
 
+          let firstSnapshot = true;
           unsubscribeFirestore = docRef.onSnapshot((docSnap) => {
+            const isInitialSnapshot = firstSnapshot;
+            firstSnapshot = false;
+
             if (docSnap.exists) {
               const cloud = docSnap.data();
-              applyCloudDataMerge(cloud);
-              setSyncStatus('synced');
+
+              if (isInitialSnapshot) {
+                // Cloud-first bootstrap: merge server data locally while cloud writes
+                // are still locked. A fresh/reinstalled device can therefore never
+                // overwrite Firestore merely because its localStorage is empty.
+                const shouldWriteLocalChangesBack = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap;
+                applyCloudDataMerge(cloud, { skipCloudWrite: true });
+                cloudInitialReadComplete = true;
+                cloudSyncDeferredUntilBootstrap = false;
+                hadLocalStateAtBoot = true;
+
+                if (shouldWriteLocalChangesBack) {
+                  syncMergedStateToCloudIfNeeded(cloud);
+                } else {
+                  localDirtySinceBoot = false;
+                  setSyncStatus('synced');
+                }
+              } else {
+                applyCloudDataMerge(cloud);
+                setSyncStatus('synced');
+              }
+            } else if (isInitialSnapshot) {
+              // No server document exists. Unlock writes, but only upload if this
+              // device actually had/created local user data. A blank fresh install
+              // remains blank until the user records something.
+              cloudInitialReadComplete = true;
+              const shouldCreateCloudDocument = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap;
+              cloudSyncDeferredUntilBootstrap = false;
+              hadLocalStateAtBoot = true;
+              if (shouldCreateCloudDocument) scheduleCloudSync(true);
+              else setSyncStatus('synced');
             } else {
-              persistState();
+              setSyncStatus('synced');
             }
           }, (err) => {
             setSyncStatus('error');
@@ -2574,6 +2645,8 @@
             unsubscribeFirestore();
             unsubscribeFirestore = null;
           }
+          cloudInitialReadComplete = false;
+          cloudSyncDeferredUntilBootstrap = false;
           setSyncStatus('local');
           if (authLabel) authLabel.innerText = uiText("Entrar", "Sign in");
         }
@@ -2813,7 +2886,7 @@
       if (!state.daysData[state.selectedDate]) {
         state.daysData[state.selectedDate] = {
           water: 0,
-          waterUpdatedAt: Date.now(),
+          waterUpdatedAt: 0,
           meals: [],
           symptoms: {
             hunger: 3,
@@ -2823,10 +2896,10 @@
             fatigue: "none",
             notes: ""
           },
-          symptomsUpdatedAt: Date.now(),
+          symptomsUpdatedAt: 0,
           bowelMovements: [],
           electrolytes: { mg: false, k: false, na: false, multi: false },
-          electrolytesUpdatedAt: Date.now()
+          electrolytesUpdatedAt: 0
         };
       }
       return state.daysData[state.selectedDate];
