@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glp1-cache-v3.8';
+const CACHE_NAME = 'glp1-cache-v3.9';
 
 const CORE_ASSETS = [
   './',
