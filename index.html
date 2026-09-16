@@ -18,9 +18,9 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 
   <!-- External CDNs: Tailwind, Chart.js, Lucide Icons -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.46.0/dist/umd/lucide.min.js"></script>
 
   <!-- Firebase SDKs (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -168,7 +168,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.6</p>
+          <p id="print-app-version">Versión: v3.7</p>
         </div>
       </div>
     </div>
@@ -185,7 +185,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.6</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.7</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1511,8 +1511,15 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v3.6";
-    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_3";
+    const APP_VERSION = "v3.7";
+    const CLIENT_SCHEMA_VERSION = 7;
+    const MIN_SUPPORTED_CLIENT_VERSION = "v3.7";
+    const LAST_SYNC_KEY = "glp1_last_sync_at_v3_7";
+    const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_7";
+    const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_7";
+    const SERVER_CLOCK_KEY = "glp1_server_clock_anchor_v3_7";
+    const CLOUD_SIZE_WARN_BYTES = 600 * 1024;
+    const CLOUD_SIZE_HARD_LIMIT_BYTES = 750 * 1024;
 
     function formatSyncTime(timestamp) {
       if (!timestamp) return "";
@@ -1531,6 +1538,18 @@
       if (mode === 'syncing') {
         syncDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse";
         syncText.innerText = uiText("Sincronizando…", "Syncing…");
+        return;
+      }
+
+      if (mode === 'waiting') {
+        syncDot.className = "w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse";
+        syncText.innerText = uiText("Esperando al servidor…", "Waiting for server…");
+        return;
+      }
+
+      if (mode === 'update-required') {
+        syncDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse";
+        syncText.innerText = uiText("Actualización requerida", "Update required");
         return;
       }
 
@@ -1586,14 +1605,73 @@
     let currentUser = null;
     let unsubscribeFirestore = null;
 
-    // v3.6 cloud-first bootstrap safety.
-    // Firestore writes stay locked until the first server snapshot has been read.
+    // v3.7 integrity safeguards.
+    // Cloud writes stay locked until Firestore confirms a NON-CACHE server snapshot.
     let hadLocalStateAtBoot = false;
     let localDirtySinceBoot = false;
     let cloudInitialReadComplete = false;
     let cloudSyncDeferredUntilBootstrap = false;
+    let cloudWriteBlockedByVersion = false;
+    let serverClockAnchorMs = null;
+    let serverClockPerfAnchor = null;
+
+    function versionNumber(value) {
+      const match = String(value || '').match(/(\d+)(?:\.(\d+))?/);
+      if (!match) return 0;
+      return Number(match[1]) + Number(match[2] || 0) / 100;
+    }
+
+    function updateServerClockAnchor(cloud) {
+      try {
+        const ts = cloud && cloud._sync && cloud._sync.serverUpdatedAt;
+        const ms = ts && typeof ts.toMillis === 'function' ? ts.toMillis() : (ts && ts.seconds ? Number(ts.seconds) * 1000 : 0);
+        if (Number.isFinite(ms) && ms > 0) {
+          serverClockAnchorMs = ms;
+          serverClockPerfAnchor = typeof performance !== 'undefined' ? performance.now() : null;
+          localStorage.setItem(SERVER_CLOCK_KEY, JSON.stringify({ serverMs: ms, wallMs: Date.now() }));
+        }
+      } catch (_) {}
+    }
+
+    function mutationNow() {
+      let estimate = null;
+      if (Number.isFinite(serverClockAnchorMs) && serverClockPerfAnchor !== null && typeof performance !== 'undefined') {
+        estimate = serverClockAnchorMs + Math.max(0, performance.now() - serverClockPerfAnchor);
+      } else {
+        try {
+          const saved = JSON.parse(localStorage.getItem(SERVER_CLOCK_KEY) || 'null');
+          if (saved && Number.isFinite(Number(saved.serverMs)) && Number.isFinite(Number(saved.wallMs))) {
+            estimate = Number(saved.serverMs) + (Date.now() - Number(saved.wallMs));
+          }
+        } catch (_) {}
+      }
+      if (!Number.isFinite(estimate)) estimate = Date.now();
+      ensureStateMetadata();
+      const previous = Number(state.meta.lastMutationAt) || 0;
+      const next = Math.max(Math.round(estimate), previous + 1);
+      state.meta.lastMutationAt = next;
+      return next;
+    }
+
+    function generateDataEpoch(prefix = 'epoch') {
+      try {
+        if (crypto && typeof crypto.randomUUID === 'function') return `${prefix}_${crypto.randomUUID()}`;
+      } catch (_) {}
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    function estimateUtf8Bytes(value) {
+      try { return new TextEncoder().encode(JSON.stringify(value)).length; }
+      catch (_) { return JSON.stringify(value).length * 2; }
+    }
 
     if ('serviceWorker' in navigator) {
+      let swReloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (swReloading) return;
+        swReloading = true;
+        window.location.reload();
+      });
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.warn("SW error:", err));
       });
@@ -1833,7 +1911,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v3.6": "Version: v3.6",
+      "Versión: v3.7": "Version: v3.7",
       "Semana 1/4": "Week 1/4",
       "21 días máx.": "21 days max.",
       "21 días": "21 days",
@@ -2013,8 +2091,8 @@
     function setAppLanguage(lang, shouldPersist = true) {
       const normalized = lang === 'en' ? 'en' : 'es';
       state.settings.language = normalized;
-      if (shouldPersist) persistState();
-      // Reloading guarantees every static and dynamic label is rebuilt cleanly in the chosen language.
+      if (shouldPersist) persistState({ localOnly: true });
+      // Language is a device-local preference and is intentionally excluded from Firestore.
       window.location.reload();
     }
 
@@ -2038,6 +2116,7 @@
 
     function setUnitSystem(value, shouldPersist=true) {
       state.settings.units = value === 'metric' ? 'metric' : 'imperial';
+      markSettingsChanged();
       if (shouldPersist) persistState();
       window.location.reload();
     }
@@ -2079,35 +2158,74 @@
        ========================================================================== */
     const STORAGE_KEY = "mounjaro_pwa_data_v3";
 
-    let state = {
-      selectedDate: getFormattedDate(new Date()),
-      settings: {
-        medication: "mounjaro",
-        goalWeight: 180,
-        calGoal: 1400,
-        tdee: 2000,
-        proteinGoal: 110,
-        waterGoal: 96,
-        pensInStock: 4,
-        roomTempPenStart: null,
-        fastingStart: null,
-        isFasting: false,
-        language: "es",
-        units: "imperial",
-        maintenanceEnabled: false,
-        maintenanceRangeLb: 3
-      },
-      daysData: {},
-      injections: [],
-      weights: [],
-      measurements: [],
-      deletedRecords: {
-        meals: {},
-        weights: {},
-        injections: {},
-        measurements: {}
-      }
-    };
+    function createDefaultState(devicePrefs = {}) {
+      return {
+        selectedDate: getFormattedDate(new Date()),
+        settings: {
+          medication: "mounjaro",
+          goalWeight: 180,
+          calGoal: 1400,
+          tdee: 2000,
+          proteinGoal: 110,
+          waterGoal: 96,
+          pensInStock: 4,
+          roomTempPenStart: null,
+          fastingStart: null,
+          isFasting: false,
+          language: devicePrefs.language === 'en' ? 'en' : 'es',
+          units: devicePrefs.units === 'metric' ? 'metric' : 'imperial',
+          maintenanceEnabled: false,
+          maintenanceRangeLb: 3
+        },
+        daysData: {},
+        injections: [],
+        weights: [],
+        measurements: [],
+        deletedRecords: {
+          meals: {},
+          weights: {},
+          injections: {},
+          measurements: {}
+        },
+        meta: {
+          schemaVersion: CLIENT_SCHEMA_VERSION,
+          ownerUid: null,
+          dataEpoch: 'legacy-v1',
+          resetAt: 0,
+          settingsUpdatedAt: 0,
+          clientVersion: APP_VERSION,
+          lastMutationAt: 0
+        }
+      };
+    }
+
+    let state = createDefaultState();
+
+    function ensureStateMetadata() {
+      if (!state.meta || typeof state.meta !== 'object' || Array.isArray(state.meta)) state.meta = {};
+      state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
+      if (typeof state.meta.ownerUid !== 'string') state.meta.ownerUid = null;
+      if (!state.meta.dataEpoch || typeof state.meta.dataEpoch !== 'string') state.meta.dataEpoch = 'legacy-v1';
+      if (!Number.isFinite(Number(state.meta.resetAt)) || Number(state.meta.resetAt) < 0) state.meta.resetAt = 0;
+      if (!Number.isFinite(Number(state.meta.settingsUpdatedAt)) || Number(state.meta.settingsUpdatedAt) < 0) state.meta.settingsUpdatedAt = 0;
+      state.meta.clientVersion = APP_VERSION;
+      if (!Number.isFinite(Number(state.meta.lastMutationAt)) || Number(state.meta.lastMutationAt) < 0) state.meta.lastMutationAt = 0;
+    }
+
+    function markSettingsChanged() {
+      ensureStateMetadata();
+      state.meta.settingsUpdatedAt = mutationNow();
+    }
+
+    function getInjectionMedicationKey(injection) {
+      const key = injection && injection.medication;
+      return MEDICATION_PROFILES[key] ? key : state.settings.medication;
+    }
+
+    function getInjectionsForMedication(key = state.settings.medication) {
+      return (Array.isArray(state.injections) ? state.injections : [])
+        .filter(i => i && i.date && getInjectionMedicationKey(i) === key);
+    }
 
     let activeTab = 'dashboard';
     let weightChartInstance = null;
@@ -2139,28 +2257,29 @@
     }
 
     function cleanupTombstones() {
-      if (!state.deletedRecords) {
+      if (!state.deletedRecords || typeof state.deletedRecords !== 'object' || Array.isArray(state.deletedRecords)) {
         state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
-        return;
       }
-      const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
       ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
-        if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
+        if (!state.deletedRecords[type] || typeof state.deletedRecords[type] !== 'object' || Array.isArray(state.deletedRecords[type])) state.deletedRecords[type] = {};
         Object.keys(state.deletedRecords[type]).forEach(id => {
-          if (state.deletedRecords[type][id] < ninetyDaysAgo) {
-            delete state.deletedRecords[type][id];
-          }
+          const ts = Number(state.deletedRecords[type][id]);
+          if (!Number.isFinite(ts) || ts <= 0) delete state.deletedRecords[type][id];
         });
       });
+      // v3.7 intentionally keeps valid tombstones indefinitely. Automatic age-based
+      // pruning could let a device that stayed offline for months resurrect deleted data.
     }
 
     function ensureInjectionIds() {
       if (Array.isArray(state.injections)) {
         state.injections.forEach((inj, idx) => {
+          if (!inj || typeof inj !== 'object') return;
           if (!inj.id) {
             const dateClean = inj.date ? String(inj.date).replace(/[^0-9]/g, '') : '';
-            inj.id = "inj_" + (dateClean || Date.now()) + "_" + idx + "_" + Math.random().toString(36).substring(2, 6);
+            inj.id = "inj_" + (dateClean || mutationNow()) + "_" + idx + "_" + Math.random().toString(36).substring(2, 6);
           }
+          if (!MEDICATION_PROFILES[inj.medication]) inj.medication = state.settings.medication;
         });
       }
     }
@@ -2168,6 +2287,8 @@
     function initData() {
       hadLocalStateAtBoot = false;
       localDirtySinceBoot = false;
+      const blank = createDefaultState();
+      state = blank;
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -2177,34 +2298,54 @@
             setStoredApiKey(parsed.settings.apiKey);
             delete parsed.settings.apiKey;
           }
-          state = Object.assign(state, parsed);
-          if (!state.settings || typeof state.settings !== 'object' || Array.isArray(state.settings)) state.settings = {};
-          if (!state.settings.medication) state.settings.medication = "mounjaro";
+          const localLanguage = parsed.settings && parsed.settings.language === 'en' ? 'en' : 'es';
+          const localUnits = parsed.settings && parsed.settings.units === 'metric' ? 'metric' : 'imperial';
+          state = createDefaultState({ language: localLanguage, units: localUnits });
+          if (parsed.settings && typeof parsed.settings === 'object' && !Array.isArray(parsed.settings)) state.settings = Object.assign(state.settings, parsed.settings);
+          if (parsed.daysData && typeof parsed.daysData === 'object' && !Array.isArray(parsed.daysData)) state.daysData = parsed.daysData;
+          if (Array.isArray(parsed.injections)) state.injections = parsed.injections;
+          if (Array.isArray(parsed.weights)) state.weights = parsed.weights;
+          if (Array.isArray(parsed.measurements)) state.measurements = parsed.measurements;
+          if (parsed.deletedRecords && typeof parsed.deletedRecords === 'object' && !Array.isArray(parsed.deletedRecords)) state.deletedRecords = parsed.deletedRecords;
+          if (parsed.meta && typeof parsed.meta === 'object' && !Array.isArray(parsed.meta)) state.meta = Object.assign(state.meta, parsed.meta);
           if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
-          if (!state.settings.goalWeight) state.settings.goalWeight = 180;
-          if (!state.settings.language) state.settings.language = "es";
-          if (!state.settings.units) state.settings.units = "imperial";
+          if (!Number.isFinite(Number(state.settings.goalWeight)) || Number(state.settings.goalWeight) <= 0) state.settings.goalWeight = 180;
+          if (!['es','en'].includes(state.settings.language)) state.settings.language = 'es';
+          if (!['imperial','metric'].includes(state.settings.units)) state.settings.units = 'imperial';
           if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
           if (!Number.isFinite(Number(state.settings.maintenanceRangeLb))) state.settings.maintenanceRangeLb = 3;
-          if (!state.daysData || typeof state.daysData !== 'object' || Array.isArray(state.daysData)) state.daysData = {};
-          if (!Array.isArray(state.injections)) state.injections = [];
-          if (!Array.isArray(state.weights)) state.weights = [];
-          if (!Array.isArray(state.measurements)) state.measurements = [];
-          if (!state.deletedRecords || typeof state.deletedRecords !== 'object' || Array.isArray(state.deletedRecords)) {
-            state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
-          }
           cleanupTombstones();
+          ensureStateMetadata();
           ensureInjectionIds();
           hadLocalStateAtBoot = true;
         }
-        // IMPORTANT: when localStorage is empty (fresh install / deleted PWA),
-        // keep the neutral in-memory defaults only. Never create demo records and
-        // never write anything to Firestore before the first cloud read.
+        // Fresh installs stay neutral. Never create demo/default tracking records.
       } catch (err) {
         console.error("Error loading LocalStorage:", err);
+        state = createDefaultState();
         hadLocalStateAtBoot = false;
       }
+      ensureStateMetadata();
       state.selectedDate = getFormattedDate(new Date());
+    }
+
+    function bindStateToAuthenticatedUser(uid) {
+      ensureStateMetadata();
+      if (state.meta.ownerUid && state.meta.ownerUid !== uid) {
+        const prefs = { language: state.settings.language, units: state.settings.units };
+        state = createDefaultState(prefs);
+        state.meta.ownerUid = uid;
+        hadLocalStateAtBoot = false;
+        localDirtySinceBoot = false;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        applyMedicationTheme();
+        renderCurrentDay();
+        if (activeTab === 'tools') renderToolsView();
+        showToast(uiText('Cuenta diferente detectada. Se cargará únicamente su información desde Firebase.', 'Different account detected. Only that account’s Firebase data will be loaded.'));
+      } else if (!state.meta.ownerUid) {
+        state.meta.ownerUid = uid;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
     }
 
     function isPassiveEmptyDay(day) {
@@ -2228,18 +2369,36 @@
     }
 
     function getCloudSafeStateSnapshot() {
+      ensureStateMetadata();
       const cleanCopy = JSON.parse(JSON.stringify(state));
-      if (cleanCopy.settings && cleanCopy.settings.apiKey) {
+      delete cleanCopy.selectedDate;
+      if (cleanCopy.settings) {
         delete cleanCopy.settings.apiKey;
+        delete cleanCopy.settings.language;
       }
-      // Rendering a date can create an in-memory placeholder. Never upload a
-      // passive/untouched placeholder as if it were user data.
+      if (cleanCopy._sync) delete cleanCopy._sync;
       if (cleanCopy.daysData && typeof cleanCopy.daysData === 'object' && !Array.isArray(cleanCopy.daysData)) {
         Object.keys(cleanCopy.daysData).forEach(dateKey => {
           if (isPassiveEmptyDay(cleanCopy.daysData[dateKey])) delete cleanCopy.daysData[dateKey];
         });
       }
+      cleanCopy.meta = Object.assign({}, cleanCopy.meta, {
+        schemaVersion: CLIENT_SCHEMA_VERSION,
+        ownerUid: currentUser ? currentUser.uid : (cleanCopy.meta && cleanCopy.meta.ownerUid) || null,
+        clientVersion: APP_VERSION
+      });
       return cleanCopy;
+    }
+
+    function sanitizeCloudForCompare(value) {
+      const copy = JSON.parse(JSON.stringify(value || {}));
+      delete copy.selectedDate;
+      delete copy._sync;
+      if (copy.settings) {
+        delete copy.settings.apiKey;
+        delete copy.settings.language;
+      }
+      return copy;
     }
 
     function stableStringify(value) {
@@ -2260,27 +2419,31 @@
 
     function persistState(options = {}) {
       cleanupTombstones();
+      ensureStateMetadata();
+      if (currentUser) state.meta.ownerUid = currentUser.uid;
+      state.meta.clientVersion = APP_VERSION;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+      if (options.localOnly) return;
       localDirtySinceBoot = true;
-
       if (!currentUser) return;
-
-      // Never push local state until Firestore has been read at least once for
-      // this signed-in session. This prevents an empty/reinstalled PWA from
-      // overwriting the server before hydration completes.
-      if (!cloudInitialReadComplete) {
-        cloudSyncDeferredUntilBootstrap = true;
-        setSyncStatus('syncing');
+      if (cloudWriteBlockedByVersion) {
+        setSyncStatus('update-required');
         return;
       }
-
+      if (!cloudInitialReadComplete) {
+        cloudSyncDeferredUntilBootstrap = true;
+        setSyncStatus('waiting');
+        return;
+      }
       scheduleCloudSync(Boolean(options.immediateCloud));
     }
 
     function scheduleCloudSync(immediate = false) {
-      if (!currentUser) return;
+      if (!currentUser || cloudWriteBlockedByVersion) return;
       if (!cloudInitialReadComplete) {
         cloudSyncDeferredUntilBootstrap = true;
+        setSyncStatus('waiting');
         return;
       }
       if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
@@ -2291,22 +2454,85 @@
       }, immediate ? 0 : CLOUD_SYNC_DELAY_MS);
     }
 
+    function mergeSnapshotForTransaction(localSnapshot, cloud) {
+      const originalState = state;
+      try {
+        state = JSON.parse(JSON.stringify(localSnapshot));
+        ensureStateMetadata();
+        applyCloudDataMerge(cloud, {
+          skipCloudWrite: true,
+          suppressRender: true,
+          suppressLocalSave: true,
+          preferCloudOnTie: false
+        });
+        return getCloudSafeStateSnapshot();
+      } finally {
+        state = originalState;
+      }
+    }
+
     async function flushCloudSync() {
-      if (!currentUser || !cloudInitialReadComplete) {
-        if (currentUser) cloudSyncDeferredUntilBootstrap = true;
+      if (!currentUser || !cloudInitialReadComplete || cloudWriteBlockedByVersion) {
+        if (currentUser && !cloudWriteBlockedByVersion) cloudSyncDeferredUntilBootstrap = true;
         return;
       }
       if (cloudSyncInFlight) { cloudSyncPending = true; return; }
       cloudSyncInFlight = true;
       cloudSyncPending = false;
+      const docRef = db.collection("trackers").doc(currentUser.uid);
+      const localSnapshot = getCloudSafeStateSnapshot();
       try {
-        const cleanCopy = getCloudSafeStateSnapshot();
-        await db.collection("trackers").doc(currentUser.uid).set(cleanCopy);
+        const localBytes = estimateUtf8Bytes(localSnapshot);
+        if (localBytes >= CLOUD_SIZE_HARD_LIMIT_BYTES) {
+          try { localStorage.setItem(CLOUD_SIZE_BACKUP_KEY, JSON.stringify(state)); } catch (_) {}
+          setSyncStatus('error');
+          showToast(uiText('Sincronización detenida antes del límite de Firestore. Se guardó una copia local de seguridad; exporta un backup.', 'Sync stopped before the Firestore limit. A local safety copy was saved; export a backup.'), 7000);
+          console.error('Cloud sync blocked by safety size limit:', localBytes);
+          return;
+        }
+        if (localBytes >= CLOUD_SIZE_WARN_BYTES) {
+          console.warn('GLP-1 Companion cloud document is becoming large:', localBytes);
+        }
+
+        await db.runTransaction(async transaction => {
+          const serverSnap = await transaction.get(docRef);
+          let merged = localSnapshot;
+          if (serverSnap.exists) {
+            const remote = serverSnap.data();
+            updateServerClockAnchor(remote);
+            const minRequired = remote && remote._sync && remote._sync.minClientVersion;
+            if (minRequired && versionNumber(APP_VERSION) < versionNumber(minRequired)) {
+              throw new Error('CLIENT_UPDATE_REQUIRED');
+            }
+            merged = mergeSnapshotForTransaction(localSnapshot, remote);
+          }
+          const bytes = estimateUtf8Bytes(merged);
+          if (bytes >= CLOUD_SIZE_HARD_LIMIT_BYTES) throw new Error('CLOUD_DOCUMENT_TOO_LARGE');
+          const payload = Object.assign({}, merged, {
+            _sync: {
+              schemaVersion: CLIENT_SCHEMA_VERSION,
+              clientVersion: APP_VERSION,
+              minClientVersion: MIN_SUPPORTED_CLIENT_VERSION,
+              dataEpoch: merged.meta && merged.meta.dataEpoch ? merged.meta.dataEpoch : 'legacy-v1',
+              serverUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }
+          });
+          transaction.set(docRef, payload);
+        });
         localDirtySinceBoot = false;
         setSyncStatus('synced');
       } catch (err) {
-        setSyncStatus('error');
-        console.error("Error sincronizando en Firestore:", err);
+        if (String(err && err.message).includes('CLIENT_UPDATE_REQUIRED')) {
+          cloudWriteBlockedByVersion = true;
+          setSyncStatus('update-required');
+          showToast(uiText('Esta versión necesita actualizarse antes de sincronizar.', 'This version must be updated before syncing.'), 6500);
+        } else if (String(err && err.message).includes('CLOUD_DOCUMENT_TOO_LARGE')) {
+          setSyncStatus('error');
+          showToast(uiText('Sincronización detenida para evitar superar el límite de Firestore. Exporta un backup.', 'Sync stopped to avoid exceeding the Firestore limit. Export a backup.'), 6500);
+        } else {
+          setSyncStatus('error');
+          console.error("Error sincronizando en Firestore:", err);
+        }
       } finally {
         cloudSyncInFlight = false;
         if (cloudSyncPending) scheduleCloudSync(true);
@@ -2314,11 +2540,10 @@
     }
 
     function syncMergedStateToCloudIfNeeded(incomingCloud) {
-      if (!currentUser) return;
+      if (!currentUser || cloudWriteBlockedByVersion || !cloudInitialReadComplete) return;
       try {
         const mergedCopy = getCloudSafeStateSnapshot();
-        const incomingCopy = JSON.parse(JSON.stringify(incomingCloud || {}));
-        if (incomingCopy.settings && incomingCopy.settings.apiKey) delete incomingCopy.settings.apiKey;
+        const incomingCopy = sanitizeCloudForCompare(incomingCloud);
         if (stableStringify(mergedCopy) === stableStringify(incomingCopy)) return;
         scheduleCloudSync(true);
       } catch (err) {
@@ -2329,13 +2554,70 @@
     /* Fusión bidireccional profunda con timestamps y tombstones */
     function applyCloudDataMerge(cloud, options = {}) {
       if (!cloud || typeof cloud !== 'object' || Array.isArray(cloud)) return;
-      if (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) {
-        const cloudSettings = Object.assign({}, cloud.settings);
-        delete cloudSettings.apiKey;
-        // Language is a device UI preference; never let a stale cloud value overwrite the local selection.
-        delete cloudSettings.language;
-        state.settings = Object.assign(state.settings, cloudSettings);
+      ensureStateMetadata();
+      updateServerClockAnchor(cloud);
+
+      const localLanguage = state.settings && state.settings.language === 'en' ? 'en' : 'es';
+      const localSelectedDate = state.selectedDate || getFormattedDate(new Date());
+      const cloudMetaRaw = (cloud.meta && typeof cloud.meta === 'object' && !Array.isArray(cloud.meta)) ? cloud.meta : {};
+      const cloudMeta = {
+        schemaVersion: Number(cloudMetaRaw.schemaVersion) || Number(cloud._sync && cloud._sync.schemaVersion) || 0,
+        ownerUid: typeof cloudMetaRaw.ownerUid === 'string' ? cloudMetaRaw.ownerUid : (currentUser ? currentUser.uid : null),
+        dataEpoch: typeof cloudMetaRaw.dataEpoch === 'string' && cloudMetaRaw.dataEpoch ? cloudMetaRaw.dataEpoch : (cloud._sync && cloud._sync.dataEpoch) || 'legacy-v1',
+        resetAt: Number(cloudMetaRaw.resetAt) || 0,
+        settingsUpdatedAt: Number(cloudMetaRaw.settingsUpdatedAt) || 0,
+        clientVersion: cloudMetaRaw.clientVersion || (cloud._sync && cloud._sync.clientVersion) || ''
+      };
+
+      // A newer reset/restore generation is authoritative. This prevents an old
+      // offline device from resurrecting records after Factory Reset or Restore.
+      if (cloudMeta.dataEpoch !== state.meta.dataEpoch) {
+        const localResetAt = Number(state.meta.resetAt) || 0;
+        const cloudResetAt = Number(cloudMeta.resetAt) || 0;
+        if (cloudResetAt > localResetAt || (cloudResetAt === localResetAt && cloudMeta.dataEpoch !== 'legacy-v1')) {
+          const replacement = createDefaultState({ language: localLanguage, units: state.settings.units });
+          replacement.settings = Object.assign(replacement.settings, (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) ? cloud.settings : {});
+          replacement.settings.language = localLanguage;
+          replacement.daysData = (cloud.daysData && typeof cloud.daysData === 'object' && !Array.isArray(cloud.daysData)) ? JSON.parse(JSON.stringify(cloud.daysData)) : {};
+          replacement.injections = Array.isArray(cloud.injections) ? JSON.parse(JSON.stringify(cloud.injections)) : [];
+          replacement.weights = Array.isArray(cloud.weights) ? JSON.parse(JSON.stringify(cloud.weights)) : [];
+          replacement.measurements = Array.isArray(cloud.measurements) ? JSON.parse(JSON.stringify(cloud.measurements)) : [];
+          replacement.deletedRecords = (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) ? JSON.parse(JSON.stringify(cloud.deletedRecords)) : { meals:{}, weights:{}, injections:{}, measurements:{} };
+          replacement.meta = Object.assign(replacement.meta, cloudMeta, { schemaVersion: CLIENT_SCHEMA_VERSION, ownerUid: currentUser ? currentUser.uid : cloudMeta.ownerUid, clientVersion: APP_VERSION });
+          replacement.selectedDate = localSelectedDate;
+          state = replacement;
+          cleanupTombstones();
+          ensureInjectionIds();
+          if (!options.suppressLocalSave) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          if (!options.suppressRender) {
+            applyMedicationTheme();
+            renderCurrentDay();
+            if (activeTab === 'tools') renderToolsView();
+          }
+          return;
+        }
+        if (localResetAt > cloudResetAt) {
+          // Local reset/restore is newer; ignore the obsolete cloud generation.
+          return;
+        }
       }
+
+      const cloudSettings = (cloud.settings && typeof cloud.settings === 'object' && !Array.isArray(cloud.settings)) ? Object.assign({}, cloud.settings) : {};
+      delete cloudSettings.apiKey;
+      delete cloudSettings.language;
+      const localSettingsTs = Number(state.meta.settingsUpdatedAt) || 0;
+      const cloudSettingsTs = Number(cloudMeta.settingsUpdatedAt) || 0;
+      const cloudWinsSettings = cloudSettingsTs > localSettingsTs || (cloudSettingsTs === localSettingsTs && options.preferCloudOnTie !== false && cloudSettingsTs === 0);
+      if (cloudWinsSettings) {
+        state.settings = Object.assign(state.settings, cloudSettings);
+        state.settings.language = localLanguage;
+        state.meta.settingsUpdatedAt = cloudSettingsTs;
+      }
+      state.meta.dataEpoch = cloudMeta.dataEpoch || state.meta.dataEpoch;
+      state.meta.resetAt = Math.max(Number(state.meta.resetAt) || 0, cloudMeta.resetAt || 0);
+      state.meta.ownerUid = currentUser ? currentUser.uid : (state.meta.ownerUid || cloudMeta.ownerUid);
+      state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
+      state.meta.clientVersion = APP_VERSION;
 
       // Fusión de registros eliminados (tombstones)
       if (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) {
@@ -2562,14 +2844,16 @@
       }
 
       cleanupTombstones();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      applyMedicationTheme();
-      renderCurrentDay();
-      if (activeTab === 'tools') renderToolsView();
+      ensureStateMetadata();
+      state.selectedDate = localSelectedDate;
+      state.settings.language = localLanguage;
+      if (!options.suppressLocalSave) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!options.suppressRender) {
+        applyMedicationTheme();
+        renderCurrentDay();
+        if (activeTab === 'tools') renderToolsView();
+      }
 
-      // Si la fusión produjo datos que aún no estaban en Firestore, súbelos una sola vez.
-      // During the first cloud hydration v3.6 explicitly suppresses this writeback
-      // until the server snapshot has been safely applied.
       if (!options.skipCloudWrite) syncMergedStateToCloudIfNeeded(cloud);
     }
 
@@ -2578,75 +2862,77 @@
         currentUser = user;
         const authLabel = document.getElementById('auth-label-header');
 
-        // Every sign-in starts with writes locked until Firestore answers once.
         cloudInitialReadComplete = false;
         cloudSyncDeferredUntilBootstrap = false;
-        if (cloudSyncTimer) {
-          clearTimeout(cloudSyncTimer);
-          cloudSyncTimer = null;
-        }
+        cloudWriteBlockedByVersion = false;
+        if (cloudSyncTimer) { clearTimeout(cloudSyncTimer); cloudSyncTimer = null; }
+        if (unsubscribeFirestore) { unsubscribeFirestore(); unsubscribeFirestore = null; }
 
         if (user) {
-          setSyncStatus('syncing');
+          bindStateToAuthenticatedUser(user.uid);
+          setSyncStatus('waiting');
           if (authLabel) authLabel.innerText = uiText("Salir", "Sign out");
-
           const docRef = db.collection("trackers").doc(user.uid);
-          if (unsubscribeFirestore) unsubscribeFirestore();
+          let serverBootstrapComplete = false;
 
-          let firstSnapshot = true;
-          unsubscribeFirestore = docRef.onSnapshot((docSnap) => {
-            const isInitialSnapshot = firstSnapshot;
-            firstSnapshot = false;
+          unsubscribeFirestore = docRef.onSnapshot({ includeMetadataChanges: true }, (docSnap) => {
+            // Cached snapshots are useful for Firestore internals but must NEVER
+            // unlock writes or be labeled as a confirmed server sync.
+            if (docSnap.metadata && docSnap.metadata.fromCache) {
+              if (!serverBootstrapComplete) setSyncStatus('waiting');
+              return;
+            }
 
-            if (docSnap.exists) {
-              const cloud = docSnap.data();
+            const isPending = Boolean(docSnap.metadata && docSnap.metadata.hasPendingWrites);
+            const cloud = docSnap.exists ? docSnap.data() : null;
+            if (cloud) updateServerClockAnchor(cloud);
 
-              if (isInitialSnapshot) {
-                // Cloud-first bootstrap: merge server data locally while cloud writes
-                // are still locked. A fresh/reinstalled device can therefore never
-                // overwrite Firestore merely because its localStorage is empty.
-                const shouldWriteLocalChangesBack = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap;
-                applyCloudDataMerge(cloud, { skipCloudWrite: true });
+            const minRequired = cloud && cloud._sync && cloud._sync.minClientVersion;
+            if (minRequired && versionNumber(APP_VERSION) < versionNumber(minRequired)) {
+              cloudWriteBlockedByVersion = true;
+              setSyncStatus('update-required');
+              showToast(uiText('Hay una versión más nueva requerida para proteger tus datos.', 'A newer version is required to protect your data.'), 6500);
+              return;
+            }
+
+            if (!serverBootstrapComplete) {
+              serverBootstrapComplete = true;
+              if (docSnap.exists) {
+                const shouldWriteLocalChangesBack = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap || Number(cloud && cloud._sync && cloud._sync.schemaVersion || 0) < CLIENT_SCHEMA_VERSION;
+                applyCloudDataMerge(cloud, { skipCloudWrite: true, preferCloudOnTie: true });
                 cloudInitialReadComplete = true;
                 cloudSyncDeferredUntilBootstrap = false;
                 hadLocalStateAtBoot = true;
-
-                if (shouldWriteLocalChangesBack) {
-                  syncMergedStateToCloudIfNeeded(cloud);
-                } else {
+                if (shouldWriteLocalChangesBack) syncMergedStateToCloudIfNeeded(cloud);
+                else {
                   localDirtySinceBoot = false;
-                  setSyncStatus('synced');
+                  if (!isPending) setSyncStatus('synced');
                 }
               } else {
-                applyCloudDataMerge(cloud);
-                setSyncStatus('synced');
+                cloudInitialReadComplete = true;
+                const shouldCreateCloudDocument = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap;
+                cloudSyncDeferredUntilBootstrap = false;
+                hadLocalStateAtBoot = true;
+                if (shouldCreateCloudDocument) scheduleCloudSync(true);
+                else if (!isPending) setSyncStatus('synced');
               }
-            } else if (isInitialSnapshot) {
-              // No server document exists. Unlock writes, but only upload if this
-              // device actually had/created local user data. A blank fresh install
-              // remains blank until the user records something.
-              cloudInitialReadComplete = true;
-              const shouldCreateCloudDocument = hadLocalStateAtBoot || localDirtySinceBoot || cloudSyncDeferredUntilBootstrap;
-              cloudSyncDeferredUntilBootstrap = false;
-              hadLocalStateAtBoot = true;
-              if (shouldCreateCloudDocument) scheduleCloudSync(true);
-              else setSyncStatus('synced');
-            } else {
-              setSyncStatus('synced');
+              return;
             }
+
+            if (docSnap.exists) applyCloudDataMerge(cloud);
+            // "Synced" only means the snapshot is server-confirmed and has no pending local writes.
+            if (!isPending) setSyncStatus('synced');
+            else setSyncStatus('syncing');
           }, (err) => {
             setSyncStatus('error');
             console.error("Error en escucha Firestore:", err);
           });
 
-          showToast(isEnglish() ? `Synced with: ${user.email}` : `Sincronizado con: ${user.email}`);
+          showToast(isEnglish() ? `Connected as: ${user.email}` : `Conectado como: ${user.email}`);
         } else {
-          if (unsubscribeFirestore) {
-            unsubscribeFirestore();
-            unsubscribeFirestore = null;
-          }
           cloudInitialReadComplete = false;
           cloudSyncDeferredUntilBootstrap = false;
+          cloudWriteBlockedByVersion = false;
           setSyncStatus('local');
           if (authLabel) authLabel.innerText = uiText("Entrar", "Sign in");
         }
@@ -2729,6 +3015,7 @@
     function handleMedicationChange(selectedMed) {
       if (!MEDICATION_PROFILES[selectedMed]) selectedMed = 'mounjaro';
       state.settings.medication = selectedMed;
+      markSettingsChanged();
       // Room-temperature countdown is product-specific; reset when medication changes.
       state.settings.roomTempPenStart = null;
       persistState();
@@ -2806,7 +3093,13 @@
         badgeEl.innerText = uiText('Sin datos', 'No data');
         return;
       }
-      const sorted = [...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      const sorted = getInjectionsForMedication(p.key).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      if (sorted.length === 0) {
+        textEl.innerText = uiText('Sin dosis para este medicamento.', 'No doses logged for this medication.');
+        badgeEl.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+        badgeEl.innerText = uiText('Sin datos', 'No data');
+        return;
+      }
       const currentDose = sorted[0].dose || '--';
       const sameDose = sorted.filter(i=>i.dose===currentDose);
       const earliest = sameDose.map(i=>String(i.date).split('T')[0]).sort()[0];
@@ -2825,7 +3118,8 @@
 
     function addToAppleCalendar() {
       if (!state.injections || state.injections.length === 0) { showToast(uiText('Registra primero una dosis para generar el recordatorio.', 'Log a dose first to create the reminder.')); return; }
-      const p=getMedicationProfile(); const sorted=[...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      const p=getMedicationProfile(); const sorted=getInjectionsForMedication(p.key).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      if (!latest) { showToast(uiText('Registra primero una dosis de este medicamento.', 'Log a dose of this medication first.')); return; }
       const lastDate=new Date(String(latest.date).split('T')[0]+'T12:00:00'); const nextDate=new Date(lastDate); nextDate.setDate(lastDate.getDate()+p.frequencyDays);
       const y=nextDate.getFullYear(), m=String(nextDate.getMonth()+1).padStart(2,'0'), d=String(nextDate.getDate()).padStart(2,'0');
       const freq=p.frequencyDays===1?'DAILY':'WEEKLY'; const medName=p.name;
@@ -3016,7 +3310,7 @@
         .sort((a,b) => a.date.localeCompare(b.date));
       let weightDelta = null;
       if (rangeWeights.length >= 2) weightDelta = Number(rangeWeights[rangeWeights.length-1].weight) - Number(rangeWeights[0].weight);
-      const doseCount = (Array.isArray(state.injections) ? state.injections : []).filter(i => i && i.date >= startKey && i.date <= endKey).length;
+      const doseCount = getInjectionsForMedication().filter(i => i.date >= startKey && i.date <= endKey).length;
       return {
         startKey, endKey, trackedDays, symptomDays, doseCount,
         waterAvg: waterDays ? waterTotal / waterDays : null,
@@ -3086,7 +3380,7 @@
       keys.forEach(k=>{const d=state.daysData[k];if(!d)return;if(dayHasMeaningfulTracking(d))tracked++;const s=d.symptoms||{};const symptomatic=!!((s.nausea&&s.nausea!=='none')||(s.heartburn&&s.heartburn!=='none')||(s.sulfur&&s.sulfur!=='none'));if(symptomatic)symptomDays++;const w=Number(d.water||0);if(w>0){if(w<waterGoal*.7){lowWaterDays++;if(symptomatic)lowWaterSymptomDays++;}else{adequateWaterDays++;if(symptomatic)adequateWaterSymptomDays++;}}if(Array.isArray(d.meals)&&d.meals.length){proteinTracked++;const prot=d.meals.reduce((sum,m)=>sum+Number(m&&m.protein||0),0);if(prot>=proteinGoal*.8)proteinGoalDays++;}});
       const weights=(state.weights||[]).filter(w=>w&&keys.includes(String(w.date).split('T')[0])&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
       const weightDelta=weights.length>=2?Number(weights.at(-1).weight)-Number(weights[0].weight):null;
-      const postDoseKeys=new Set();(state.injections||[]).forEach(i=>{if(!i||!i.date)return;const base=String(i.date).split('T')[0];[0,1,2].forEach(o=>postDoseKeys.add(getDateOffsetKey(base,o)));});
+      const postDoseKeys=new Set();getInjectionsForMedication().forEach(i=>{if(!i||!i.date)return;const base=String(i.date).split('T')[0];[0,1,2].forEach(o=>postDoseKeys.add(getDateOffsetKey(base,o)));});
       let postTracked=0,postSym=0,otherTracked=0,otherSym=0;keys.forEach(k=>{const d=state.daysData[k];if(!d||!dayHasMeaningfulTracking(d))return;const s=d.symptoms||{};const symptomatic=!!((s.nausea&&s.nausea!=='none')||(s.heartburn&&s.heartburn!=='none')||(s.sulfur&&s.sulfur!=='none'));if(postDoseKeys.has(k)){postTracked++;if(symptomatic)postSym++;}else{otherTracked++;if(symptomatic)otherSym++;}});
       return {days,tracked,symptomDays,lowWaterDays,lowWaterSymptomDays,adequateWaterDays,adequateWaterSymptomDays,proteinTracked,proteinGoalDays,weightDelta,postTracked,postSym,otherTracked,otherSym};
     }
@@ -3175,7 +3469,8 @@
         document.getElementById('dash-halflife-pct').innerText='0%'; document.getElementById('dash-halflife-bar').style.width='0%';
         document.getElementById('dash-halflife-expl').innerText=uiText('Registra una dosis para calcular el nivel estimado.','Log a dose to calculate the estimated medication level.'); lucide.createIcons(); return;
       }
-      const sorted=[...state.injections].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      const sorted=getInjectionsForMedication(p.key).sort((a,b)=>String(b.date).localeCompare(String(a.date))); const latest=sorted[0];
+      if (!latest) { document.getElementById('dash-next-inj-text').innerText=uiText('Sin dosis de este medicamento','No dose for this medication'); document.getElementById('dash-halflife-pct').innerText='0%'; document.getElementById('dash-halflife-bar').style.width='0%'; return; }
       const lastDate=new Date(String(latest.date).split('T')[0]+'T12:00:00'); if(isNaN(lastDate.getTime())){document.getElementById('dash-next-inj-text').innerText=uiText('Revisar fecha de dosis','Review dose date');return;}
       const nextDate=new Date(lastDate); nextDate.setDate(lastDate.getDate()+p.frequencyDays); const now=new Date(); now.setHours(12,0,0,0); const diff=Math.round((nextDate-now)/86400000);
       let due=''; if(diff>1) due=isEnglish()?`In ${diff} days (${nextDate.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})})`:`En ${diff} días (${nextDate.toLocaleDateString('es-US',{weekday:'short',day:'numeric',month:'short'})})`; else if(diff===1) due=uiText('Próxima dosis: mañana','Next dose: tomorrow'); else if(diff===0) due=uiText('¡Dosis programada para hoy!','Dose scheduled for today!'); else due=isEnglish()?`Past scheduled date by ${Math.abs(diff)} day(s)`:`Pasó la fecha programada por ${Math.abs(diff)} día(s)`;
@@ -3185,7 +3480,7 @@
         const rotations={'Abdomen derecho':'Abdomen izquierdo','Abdomen izquierdo':'Muslo derecho','Muslo derecho':'Muslo izquierdo','Muslo izquierdo':'Brazo derecho','Brazo derecho':'Brazo izquierdo','Brazo izquierdo':'Abdomen derecho'}; const nextSite=rotations[latest.site]||'Abdomen izquierdo';
         hint.innerHTML=`<i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i><span>${uiText('Rotación sugerida','Suggested rotation')}: <strong>${escapeHtml(translateSite(nextSite))}</strong></span>`;
       }
-      const doseRows=sorted.filter(i=>!i.medication||i.medication===p.key).map(i=>{const mg=parseFloat(String(i.dose||'').replace(',','.'));const d=new Date(String(i.date).split('T')[0]+'T12:00:00');return Number.isFinite(mg)&&mg>0&&!Number.isNaN(d.getTime())?{mg,date:d}:null;}).filter(Boolean);
+      const doseRows=sorted.map(i=>{const mg=parseFloat(String(i.dose||'').replace(',','.'));const d=new Date(String(i.date).split('T')[0]+'T12:00:00');return Number.isFinite(mg)&&mg>0&&!Number.isNaN(d.getTime())?{mg,date:d}:null;}).filter(Boolean);
       const remainingMg=doseRows.reduce((sum,row)=>{const age=Math.max(0,(now-row.date)/86400000);return sum+row.mg*Math.pow(0.5,age/p.halfLifeDays);},0);
       const latestMg=parseFloat(String(latest.dose||'').replace(',','.'));
       const decayPerInterval=Math.pow(0.5,p.frequencyDays/p.halfLifeDays);
@@ -3206,7 +3501,7 @@
     function addWater(oz) {
       const day = getSelectedDay();
       day.water = Math.max(0, (day.water || 0) + Number(oz||0));
-      day.waterUpdatedAt = Date.now();
+      day.waterUpdatedAt = mutationNow();
       persistState();
       updateDashboardView();
       const shown=displayWater(Math.abs(Number(oz||0)));
@@ -3373,7 +3668,7 @@
         if (meal.id) {
           if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
           if (!state.deletedRecords.meals) state.deletedRecords.meals = {};
-          state.deletedRecords.meals[meal.id] = Date.now();
+          state.deletedRecords.meals[meal.id] = mutationNow();
         }
         const removedMeal=JSON.parse(JSON.stringify(meal));
         const removedDate=state.selectedDate;
@@ -3631,7 +3926,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
         tip,
         slot,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        updatedAt: Date.now()
+        updatedAt: mutationNow()
       });
 
       persistState();
@@ -3673,7 +3968,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
         fat,
         slot,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        updatedAt: Date.now()
+        updatedAt: mutationNow()
       });
 
       persistState();
@@ -3715,11 +4010,12 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
         medication: medProfile.key,
         site,
         notes,
-        updatedAt: Date.now()
+        updatedAt: mutationNow()
       });
 
       if (state.settings.pensInStock > 0) {
         state.settings.pensInStock--;
+        markSettingsChanged();
       }
 
       persistState();
@@ -3731,6 +4027,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
 
     function adjustPenCount(delta) {
       state.settings.pensInStock = Math.max(0, (state.settings.pensInStock || 0) + delta);
+      markSettingsChanged();
       const p = getMedicationProfile();
       document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock} ${isEnglish() ? p.inventoryUnitEn : p.inventoryUnitEs}`;
       persistState();
@@ -3739,6 +4036,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
 
     function startRoomTempCountdown() {
       state.settings.roomTempPenStart = Date.now();
+      markSettingsChanged();
       persistState();
       renderMounjaroView();
       showToast(uiText("Conteo de temperatura ambiente iniciado para el medicamento en uso.", "Room-temperature countdown started for the medication in use."));
@@ -3787,7 +4085,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const badge = document.getElementById('dose-response-dose');
       const grid = document.getElementById('dose-response-grid');
       if (!badge || !grid) return;
-      const sorted = [...(state.injections || [])].filter(i=>i&&i.date).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      const sorted = getInjectionsForMedication().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
       if (!sorted.length) {
         badge.innerText = '--';
         grid.innerHTML = `<div class="sm:col-span-3 p-3 bg-[#111a2e] border border-[#223455] rounded-xl text-slate-400 text-[11px]">${uiText('Registra una dosis para comenzar a relacionarla con tus registros de los tres días siguientes.','Log a dose to compare it with your records from the following three days.')}</div>`;
@@ -3823,7 +4121,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
         if (lowWater) { lowWaterDays++; if (digestive) lowWaterSymptomDays++; }
       });
       let postDoseTracked=0, postDoseSymptoms=0;
-      (state.injections || []).forEach(inj=>{
+      getInjectionsForMedication().forEach(inj=>{
         if (!inj || !inj.date || inj.date < startKey || inj.date > endKey) return;
         getInjectionResponse(inj).forEach(m=>{ if(m.exists){ postDoseTracked++; if(m.symptoms.some(s=>['náuseas','nausea','reflujo','reflux','eructos de azufre','sulfur burps'].includes(s))) postDoseSymptoms++; } });
       });
@@ -3884,7 +4182,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const isOral = medProfile.route === 'oral';
       const maxDays = medProfile.roomTempDays || 0;
 
-      const sorted = [...state.injections].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const sorted = getInjectionsForMedication(medProfile.key).sort((a, b) => new Date(b.date) - new Date(a.date));
       if (sorted.length > 0) {
         const latest = sorted[0];
         document.getElementById('hub-last-dose').innerText = latest.dose || (medProfile.doses[0]?.[0] || '--');
@@ -3974,7 +4272,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const removed=state.injections.find(i=>i.id===id);
       if(!removed)return;
       const removedCopy=JSON.parse(JSON.stringify(removed));
-      state.deletedRecords.injections[id] = Date.now();
+      state.deletedRecords.injections[id] = mutationNow();
       state.injections = state.injections.filter(i => i.id !== id);
       persistState();
       renderMounjaroView();
@@ -4009,7 +4307,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
         fatigue: document.getElementById('input-symptom-fatigue').value,
         notes: document.getElementById('input-symptom-notes').value.trim()
       };
-      day.symptomsUpdatedAt = Date.now();
+      day.symptomsUpdatedAt = mutationNow();
       persistState();
       checkFoodSymptomCorrelation();
       showToast(uiText("Tolerancia y síntomas guardados.", "Symptoms and tolerance saved."));
@@ -4043,7 +4341,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
        ========================================================================== */
     function getLatestWeight(){const arr=(state.weights||[]).filter(w=>w&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));return arr.length?Number(arr.at(-1).weight):null;}
     function getWeightVariation(days=30){const cutoff=getDateOffsetKey(getFormattedDate(new Date()),-(days-1));const vals=(state.weights||[]).filter(w=>w&&String(w.date)>=cutoff&&Number.isFinite(Number(w.weight))).map(w=>Number(w.weight));if(vals.length<2)return null;return Math.max(...vals)-Math.min(...vals);}
-    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const shown=Number(input&&input.value);const range=storageWeight(shown);if(Number.isFinite(range)&&range>=0.5&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;persistState();renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
+    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const shown=Number(input&&input.value);const range=storageWeight(shown);if(Number.isFinite(range)&&range>=0.5&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;markSettingsChanged();persistState();renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
     function renderMaintenanceMode(){
       const badge=document.getElementById('maintenance-status-badge'),summary=document.getElementById('maintenance-summary'),rangeEl=document.getElementById('maintenance-range'),curEl=document.getElementById('maintenance-current'),varEl=document.getElementById('maintenance-variation'),btn=document.getElementById('maintenance-toggle-btn'),input=document.getElementById('maintenance-range-input');if(!badge||!summary)return;
       const goal=Number(state.settings.goalWeight||180), margin=Math.max(.5,Number(state.settings.maintenanceRangeLb||3)),cur=getLatestWeight(),variation=getWeightVariation(30),low=goal-margin,high=goal+margin,enabled=!!state.settings.maintenanceEnabled;if(input){input.value=displayWeight(margin).toFixed(1);input.min=isMetric()?'0.5':'1';input.max=isMetric()?'6.8':'15';input.step='.5';}rangeEl.innerText=`${formatWeight(low,1)}–${formatWeight(high,1).replace(' '+weightUnit(),'')} ${weightUnit()}`;curEl.innerText=cur===null?'--':formatWeight(cur,1);varEl.innerText=variation===null?'--':formatWeight(variation,1);
@@ -4162,7 +4460,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const removed=state.weights.find(w=>w.date===targetDate);
       if(!removed)return;
       const removedCopy=JSON.parse(JSON.stringify(removed));
-      state.deletedRecords.weights[targetDate] = Date.now();
+      state.deletedRecords.weights[targetDate] = mutationNow();
       state.weights = state.weights.filter(w => w.date !== targetDate);
       persistState();
       renderToolsView();
@@ -4291,9 +4589,9 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const idx = state.weights.findIndex(w => w.date === date);
       if (idx >= 0) {
         state.weights[idx].weight = weight;
-        state.weights[idx].updatedAt = Date.now();
+        state.weights[idx].updatedAt = mutationNow();
       } else {
-        state.weights.push({ date, weight, updatedAt: Date.now() });
+        state.weights.push({ date, weight, updatedAt: mutationNow() });
       }
 
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -4328,9 +4626,9 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
 
       const idx = state.measurements.findIndex(m => m.date === date);
       if (idx >= 0) {
-        state.measurements[idx] = { date, waist, chest, hips, neck, updatedAt: Date.now() };
+        state.measurements[idx] = { date, waist, chest, hips, neck, updatedAt: mutationNow() };
       } else {
-        state.measurements.push({ date, waist, chest, hips, neck, updatedAt: Date.now() });
+        state.measurements.push({ date, waist, chest, hips, neck, updatedAt: mutationNow() });
       }
 
       state.measurements.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -4365,7 +4663,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       if (pacingTimerInterval) {
         clearInterval(pacingTimerInterval);
         pacingTimerInterval = null;
-        btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Reanudar`;
+        btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> ${uiText("Reanudar", "Resume")}`;
         showToast(uiText("Cronómetro pausado.", "Timer paused."));
         lucide.createIcons();
         return;
@@ -4376,7 +4674,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       }
 
       playGentleChime(523.25);
-      btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pausar`;
+      btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> ${uiText("Pausar", "Pause")}`;
       showToast(pacingSecondsLeft === 20 * 60 ? uiText("Cronómetro de 20 min iniciado.", "20-minute timer started.") : uiText("Cronómetro reanudado.", "Timer resumed."));
       lucide.createIcons();
 
@@ -4455,6 +4753,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       if (!state.settings.isFasting) {
         state.settings.isFasting = true;
         state.settings.fastingStart = Date.now();
+        markSettingsChanged();
         btn.innerText = uiText("Detener ayuno", "Stop fast");
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = uiText("Ayuno activo", "Fasting active");
@@ -4465,6 +4764,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       } else {
         state.settings.isFasting = false;
         state.settings.fastingStart = null;
+        markSettingsChanged();
         stopFastingTicker();
         btn.innerText = uiText("Iniciar ayuno", "Start fast");
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
@@ -4531,7 +4831,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       const inRange = dateKey => dateKey && (!bounds.startKey || dateKey >= bounds.startKey) && dateKey <= bounds.endKey;
       const medication = getMedicationLabel(getMedicationProfile(), true);
       const weights=(state.weights||[]).filter(w=>w&&inRange(w.date)&&Number.isFinite(Number(w.weight))).sort((a,b)=>a.date.localeCompare(b.date));
-      const injections=(state.injections||[]).filter(i=>i&&inRange(i.date)).sort((a,b)=>a.date.localeCompare(b.date));
+      const injections=getInjectionsForMedication().filter(i=>inRange(i.date)).sort((a,b)=>a.date.localeCompare(b.date));
       const measurements=(state.measurements||[]).filter(m=>m&&inRange(m.date)).sort((a,b)=>a.date.localeCompare(b.date));
       let trackedDays=0, waterTotal=0, waterDays=0, proteinTotal=0, proteinDays=0, bowelTotal=0;
       const symptomCounts={nausea:0,heartburn:0,sulfur:0,fatigue:0}; const doctorNotes=[];
@@ -4713,6 +5013,7 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       if(errors.length){showToast(`${uiText('Revisa estos valores','Check these values')}: ${errors.join(', ')}.`);return;}
       state.settings.goalWeight=goalWeight; state.settings.calGoal=calGoal; state.settings.tdee=tdee; state.settings.proteinGoal=proteinGoal; state.settings.waterGoal=waterGoal;
       const maintenanceInput=document.getElementById('maintenance-range-input');if(maintenanceInput){const mr=storageWeight(Number(maintenanceInput.value));if(Number.isFinite(mr)&&mr>=.5&&mr<=15)state.settings.maintenanceRangeLb=mr;}
+      markSettingsChanged();
       persistState(); updateDashboardView(); renderToolsView(); applyUnitLabels();
       showToast(uiText("Configuración guardada.", "Settings saved."));
     }
@@ -4723,186 +5024,139 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
       showToast(uiText("Clave de API Gemini guardada localmente.", "Gemini API key saved locally."));
     }
 
-    function exportDataJSON() {
-      const exportObject = JSON.parse(JSON.stringify(state));
-      if (exportObject.settings) {
-        delete exportObject.settings.apiKey;
-      }
+    function downloadBackupSnapshot(snapshot, label = '') {
+      const exportObject = JSON.parse(JSON.stringify(snapshot));
+      if (exportObject.settings) delete exportObject.settings.apiKey;
+      const suffix = label ? `_${label}` : '';
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `glp1_backup_${state.selectedDate}.json`);
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.setAttribute("download", `glp1_backup_${getFormattedDate(new Date())}${suffix}.json`);
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    function exportDataJSON() {
+      downloadBackupSnapshot(state);
       showToast(uiText("Copia de seguridad descargada (sin credenciales privadas).", "Backup downloaded (private credentials excluded)."));
     }
 
-    /* Validación interna exhaustiva de daysData, weights, injections y measurements */
+    function normalizeImportedTimestamp(value) {
+      const n = Number(value);
+      // Missing legacy timestamps stay deliberately old; an explicit restore gets
+      // authority from its new dataEpoch, not from pretending old records are new.
+      return Number.isFinite(n) && n > 0 ? n : 1;
+    }
+
     function importDataJSON(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(evt) {
         try {
           const imported = JSON.parse(evt.target.result);
+          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) throw new Error("Formato inválido");
 
-          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) {
-            throw new Error("Formato inválido");
-          }
+          // Always preserve a recoverable local copy before an explicit restore.
+          localStorage.setItem(PRE_IMPORT_BACKUP_KEY, JSON.stringify(state));
+          try { downloadBackupSnapshot(state, 'before_import'); } catch (_) {}
+
+          const localLanguage = state.settings.language === 'en' ? 'en' : 'es';
+          const fallbackUnits = state.settings.units === 'metric' ? 'metric' : 'imperial';
+          const next = createDefaultState({ language: localLanguage, units: fallbackUnits });
 
           if (imported.settings && typeof imported.settings === 'object' && !Array.isArray(imported.settings)) {
-            delete imported.settings.apiKey;
-            state.settings = Object.assign(state.settings, imported.settings);
-            if (!MEDICATION_PROFILES[state.settings.medication]) state.settings.medication = "mounjaro";
-            if (typeof state.settings.maintenanceEnabled !== "boolean") state.settings.maintenanceEnabled = false;
-            if (!['imperial','metric'].includes(state.settings.units)) state.settings.units = 'imperial';
-            const importedRange = Number(state.settings.maintenanceRangeLb);
-            state.settings.maintenanceRangeLb = Number.isFinite(importedRange) && importedRange >= 1 && importedRange <= 15 ? importedRange : 3;
+            const incomingSettings = Object.assign({}, imported.settings);
+            delete incomingSettings.apiKey;
+            delete incomingSettings.language;
+            next.settings = Object.assign(next.settings, incomingSettings, { language: localLanguage });
           }
+          if (!MEDICATION_PROFILES[next.settings.medication]) next.settings.medication = 'mounjaro';
+          if (typeof next.settings.maintenanceEnabled !== 'boolean') next.settings.maintenanceEnabled = false;
+          if (!['imperial','metric'].includes(next.settings.units)) next.settings.units = fallbackUnits;
+          const importedRange = Number(next.settings.maintenanceRangeLb);
+          next.settings.maintenanceRangeLb = Number.isFinite(importedRange) && importedRange >= 1 && importedRange <= 15 ? importedRange : 3;
 
-          // Validación estricta día por día, incluyendo fechas reales de calendario.
           if (imported.daysData && typeof imported.daysData === 'object' && !Array.isArray(imported.daysData)) {
-            const cleanDays = {};
             Object.keys(imported.daysData).forEach(dateKey => {
               if (!isValidDateKey(dateKey)) return;
               const rawDay = imported.daysData[dateKey];
               if (!rawDay || typeof rawDay !== 'object' || Array.isArray(rawDay)) return;
-
               const validMeals = [];
-              if (Array.isArray(rawDay.meals)) {
-                rawDay.meals.forEach((m, idx) => {
-                  if (!m || typeof m !== 'object' || Array.isArray(m)) return;
-                  const cal = parseFloat(m.calories);
-                  const p = parseFloat(m.protein);
-                  const c = parseFloat(m.carbs);
-                  const f = parseFloat(m.fat);
-                  validMeals.push({
-                    id: (typeof m.id === 'string' && m.id.trim()) ? m.id.trim() : (`meal_${Date.now()}_${dateKey}_${idx}`),
-                    name: String(m.name || "Comida"),
-                    slot: typeof m.slot === 'string' ? m.slot : 'Comida',
-                    calories: Number.isFinite(cal) && cal >= 0 ? cal : 0,
-                    protein: Number.isFinite(p) && p >= 0 ? p : 0,
-                    carbs: Number.isFinite(c) && c >= 0 ? c : 0,
-                    fat: Number.isFinite(f) && f >= 0 ? f : 0,
-                    tip: typeof m.tip === 'string' ? m.tip : '',
-                    time: typeof m.time === 'string' ? m.time : '',
-                    updatedAt: (typeof m.updatedAt === 'number' && Number.isFinite(m.updatedAt) && m.updatedAt > 0) ? m.updatedAt : Date.now()
-                  });
+              if (Array.isArray(rawDay.meals)) rawDay.meals.forEach((m, idx) => {
+                if (!m || typeof m !== 'object' || Array.isArray(m)) return;
+                const cal=parseFloat(m.calories), p=parseFloat(m.protein), c=parseFloat(m.carbs), f=parseFloat(m.fat);
+                validMeals.push({
+                  id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():(`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`),
+                  name:String(m.name||uiText('Comida','Meal')), slot:typeof m.slot==='string'?m.slot:'Comida',
+                  calories:Number.isFinite(cal)&&cal>=0?cal:0, protein:Number.isFinite(p)&&p>=0?p:0,
+                  carbs:Number.isFinite(c)&&c>=0?c:0, fat:Number.isFinite(f)&&f>=0?f:0,
+                  tip:typeof m.tip==='string'?m.tip:'', time:typeof m.time==='string'?m.time:'',
+                  updatedAt:normalizeImportedTimestamp(m.updatedAt)
                 });
-              }
-
-              const validBM = [];
-              if (Array.isArray(rawDay.bowelMovements)) {
-                rawDay.bowelMovements.forEach(bm => {
-                  if (typeof bm === 'string' && !isNaN(new Date(bm).getTime())) {
-                    validBM.push(bm);
-                  }
-                });
-              }
-
-              const rawWater = parseFloat(rawDay.water);
-              const waterVal = Number.isFinite(rawWater) && rawWater >= 0 ? rawWater : 0;
-              const now = Date.now();
-
-              cleanDays[dateKey] = {
-                water: waterVal,
-                waterUpdatedAt: (typeof rawDay.waterUpdatedAt === 'number' && Number.isFinite(rawDay.waterUpdatedAt) && rawDay.waterUpdatedAt > 0) ? rawDay.waterUpdatedAt : now,
-                meals: validMeals,
-                bowelMovements: validBM,
-                symptoms: (rawDay.symptoms && typeof rawDay.symptoms === 'object' && !Array.isArray(rawDay.symptoms)) ? rawDay.symptoms : { hunger: 3, nausea: "none", heartburn: "none", sulfur: "none", fatigue: "none", notes: "" },
-                symptomsUpdatedAt: (typeof rawDay.symptomsUpdatedAt === 'number' && Number.isFinite(rawDay.symptomsUpdatedAt) && rawDay.symptomsUpdatedAt > 0) ? rawDay.symptomsUpdatedAt : now,
-                electrolytes: (rawDay.electrolytes && typeof rawDay.electrolytes === 'object' && !Array.isArray(rawDay.electrolytes)) ? rawDay.electrolytes : {},
-                electrolytesUpdatedAt: (typeof rawDay.electrolytesUpdatedAt === 'number' && Number.isFinite(rawDay.electrolytesUpdatedAt) && rawDay.electrolytesUpdatedAt > 0) ? rawDay.electrolytesUpdatedAt : now
+              });
+              const validBM=[];
+              if(Array.isArray(rawDay.bowelMovements)) rawDay.bowelMovements.forEach(bm=>{if(typeof bm==='string'&&!isNaN(new Date(bm).getTime()))validBM.push(bm);});
+              const rawWater=parseFloat(rawDay.water);
+              next.daysData[dateKey]={
+                water:Number.isFinite(rawWater)&&rawWater>=0?rawWater:0,
+                waterUpdatedAt:normalizeImportedTimestamp(rawDay.waterUpdatedAt),
+                meals:validMeals,
+                bowelMovements:validBM,
+                symptoms:(rawDay.symptoms&&typeof rawDay.symptoms==='object'&&!Array.isArray(rawDay.symptoms))?rawDay.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},
+                symptomsUpdatedAt:normalizeImportedTimestamp(rawDay.symptomsUpdatedAt),
+                electrolytes:(rawDay.electrolytes&&typeof rawDay.electrolytes==='object'&&!Array.isArray(rawDay.electrolytes))?rawDay.electrolytes:{},
+                electrolytesUpdatedAt:normalizeImportedTimestamp(rawDay.electrolytesUpdatedAt)
               };
             });
-            state.daysData = cleanDays;
           }
 
-          if (Array.isArray(imported.weights)) {
-            const validWeights = [];
-            imported.weights.forEach(w => {
-              if (!w || typeof w !== 'object' || Array.isArray(w)) return;
-              const date = normalizeDateKey(w.date);
-              const num = parseFloat(w.weight);
-              if (date && Number.isFinite(num) && num > 0) {
-                validWeights.push({
-                  date,
-                  weight: num,
-                  updatedAt: (typeof w.updatedAt === 'number' && Number.isFinite(w.updatedAt) && w.updatedAt > 0) ? w.updatedAt : Date.now()
-                });
-              }
+          if (Array.isArray(imported.weights)) imported.weights.forEach(w=>{
+            if(!w||typeof w!=='object'||Array.isArray(w))return; const date=normalizeDateKey(w.date), num=parseFloat(w.weight);
+            if(date&&Number.isFinite(num)&&num>0)next.weights.push({date,weight:num,updatedAt:normalizeImportedTimestamp(w.updatedAt)});
+          });
+
+          if (Array.isArray(imported.injections)) imported.injections.forEach(i=>{
+            if(!i||typeof i!=='object'||Array.isArray(i))return; const date=normalizeDateKey(i.date); if(!date||typeof i.dose!=='string')return;
+            const med=MEDICATION_PROFILES[i.medication]?i.medication:next.settings.medication;
+            next.injections.push({
+              id:(typeof i.id==='string'&&i.id.trim())?i.id.trim():`inj_import_${Math.random().toString(36).slice(2,10)}`,
+              date,dose:i.dose,medication:med,site:typeof i.site==='string'?i.site:'Abdomen derecho',notes:typeof i.notes==='string'?i.notes:'',updatedAt:normalizeImportedTimestamp(i.updatedAt)
             });
-            state.weights = validWeights;
-          }
+          });
 
-          if (Array.isArray(imported.injections)) {
-            const validInjections = [];
-            imported.injections.forEach(i => {
-              if (!i || typeof i !== 'object' || Array.isArray(i)) return;
-              const date = normalizeDateKey(i.date);
-              if (date && typeof i.dose === 'string') {
-                validInjections.push({
-                  id: (typeof i.id === 'string' && i.id.trim()) ? i.id.trim() : "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-                  date,
-                  dose: i.dose,
-                  site: typeof i.site === 'string' ? i.site : 'Abdomen derecho',
-                  notes: typeof i.notes === 'string' ? i.notes : '',
-                  updatedAt: (typeof i.updatedAt === 'number' && Number.isFinite(i.updatedAt) && i.updatedAt > 0) ? i.updatedAt : Date.now()
-                });
-              }
-            });
-            state.injections = validInjections;
-          }
+          if (Array.isArray(imported.measurements)) imported.measurements.forEach(m=>{
+            if(!m||typeof m!=='object'||Array.isArray(m))return; const date=normalizeDateKey(m.date); if(!date)return;
+            const waist=parseFloat(m.waist),chest=parseFloat(m.chest),hips=parseFloat(m.hips),neck=parseFloat(m.neck);
+            next.measurements.push({date,waist:Number.isFinite(waist)&&waist>=0?waist:0,chest:Number.isFinite(chest)&&chest>=0?chest:0,hips:Number.isFinite(hips)&&hips>=0?hips:0,neck:Number.isFinite(neck)&&neck>=0?neck:0,updatedAt:normalizeImportedTimestamp(m.updatedAt)});
+          });
 
-          if (Array.isArray(imported.measurements)) {
-            const validMeasurements = [];
-            imported.measurements.forEach(m => {
-              if (!m || typeof m !== 'object' || Array.isArray(m)) return;
-              const date = normalizeDateKey(m.date);
-              if (!date) return;
-              const waist = parseFloat(m.waist);
-              const chest = parseFloat(m.chest);
-              const hips = parseFloat(m.hips);
-              const neck = parseFloat(m.neck);
-              validMeasurements.push({
-                date,
-                waist: Number.isFinite(waist) && waist >= 0 ? waist : 0,
-                chest: Number.isFinite(chest) && chest >= 0 ? chest : 0,
-                hips: Number.isFinite(hips) && hips >= 0 ? hips : 0,
-                neck: Number.isFinite(neck) && neck >= 0 ? neck : 0,
-                updatedAt: (typeof m.updatedAt === 'number' && Number.isFinite(m.updatedAt) && m.updatedAt > 0) ? m.updatedAt : Date.now()
-              });
-            });
-            state.measurements = validMeasurements;
-          }
-
-          if (imported.deletedRecords && typeof imported.deletedRecords === 'object' && !Array.isArray(imported.deletedRecords)) {
-            ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
-              const importedType = imported.deletedRecords[type];
-              if (!importedType || typeof importedType !== 'object' || Array.isArray(importedType)) return;
-              if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
-              Object.keys(importedType).forEach(id => {
-                const ts = Number(importedType[id]);
-                if (Number.isFinite(ts) && ts > 0) {
-                  state.deletedRecords[type][id] = ts;
-                }
-              });
+          if (imported.deletedRecords && typeof imported.deletedRecords==='object' && !Array.isArray(imported.deletedRecords)) {
+            ['meals','weights','injections','measurements'].forEach(type=>{
+              const src=imported.deletedRecords[type]; if(!src||typeof src!=='object'||Array.isArray(src))return;
+              Object.keys(src).forEach(id=>{const ts=Number(src[id]);if(Number.isFinite(ts)&&ts>0)next.deletedRecords[type][id]=ts;});
             });
           }
-          cleanupTombstones();
 
-          ensureInjectionIds();
-          state.selectedDate = getFormattedDate(new Date());
-          persistState();
-          applyMedicationTheme();
-          renderCurrentDay();
-          if (activeTab === 'tools') renderToolsView();
-          showToast(uiText("Datos verificados y restaurados exitosamente.", "Data verified and restored successfully."));
+          const restoreTime = mutationNow();
+          next.meta = {
+            schemaVersion: CLIENT_SCHEMA_VERSION,
+            ownerUid: currentUser ? currentUser.uid : (state.meta && state.meta.ownerUid) || null,
+            dataEpoch: generateDataEpoch('restore'),
+            resetAt: restoreTime,
+            settingsUpdatedAt: restoreTime,
+            clientVersion: APP_VERSION,
+            lastMutationAt: restoreTime
+          };
+          next.selectedDate=getFormattedDate(new Date());
+          state=next; cleanupTombstones(); ensureInjectionIds();
+          persistState({ immediateCloud: true });
+          applyMedicationTheme(); renderCurrentDay(); if(activeTab==='tools')renderToolsView();
+          showToast(uiText('Backup restaurado de forma segura. Se creó una copia del estado anterior.', 'Backup restored safely. A copy of the previous state was created.'), 5000);
         } catch (err) {
           console.error("Error importando backup:", err);
           showToast(uiText("Error: Archivo dañado o estructura incompatible.", "Error: damaged file or incompatible structure."));
+        } finally {
+          e.target.value='';
         }
       };
       reader.readAsText(file);
@@ -4919,41 +5173,29 @@ Asume una porción casera pequeña a mediana salvo que el usuario indique otra c
     }
 
     function executeFactoryReset() {
-      localStorage.removeItem(STORAGE_KEY);
+      const language = state.settings && state.settings.language === 'en' ? 'en' : 'es';
+      const units = state.settings && state.settings.units === 'metric' ? 'metric' : 'imperial';
+      const ownerUid = currentUser ? currentUser.uid : (state.meta && state.meta.ownerUid) || null;
+      const resetTime = mutationNow();
+
       localStorage.removeItem("gemini_api_key_vault");
-      
       const apiKeyInput = document.getElementById('setting-api-key');
       if (apiKeyInput) apiKeyInput.value = "";
 
-      state.daysData = {};
-      state.injections = [];
-      state.weights = [];
-      state.measurements = [];
-      state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
-      state.settings = {
-        medication: "mounjaro",
-        goalWeight: 180,
-        calGoal: 1400,
-        tdee: 2000,
-        proteinGoal: 110,
-        waterGoal: 96,
-        pensInStock: 4,
-        roomTempPenStart: null,
-        fastingStart: null,
-        isFasting: false,
-        language: "es",
-        units: "imperial",
-        maintenanceEnabled: false,
-        maintenanceRangeLb: 3
+      state = createDefaultState({ language, units });
+      state.meta = {
+        schemaVersion: CLIENT_SCHEMA_VERSION,
+        ownerUid,
+        dataEpoch: generateDataEpoch('reset'),
+        resetAt: resetTime,
+        settingsUpdatedAt: resetTime,
+        clientVersion: APP_VERSION,
+        lastMutationAt: resetTime
       };
       state.selectedDate = getFormattedDate(new Date());
-
-      persistState();
-      closeResetModal();
-      applyMedicationTheme();
-      renderCurrentDay();
-      if (activeTab === 'tools') renderToolsView();
-      showToast(uiText("Todos los datos han sido borrados por completo.", "All data has been deleted."));
+      persistState({ immediateCloud: true });
+      closeResetModal(); applyMedicationTheme(); renderCurrentDay(); if(activeTab==='tools')renderToolsView();
+      showToast(uiText('Todos los datos fueron borrados. Los dispositivos antiguos descartarán sus copias al sincronizar.', 'All data was deleted. Older devices will discard their copies when they sync.'), 5000);
     }
 
     let toastTimer = null;
