@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>GLP-1 Companion &bull; Salud metabólica (v4.0)</title>
+  <title>GLP-1 Companion &bull; Salud metabólica</title>
 
   <!-- PWA and Mobile Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -66,34 +66,17 @@
           required: ["foodName", "calories", "protein", "carbs", "fat", "mounjaroTip"],
           nullable: false
         };
-
-        const callModel = async (modelName) => {
-          const model = getGenerativeModel(aiService, {
-            model: modelName,
-            systemInstruction: systemPrompt,
-            generationConfig: { responseMimeType: "application/json", responseSchema }
-          });
-          const parts = [prompt];
-          if (imageBase64) parts.push({ inlineData: { data: imageBase64, mimeType: mimeType || "image/jpeg" } });
-          const result = await model.generateContent(parts);
-          const resText = result?.response?.text?.();
-          if (!resText) throw new Error(`Empty Firebase AI Logic response from ${modelName}`);
-          return JSON.parse(resText);
-        };
-
-        try {
-          const data = await callModel("gemini-3.5-flash");
-          return { data, modelUsed: "gemini-3.5-flash" };
-        } catch (flashErr) {
-          console.warn("Primary gemini-3.5-flash failed, attempting fallback to gemini-3.5-flash-lite:", flashErr);
-          try {
-            const data = await callModel("gemini-3.5-flash-lite");
-            return { data, modelUsed: "gemini-3.5-flash-lite" };
-          } catch (liteErr) {
-            console.error("Fallback gemini-3.5-flash-lite also failed:", liteErr);
-            throw liteErr;
-          }
-        }
+        const model = getGenerativeModel(aiService, {
+          model: "gemini-3.5-flash",
+          systemInstruction: systemPrompt,
+          generationConfig: { responseMimeType: "application/json", responseSchema }
+        });
+        const parts = [prompt];
+        if (imageBase64) parts.push({ inlineData: { data: imageBase64, mimeType: mimeType || "image/jpeg" } });
+        const result = await model.generateContent(parts);
+        const text = result?.response?.text?.();
+        if (!text) throw new Error("Empty Firebase AI Logic response");
+        return JSON.parse(text);
       };
       window.firebaseAiLogicReady = true;
     } catch (error) {
@@ -243,7 +226,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v3.9</p>
+          <p id="print-app-version">Versión: v3.9.1</p>
         </div>
       </div>
     </div>
@@ -260,7 +243,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.9</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v3.9.1</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -356,10 +339,7 @@
                 <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
                 Nivel estimado del medicamento:
               </span>
-              <div class="flex items-center gap-1.5">
-                <span id="dash-pk-phase-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">--</span>
-                <span id="dash-halflife-pct" class="font-bold text-cyan-400">--%</span>
-              </div>
+              <span id="dash-halflife-pct" class="font-bold text-cyan-400">--%</span>
             </div>
             <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
               <div id="dash-halflife-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -873,116 +853,6 @@
           <p class="text-[9px] text-slate-500">Este modo monitorea estabilidad de peso y hábitos. No recomienda cambios de dosis ni tratamiento.</p>
         </div>
 
-        <!-- Mi perfil de salud (v4.0) -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <i data-lucide="user" class="w-4 h-4 text-emerald-400"></i>
-              <h3 class="text-sm font-bold text-white">Mi perfil de salud</h3>
-            </div>
-            <span class="text-[10px] text-slate-400">Parámetros clínicos</span>
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div>
-              <label class="block text-[10px] font-semibold text-slate-400 mb-1">Sexo:</label>
-              <select id="profile-sex" onchange="saveHealthProfileFromInputs()" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-white text-xs">
-                <option value="male">Hombre / Male</option>
-                <option value="female">Mujer / Female</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[10px] font-semibold text-slate-400 mb-1">Nacimiento:</label>
-              <input id="profile-birthdate" type="date" onchange="saveHealthProfileFromInputs()" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-white text-xs">
-            </div>
-            <div>
-              <label id="profile-height-label" class="block text-[10px] font-semibold text-slate-400 mb-1">Altura (in):</label>
-              <input id="profile-height" type="number" step="0.5" min="20" max="250" placeholder="Ej: 69" onchange="saveHealthProfileFromInputs()" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-white text-xs">
-            </div>
-            <div>
-              <label class="block text-[10px] font-semibold text-slate-400 mb-1">Nivel de actividad:</label>
-              <select id="profile-activity" onchange="saveHealthProfileFromInputs()" class="w-full bg-[#111a2e] border border-[#223455] rounded-xl p-2 text-white text-xs">
-                <option value="sedentary">Sedentario (1.2x)</option>
-                <option value="light">Ligero (1.375x)</option>
-                <option value="moderate">Moderado (1.55x)</option>
-                <option value="very_active">Muy activo (1.725x)</option>
-                <option value="extra_active">Extra activo (1.9x)</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-            <span id="profile-age-badge" class="font-medium text-slate-300">Edad calculada: --</span>
-            <span class="text-emerald-400 text-[10px]">Guardado automático</span>
-          </div>
-        </div>
-
-        <!-- Métricas corporales inteligentes (v4.0) -->
-        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/30 bg-gradient-to-br from-cyan-950/20 to-transparent space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i>
-              <h3 class="text-sm font-bold text-white">Métricas corporales inteligentes</h3>
-            </div>
-            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">Fórmulas clínicas</span>
-          </div>
-
-          <p class="text-[11px] text-slate-300 leading-relaxed">
-            Calculadas combinando tu perfil, el pesaje más reciente y las medidas corporales vigentes:
-          </p>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-            <div class="bg-[#111a2e] p-2.5 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">IMC / BMI</span>
-              <p id="metric-bmi" class="text-base font-black text-cyan-300">--</p>
-              <span id="metric-bmi-cat" class="text-[9px] text-slate-400">--</span>
-            </div>
-            <div class="bg-[#111a2e] p-2.5 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">TMB / BMR</span>
-              <p id="metric-bmr" class="text-base font-black text-white">--</p>
-              <span class="text-[9px] text-slate-500">kcal/día (Mifflin)</span>
-            </div>
-            <div class="bg-[#111a2e] p-2.5 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">Cintura/Altura</span>
-              <p id="metric-whtr" class="text-base font-black text-white">--</p>
-              <span id="metric-whtr-cat" class="text-[9px] text-slate-400">--</span>
-            </div>
-            <div class="bg-[#111a2e] p-2.5 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400 font-bold uppercase">Grasa corporal est.</span>
-              <p id="metric-bodyfat" class="text-base font-black text-amber-300">--%</p>
-              <span class="text-[9px] text-slate-500">U.S. Navy Method</span>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center text-xs">
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400">Masa grasa est.:</span>
-              <p id="metric-fat-mass" class="font-bold text-white">--</p>
-            </div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]">
-              <span class="text-[10px] text-slate-400">Masa magra est.:</span>
-              <p id="metric-lean-mass" class="font-bold text-emerald-400">--</p>
-            </div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] col-span-2 sm:col-span-1">
-              <span class="text-[10px] text-slate-400">Agua sugerida:</span>
-              <p id="metric-suggested-water" class="font-bold text-cyan-300">--</p>
-            </div>
-          </div>
-
-          <!-- Suggested TDEE action box -->
-          <div class="p-3 bg-[#111a2e] border border-emerald-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold">Gasto calórico estimado (TDEE sugerido):</span>
-              <p id="metric-tdee-display" class="text-sm font-black text-emerald-400">-- kcal/día</p>
-            </div>
-            <button id="btn-apply-suggested-tdee" onclick="applySuggestedTdee()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-lg transition-colors shrink-0">
-              Usar sugerencia
-            </button>
-          </div>
-
-          <p class="text-[9px] text-slate-500 leading-snug">
-            * Estimaciones clínicas basadas en fórmulas validadas. No sustituyen bioimpedancia clínica ni consejo médico personalizado.
-          </p>
-        </div>
-
         <!-- Curva de peso con Media Móvil de 7 días -->
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
@@ -1285,19 +1155,19 @@
           <div class="grid grid-cols-4 gap-2 text-center text-xs">
             <div>
               <span class="text-[10px] text-slate-400 uppercase font-bold">Calorías</span>
-              <input id="res-cal" type="number" min="0" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-white">
+              <input id="res-cal" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-white">
             </div>
             <div>
               <span class="text-[10px] text-amber-500 uppercase font-bold">Proteína</span>
-              <input id="res-protein" type="number" min="0" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-amber-400">
+              <input id="res-protein" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-amber-400">
             </div>
             <div>
               <span class="text-[10px] text-slate-400 uppercase font-bold">Carbos</span>
-              <input id="res-carbs" type="number" min="0" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
+              <input id="res-carbs" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
             </div>
             <div>
               <span class="text-[10px] text-slate-400 uppercase font-bold">Grasas</span>
-              <input id="res-fat" type="number" min="0" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
+              <input id="res-fat" type="number" class="w-full bg-[#162238] border border-[#223455] rounded-lg p-1 text-center font-bold text-slate-300">
             </div>
           </div>
 
@@ -1346,22 +1216,22 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Calorías (kcal):</label>
-              <input id="manual-cal" type="number" min="0" placeholder="350" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+              <input id="manual-cal" type="number" placeholder="350" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Proteína (g):</label>
-              <input id="manual-protein" type="number" min="0" placeholder="30" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+              <input id="manual-protein" type="number" placeholder="30" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
             </div>
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Carbos (g):</label>
-              <input id="manual-carbs" type="number" min="0" placeholder="20" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+              <input id="manual-carbs" type="number" placeholder="20" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
             </div>
             <div>
               <label class="block font-semibold text-slate-300 mb-1">Grasas (g):</label>
-              <input id="manual-fat" type="number" min="0" placeholder="10" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
+              <input id="manual-fat" type="number" placeholder="10" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
             </div>
           </div>
 
@@ -1383,15 +1253,9 @@
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label id="inj-date-label" class="block font-semibold text-slate-300 mb-1">Fecha:</label>
-              <input id="inj-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label id="inj-time-label" class="block font-semibold text-slate-300 mb-1">Hora:</label>
-              <input id="inj-time" type="time" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
-            </div>
+          <div>
+            <label id="inj-date-label" class="block font-semibold text-slate-300 mb-1">Fecha de inyección:</label>
+            <input id="inj-date" type="date" class="w-full p-2 bg-[#090d16] border border-[#223455] rounded-xl text-white">
           </div>
 
           <div>
@@ -1693,35 +1557,6 @@
       </div>
     </div>
 
-    <!-- Modal Backup Preview (v4.0) -->
-    <div id="modal-backup-preview" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl text-left">
-        <div class="flex items-center justify-between pb-2 border-b border-[#223455]">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="file-check" class="w-5 h-5 text-cyan-400"></i>
-            <h3 class="text-sm font-bold text-white">Vista previa de copia de seguridad</h3>
-          </div>
-          <button onclick="closeBackupPreviewModal()" class="text-slate-400 hover:text-white p-1">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
-        <p class="text-xs text-slate-300">
-          Archivo validado exitosamente. Revisa los datos antes de confirmar la restauración:
-        </p>
-        <div id="backup-preview-details" class="bg-[#090d16] border border-[#223455] rounded-2xl p-3.5 space-y-1.5 text-xs">
-          <!-- Populated dynamically -->
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-2">
-          <button onclick="closeBackupPreviewModal()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">
-            Cancelar
-          </button>
-          <button id="btn-confirm-restore" onclick="confirmExecuteRestore()" class="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-500/20">
-            Confirmar restauración
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Toast Notification Banner -->
     <div id="toast" class="fixed bottom-20 z-50 max-w-sm px-4 py-2.5 rounded-2xl bg-[#162238] text-white text-xs font-bold shadow-2xl border border-[#223455] transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2">
       <i id="toast-icon" data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
@@ -1735,7 +1570,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0";
+    const APP_VERSION = "v3.9.1";
     const CLIENT_SCHEMA_VERSION = 8;
     const MIN_SUPPORTED_CLIENT_VERSION = "v3.8";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
@@ -1844,7 +1679,6 @@
     let cloudWriteBlockedByVersion = false;
     let serverClockAnchorMs = null;
     let serverClockPerfAnchor = null;
-
     let localMutationRevision = 0;
 
     function hasPendingExplicitMutation() {
@@ -2190,7 +2024,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v3.9": "Version: v3.9",
+      "Versión: v3.9.1": "Version: v3.9.1",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "Meta sugerida: --": "Suggested goal: --",
@@ -2497,7 +2331,7 @@
           tdee: 2000,
           proteinGoal: 110,
           waterGoal: 96,
-          pensInStock: 0,
+          pensInStock: 4,
           roomTempPenStart: null,
           fastingStart: null,
           isFasting: false,
@@ -2505,12 +2339,6 @@
           units: devicePrefs.units === 'metric' ? 'metric' : 'imperial',
           maintenanceEnabled: false,
           maintenanceRangeLb: 3
-        },
-        healthProfile: {
-          sex: 'male',
-          birthDate: '',
-          height: 0,
-          activityLevel: 'sedentary'
         },
         daysData: {},
         injections: [],
@@ -2538,9 +2366,6 @@
 
     function ensureStateMetadata() {
       if (!state.meta || typeof state.meta !== 'object' || Array.isArray(state.meta)) state.meta = {};
-      if (!state.healthProfile || typeof state.healthProfile !== 'object' || Array.isArray(state.healthProfile)) {
-        state.healthProfile = { sex: 'male', birthDate: '', height: 0, activityLevel: 'sedentary' };
-      }
       state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
       if (typeof state.meta.ownerUid !== 'string') state.meta.ownerUid = null;
       if (!state.meta.dataEpoch || typeof state.meta.dataEpoch !== 'string') state.meta.dataEpoch = 'legacy-v1';
@@ -2642,7 +2467,6 @@
           const localUnits = parsed.settings && parsed.settings.units === 'metric' ? 'metric' : 'imperial';
           state = createDefaultState({ language: localLanguage, units: localUnits });
           if (parsed.settings && typeof parsed.settings === 'object' && !Array.isArray(parsed.settings)) state.settings = Object.assign(state.settings, parsed.settings);
-          if (parsed.healthProfile && typeof parsed.healthProfile === 'object' && !Array.isArray(parsed.healthProfile)) state.healthProfile = Object.assign(state.healthProfile, parsed.healthProfile);
           if (parsed.daysData && typeof parsed.daysData === 'object' && !Array.isArray(parsed.daysData)) state.daysData = parsed.daysData;
           if (Array.isArray(parsed.injections)) state.injections = parsed.injections;
           if (Array.isArray(parsed.weights)) state.weights = parsed.weights;
@@ -2923,31 +2747,20 @@
     /* Fusión bidireccional profunda con timestamps y tombstones */
     function renderSettingsFormFromState() {
       const activeEl = document.activeElement;
-      if (activeEl && activeEl.id && activeEl.id.startsWith('setting-')) return;
-
-      const gw = document.getElementById('setting-goal-weight');
-      if (gw && (!activeEl || activeEl !== gw)) gw.value = displayWeight(state.settings.goalWeight || 180).toFixed(1);
-
-      const cg = document.getElementById('setting-cal-goal');
-      if (cg && (!activeEl || activeEl !== cg)) cg.value = state.settings.calGoal || 1400;
-
-      const st = document.getElementById('setting-tdee');
-      if (st && (!activeEl || activeEl !== st)) st.value = state.settings.tdee || 2000;
-
-      const pg = document.getElementById('setting-protein-goal');
-      if (pg && (!activeEl || activeEl !== pg)) pg.value = state.settings.proteinGoal || 110;
-
-      const wg = document.getElementById('setting-water-goal');
-      if (wg && (!activeEl || activeEl !== wg)) wg.value = Math.round(displayWater(state.settings.waterGoal || 96));
-
-      const lang = document.getElementById('setting-language');
-      if (lang && (!activeEl || activeEl !== lang)) lang.value = state.settings.language || 'es';
-
-      const units = document.getElementById('setting-units');
-      if (units && (!activeEl || activeEl !== units)) units.value = state.settings.units || 'imperial';
-
+      const setValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el && el !== activeEl) el.value = value;
+      };
+      setValue('setting-goal-weight', displayWeight(state.settings.goalWeight || 180).toFixed(1));
+      setValue('setting-cal-goal', state.settings.calGoal || 1400);
+      setValue('setting-tdee', state.settings.tdee || 2000);
+      setValue('setting-protein-goal', state.settings.proteinGoal || 110);
+      setValue('setting-water-goal', Math.round(displayWater(state.settings.waterGoal || 96)));
+      setValue('setting-language', state.settings.language || 'es');
+      setValue('setting-units', state.settings.units || 'imperial');
       applyUnitLabels();
     }
+
     function applyCloudDataMerge(cloud, options = {}) {
       if (!cloud || typeof cloud !== 'object' || Array.isArray(cloud)) return;
       ensureStateMetadata();
@@ -3058,6 +2871,7 @@
               return delTime <= (Number(m.updatedAt) || 0);
             });
             cloudDay.bowelMovements = cloudBowelMovements.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
+            cloudDay.bowelMovementsUpdatedAt = Number(cloudDay.bowelMovementsUpdatedAt) || 0;
             state.daysData[dateKey] = cloudDay;
           } else {
             const localDay = state.daysData[dateKey];
@@ -3090,29 +2904,35 @@
             });
             localDay.meals = Array.from(mealMap.values());
 
-            // Fusión de agua mediante timestamp
+            // Fusión de agua mediante timestamp. 0 oz es un valor válido y no debe
+            // ser reemplazado por un registro de nube más antiguo.
             const localWaterTs = Number(localDay.waterUpdatedAt) || 0;
             const cloudWaterTs = Number(cloudDay.waterUpdatedAt) || 0;
             const localWaterValue = Number(localDay.water) || 0;
             const cloudWaterValue = Number(cloudDay.water) || 0;
-            // Evaluates timestamps first: 0 is a legitimate water value that must not be overwritten by older cloud records
             if (cloudWaterTs > localWaterTs) {
-              localDay.water = cloudWaterValue;
-              localDay.waterUpdatedAt = cloudWaterTs;
-            } else if (localWaterTs > cloudWaterTs) {
-              // Local update is newer (even if 0 oz)
-            } else if (cloudWaterTs && !localWaterTs) {
               localDay.water = cloudWaterValue;
               localDay.waterUpdatedAt = cloudWaterTs;
             } else if (!localWaterTs && !cloudWaterTs) {
               localDay.water = Math.max(localWaterValue, cloudWaterValue);
             }
 
-            // Fusión de evacuaciones sin duplicados y descartando timestamps inválidos
+            // Fusión de evacuaciones. En datos nuevos, la colección con timestamp
+            // más reciente es autoritativa para que una eliminación no reaparezca.
+            // En datos legacy sin timestamp se conserva la unión sin duplicados.
             const localBM = Array.isArray(localDay.bowelMovements) ? localDay.bowelMovements : [];
-            const validBM = [...localBM, ...cloudBowelMovements]
-              .filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
-            localDay.bowelMovements = Array.from(new Set(validBM));
+            const validLocalBM = localBM.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
+            const validCloudBM = cloudBowelMovements.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
+            const localBmTs = Number(localDay.bowelMovementsUpdatedAt) || 0;
+            const cloudBmTs = Number(cloudDay.bowelMovementsUpdatedAt) || 0;
+            if (cloudBmTs > localBmTs) {
+              localDay.bowelMovements = Array.from(new Set(validCloudBM));
+              localDay.bowelMovementsUpdatedAt = cloudBmTs;
+            } else if (localBmTs > cloudBmTs) {
+              localDay.bowelMovements = Array.from(new Set(validLocalBM));
+            } else {
+              localDay.bowelMovements = Array.from(new Set([...validLocalBM, ...validCloudBM]));
+            }
 
             // Fusión de síntomas mediante timestamp
             const localSymptomsTs = Number(localDay.symptomsUpdatedAt) || 0;
@@ -3648,6 +3468,7 @@
           },
           symptomsUpdatedAt: 0,
           bowelMovements: [],
+          bowelMovementsUpdatedAt: 0,
           electrolytes: { mg: false, k: false, na: false, multi: false },
           electrolytesUpdatedAt: 0
         };
@@ -3747,7 +3568,6 @@
       if (Number(day.water || 0) > 0) return true;
       if (Array.isArray(day.meals) && day.meals.length > 0) return true;
       if (Array.isArray(day.bowelMovements) && day.bowelMovements.length > 0) return true;
-      if (Number(day.symptomsUpdatedAt || 0) > 0) return true;
       const s = day.symptoms || {};
       if ((s.nausea && s.nausea !== 'none') || (s.heartburn && s.heartburn !== 'none') ||
           (s.sulfur && s.sulfur !== 'none') || (s.fatigue && s.fatigue !== 'none') ||
@@ -3952,76 +3772,16 @@
         const rotations={'Abdomen derecho':'Abdomen izquierdo','Abdomen izquierdo':'Muslo derecho','Muslo derecho':'Muslo izquierdo','Muslo izquierdo':'Brazo derecho','Brazo derecho':'Brazo izquierdo','Brazo izquierdo':'Abdomen derecho'}; const nextSite=rotations[latest.site]||'Abdomen izquierdo';
         hint.innerHTML=`<i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i><span>${uiText('Rotación sugerida','Suggested rotation')}: <strong>${escapeHtml(translateSite(nextSite))}</strong></span>`;
       }
-      // Advanced Pharmacokinetic (PK) Model: Absorption (Ka) + Elimination (Ke) with exact dose time
-      const hlHours = p.halfLifeDays * 24;
-      const ke = Math.LN2 / hlHours;
-      let ka = 0.055;
-      if (p.route === 'oral') ka = 1.2;
-      else if (p.generic === 'liraglutide') ka = 0.15;
-      else if (p.generic === 'semaglutide') ka = 0.06;
-
-      const doseRows = sorted.map(i => {
-        const mg = parseFloat(String(i.dose || '').replace(',', '.'));
-        const datePart = String(i.date).split('T')[0];
-        const timePart = i.time ? (i.time.length === 5 ? i.time + ':00' : i.time) : '12:00:00';
-        const d = new Date(`${datePart}T${timePart}`);
-        return Number.isFinite(mg) && mg > 0 && !Number.isNaN(d.getTime()) ? { mg, date: d } : null;
-      }).filter(Boolean);
-
-      let activeMgTotal = 0;
-      let latestDosePhase = 'declining';
-      let latestDoseHours = 0;
-
-      doseRows.forEach((row, idx) => {
-        const dtHours = Math.max(0, (now - row.date.getTime()) / 3600000);
-        if (idx === 0) latestDoseHours = dtHours;
-        const normFactor = Math.abs(ka - ke) > 0.0001 ? (ka / (ka - ke)) : 1;
-        const level = row.mg * normFactor * Math.max(0, Math.exp(-ke * dtHours) - Math.exp(-ka * dtHours));
-        activeMgTotal += level;
-      });
-
-      const tMaxHours = Math.abs(ka - ke) > 0.0001 ? Math.log(ka / ke) / (ka - ke) : 36;
-      if (latestDoseHours < tMaxHours * 0.85) {
-        latestDosePhase = 'rising';
-      } else if (latestDoseHours <= tMaxHours * 1.3) {
-        latestDosePhase = 'peak';
-      } else {
-        latestDosePhase = 'declining';
-      }
-
-      const latestMg = parseFloat(String(latest.dose || '').replace(',', '.'));
-      const decayPerInterval = Math.pow(0.5, p.frequencyDays / p.halfLifeDays);
-      const steadyStateMg = Number.isFinite(latestMg) && latestMg > 0 ? latestMg / Math.max(0.01, 1 - decayPerInterval) : 0;
-      const pct = steadyStateMg > 0 ? Math.min(100, Math.max(0, Math.round((activeMgTotal / steadyStateMg) * 100))) : 0;
-
-      const pctEl = document.getElementById('dash-halflife-pct');
-      if (pctEl) pctEl.innerText = `${pct}%`;
-      const barEl = document.getElementById('dash-halflife-bar');
-      if (barEl) barEl.style.width = `${pct}%`;
-
-      const phaseBadge = document.getElementById('dash-pk-phase-badge');
-      if (phaseBadge) {
-        if (latestDosePhase === 'rising') {
-          phaseBadge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          phaseBadge.innerText = uiText("Subiendo (Absorción)", "Rising (Absorption)");
-        } else if (latestDosePhase === 'peak') {
-          phaseBadge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          phaseBadge.innerText = uiText("Pico de concentración", "Peak concentration");
-        } else {
-          phaseBadge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-          phaseBadge.innerText = uiText("Fase de eliminación", "Elimination phase");
-        }
-      }
-
-      const hl = p.halfLifeDays < 1 ? `${Math.round(p.halfLifeDays * 24)} h` : `~${p.halfLifeDays} ${uiText('días','days')}`;
-      const amount = activeMgTotal > 0 ? `${activeMgTotal.toFixed(2)} mg` : '--';
-      const explEl = document.getElementById('dash-halflife-expl');
-      if (explEl) {
-        explEl.innerText = isEnglish()
-          ? `Estimated active amount: ~${amount} (${pct}% of estimated steady-state). Half-life: ${hl} (${p.generic}). Kinetic model includes absorption and elimination from logged dose time. Not a direct blood laboratory measurement.`
-          : `Cantidad activa estimada: ~${amount} (${pct}% del estado estacionario estimado). Vida media: ${hl} (${p.generic}). Modelo cinético incluye absorción y eliminación desde la hora registrada. No es una medición de laboratorio en sangre.`;
-      }
-      lucide.createIcons();
+      const doseRows=sorted.map(i=>{const mg=parseFloat(String(i.dose||'').replace(',','.'));const d=new Date(String(i.date).split('T')[0]+'T12:00:00');return Number.isFinite(mg)&&mg>0&&!Number.isNaN(d.getTime())?{mg,date:d}:null;}).filter(Boolean);
+      const remainingMg=doseRows.reduce((sum,row)=>{const age=Math.max(0,(now-row.date)/86400000);return sum+row.mg*Math.pow(0.5,age/p.halfLifeDays);},0);
+      const latestMg=parseFloat(String(latest.dose||'').replace(',','.'));
+      const decayPerInterval=Math.pow(0.5,p.frequencyDays/p.halfLifeDays);
+      const steadyStateMg=Number.isFinite(latestMg)&&latestMg>0 ? latestMg/Math.max(0.01,1-decayPerInterval) : 0;
+      const pct=steadyStateMg>0?Math.round((remainingMg/steadyStateMg)*100):0;
+      document.getElementById('dash-halflife-pct').innerText=`${pct}%`; document.getElementById('dash-halflife-bar').style.width=`${Math.min(100,Math.max(0,pct))}%`;
+      const hl=p.halfLifeDays<1?`${Math.round(p.halfLifeDays*24)} h`:`~${p.halfLifeDays} ${uiText('días','days')}`;
+      const amount=remainingMg>0?`${remainingMg.toFixed(2)} mg`:'--';
+      document.getElementById('dash-halflife-expl').innerText=isEnglish()?`Estimated relative medication level from all logged doses: ~${amount}. Approx. half-life: ${hl} (${p.generic}). The percentage is relative to an estimated steady-state level at the latest logged dose and is not a blood measurement.`:`Nivel relativo estimado del medicamento considerando todas las dosis registradas: ~${amount}. Vida media aprox.: ${hl} (${p.generic}). El porcentaje se compara con un nivel estable estimado usando la última dosis registrada y no es una medición en sangre.`; lucide.createIcons();
     }
 
     function quickWater(multiplier) {
@@ -4053,12 +3813,13 @@
     function logBowelMovementNow() {
       const todayStr = getFormattedDate(new Date());
       if (!state.daysData[todayStr]) {
-        state.daysData[todayStr] = { meals: [], water: 0, electrolytes: {}, bowelMovements: [], symptoms: {} };
+        state.daysData[todayStr] = { water:0, waterUpdatedAt:0, meals:[], bowelMovements:[], bowelMovementsUpdatedAt:0, symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''}, symptomsUpdatedAt:0, electrolytes:{mg:false,k:false,na:false,multi:false}, electrolytesUpdatedAt:0 };
       }
       const day = state.daysData[todayStr];
       if (!Array.isArray(day.bowelMovements)) day.bowelMovements = [];
       const newEntry = new Date().toISOString();
       day.bowelMovements.push(newEntry);
+      day.bowelMovementsUpdatedAt = mutationNow();
       persistState({ userMutation: true });
       checkBowelMovementAlert();
       renderCurrentDay();
@@ -4066,6 +3827,7 @@
         const idx = day.bowelMovements.indexOf(newEntry);
         if (idx !== -1) {
           day.bowelMovements.splice(idx, 1);
+          day.bowelMovementsUpdatedAt = mutationNow();
           persistState({ userMutation: true });
           checkBowelMovementAlert();
           renderCurrentDay();
@@ -4073,22 +3835,23 @@
       });
     }
 
+
     function removeBowelMovement(dateKey, idx) {
       const day = state.daysData && state.daysData[dateKey];
-      if (day && Array.isArray(day.bowelMovements) && day.bowelMovements[idx]) {
-        const removed = day.bowelMovements.splice(idx, 1)[0];
+      if (!day || !Array.isArray(day.bowelMovements) || !day.bowelMovements[idx]) return;
+      const removed = day.bowelMovements.splice(idx, 1)[0];
+      day.bowelMovementsUpdatedAt = mutationNow();
+      persistState({ userMutation: true });
+      checkBowelMovementAlert();
+      renderCurrentDay();
+      showUndoToast(uiText("Registro de evacuación eliminado.", "Bowel record deleted."), () => {
+        day.bowelMovements.splice(Math.min(idx, day.bowelMovements.length), 0, removed);
+        day.bowelMovementsUpdatedAt = mutationNow();
         persistState({ userMutation: true });
         checkBowelMovementAlert();
         renderCurrentDay();
-        showUndoToast(uiText("Registro de evacuación eliminado.", "Bowel record deleted."), () => {
-          day.bowelMovements.splice(idx, 0, removed);
-          persistState({ userMutation: true });
-          checkBowelMovementAlert();
-          renderCurrentDay();
-        });
-      }
+      });
     }
-
     function checkBowelMovementAlert() {
       let latestBMTime = 0;
       Object.keys(state.daysData).forEach(d => {
@@ -4365,20 +4128,15 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       }
 
       try {
-        const aiResult = await window.firebaseAiAnalyzeMeal({ systemPrompt, prompt, imageBase64: imageData, mimeType });
-        const parsed = aiResult.data || aiResult;
-        const sourceLabel = aiResult.modelUsed === 'gemini-3.5-flash-lite'
-          ? "Firebase AI Logic • Gemini 3.5 Flash-Lite (Respaldo)"
-          : "Firebase AI Logic • Gemini 3.5 Flash";
-        populateAiResults(parsed, sourceLabel);
+        const parsed = await window.firebaseAiAnalyzeMeal({ systemPrompt, prompt, imageBase64: imageData, mimeType });
+        populateAiResults(parsed, "Firebase AI Logic • Gemini 3.5 Flash");
       } catch (err) {
-        console.warn("Firebase AI Logic meal analysis failed on both models:", err);
+        console.warn("Firebase AI Logic meal analysis failed:", err);
         document.getElementById('ai-results-container').classList.add('hidden');
         showToast(uiText(
-          "No se pudo analizar la comida con Gemini (Flash / Flash-Lite). Puedes registrar la comida manualmente a continuación.",
-          "Gemini could not analyze the meal (Flash / Flash-Lite). You can log the meal manually below."
+          "No se pudo analizar la comida con Gemini. No se generaron valores ficticios; puedes registrar la comida manualmente e intentar de nuevo luego.",
+          "Gemini could not analyze the meal. No fallback values were invented; you can log the meal manually and try again later."
         ));
-        openManualMealModal();
       } finally {
         btn.disabled = false;
         btnText.innerText = uiText("Analizar nutrientes y tolerancia gástrica", "Analyze nutrition and tolerance");
@@ -4487,10 +4245,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
        ========================================================================== */
     function openLogInjectionModal() {
       document.getElementById('inj-date').value = state.selectedDate;
-      const now = new Date();
-      const timeVal = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const timeInput = document.getElementById('inj-time');
-      if (timeInput) timeInput.value = timeVal;
       document.getElementById('modal-injection').classList.remove('hidden');
       document.getElementById('modal-injection').classList.add('flex');
     }
@@ -4502,7 +4256,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
 
     function saveInjectionRecord() {
       const date = document.getElementById('inj-date').value || state.selectedDate;
-      const time = document.getElementById('inj-time')?.value || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const dose = document.getElementById('inj-dose').value;
       const medProfile = getMedicationProfile();
       const site = medProfile.route === 'oral' ? 'Oral' : document.getElementById('inj-site').value;
@@ -4515,7 +4268,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       state.injections.push({
         id: newId,
         date,
-        time,
         dose,
         medication: medProfile.key,
         site,
@@ -4734,10 +4486,10 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
         const badge = document.getElementById('room-temp-status-badge');
         const textEl = document.getElementById('room-temp-days-left');
 
-        textEl.innerText = isEnglish() ? `${daysLeft} days` : `${daysLeft} días`;
-        if (daysLeft === 0) {
-          badge.className = "text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-600 text-white animate-pulse border border-rose-400";
-          badge.innerText = uiText("Ventana terminada (Desechar)", "Window expired (Discard)");
+        textEl.innerText = daysLeft <= 0 ? uiText("Ventana terminada (Desechar)", "Window ended (Discard)") : (isEnglish() ? `${daysLeft} days` : `${daysLeft} días`);
+        if (daysLeft <= 0) {
+          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
+          badge.innerText = uiText("Desechar", "Discard");
         } else if (daysLeft <= 4) {
           badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
           badge.innerText = uiText("Por vencer", "Expiring soon");
@@ -4840,10 +4592,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       day.symptomsUpdatedAt = mutationNow();
       persistState({ userMutation: true });
       checkFoodSymptomCorrelation();
-      renderSymptomTrendChart();
-      renderTolerancePatterns();
-      renderDoseResponseInsights();
-      updateTitrationStatus();
       showToast(uiText("Tolerancia y síntomas guardados.", "Symptoms and tolerance saved."));
     }
 
@@ -4887,228 +4635,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       else summary.innerText=variation!==null&&variation<=margin*2?(isEnglish()?`Your latest weight is within the configured range. 30-day variation: ${formatWeight(variation,1)}.`:`Tu último peso está dentro del rango configurado. Variación de 30 días: ${formatWeight(variation,1)}.`):uiText('Tu último peso está dentro del rango configurado. Sigue observando la tendencia de varias semanas.','Your latest weight is within the configured range. Keep watching the multi-week trend.');
     }
 
-
-    /* ==========================================================================
-       V4.0 HEALTH PROFILE & SMART BODY METRICS (CLINICAL FORMULAS)
-       ========================================================================== */
-    function renderHealthProfile() {
-      ensureStateMetadata();
-      const hp = state.healthProfile || {};
-      const sexEl = document.getElementById('profile-sex');
-      if (sexEl && document.activeElement !== sexEl) sexEl.value = hp.sex || 'male';
-
-      const bdEl = document.getElementById('profile-birthdate');
-      if (bdEl && document.activeElement !== bdEl) bdEl.value = hp.birthDate || '';
-
-      const hEl = document.getElementById('profile-height');
-      const hUnitLabel = document.getElementById('profile-height-label');
-      if (hUnitLabel) hUnitLabel.innerText = isMetric() ? uiText('Altura (cm):', 'Height (cm):') : uiText('Altura (in):', 'Height (in):');
-      if (hEl && document.activeElement !== hEl) {
-        hEl.value = hp.height > 0 ? (isMetric() ? Math.round(hp.height * 2.54) : hp.height) : '';
-      }
-
-      const actEl = document.getElementById('profile-activity');
-      if (actEl && document.activeElement !== actEl) actEl.value = hp.activityLevel || 'sedentary';
-
-      const ageBadge = document.getElementById('profile-age-badge');
-      if (ageBadge) {
-        if (hp.birthDate) {
-          const age = getAgeFromBirthDate(hp.birthDate);
-          ageBadge.innerText = isEnglish() ? `Calculated age: ${age} years` : `Edad calculada: ${age} años`;
-        } else {
-          ageBadge.innerText = uiText('Edad calculada: --', 'Calculated age: --');
-        }
-      }
-    }
-
-    function getAgeFromBirthDate(birthDateStr) {
-      if (!birthDateStr) return 0;
-      const b = new Date(birthDateStr + 'T12:00:00');
-      if (Number.isNaN(b.getTime())) return 0;
-      const now = new Date();
-      let age = now.getFullYear() - b.getFullYear();
-      const m = now.getMonth() - b.getMonth();
-      if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
-      return Math.max(0, age);
-    }
-
-    function saveHealthProfileFromInputs() {
-      ensureStateMetadata();
-      const sex = document.getElementById('profile-sex')?.value || 'male';
-      const birthDate = document.getElementById('profile-birthdate')?.value || '';
-      const rawH = parseFloat(document.getElementById('profile-height')?.value) || 0;
-      const heightInInches = isMetric() ? (rawH / 2.54) : rawH;
-      const activityLevel = document.getElementById('profile-activity')?.value || 'sedentary';
-
-      state.healthProfile = {
-        sex,
-        birthDate,
-        height: Number.isFinite(heightInInches) && heightInInches > 0 ? Math.round(heightInInches * 10) / 10 : 0,
-        activityLevel
-      };
-
-      persistState({ userMutation: true });
-      renderHealthProfile();
-      renderSmartBodyMetrics();
-      showToast(uiText("Perfil de salud actualizado.", "Health profile updated."));
-    }
-
-    function calculateSmartBodyMetrics(targetDate = null) {
-      ensureStateMetadata();
-      const hp = state.healthProfile || {};
-      const sortedW = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
-      if (!sortedW.length) return null;
-
-      const dateLimit = targetDate || state.selectedDate || getFormattedDate(new Date());
-      const eligibleWeights = sortedW.filter(w => w.date <= dateLimit);
-      const curWeightObj = eligibleWeights.length ? eligibleWeights[eligibleWeights.length - 1] : sortedW[sortedW.length - 1];
-      const curWeightLb = Number(curWeightObj.weight);
-
-      const eligibleMeas = [...state.measurements]
-        .filter(m => m.date <= curWeightObj.date)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-      const latestMeas = eligibleMeas.length ? eligibleMeas[eligibleMeas.length - 1] : null;
-
-      const heightInches = Number(hp.height) || 0;
-      const heightCm = heightInches * 2.54;
-      const weightKg = curWeightLb * 0.45359237;
-      const age = hp.birthDate ? getAgeFromBirthDate(hp.birthDate) : 35;
-
-      // 1. BMI
-      let bmi = null;
-      let bmiCat = '';
-      if (heightInches > 0) {
-        bmi = (curWeightLb * 703) / (heightInches * heightInches);
-        if (bmi < 18.5) bmiCat = uiText('Bajo peso', 'Underweight');
-        else if (bmi < 25) bmiCat = uiText('Normal', 'Normal');
-        else if (bmi < 30) bmiCat = uiText('Sobrepeso', 'Overweight');
-        else bmiCat = uiText('Obesidad', 'Obesity');
-      }
-
-      // 2. BMR (Mifflin-St Jeor)
-      let bmr = null;
-      if (heightCm > 0 && weightKg > 0) {
-        const sOffset = hp.sex === 'female' ? -161 : 5;
-        bmr = Math.round((10 * weightKg) + (6.25 * heightCm) - (5 * age) + sOffset);
-      }
-
-      // 3. Suggested TDEE
-      const activityMultipliers = {
-        sedentary: 1.2,
-        light: 1.375,
-        moderate: 1.55,
-        very_active: 1.725,
-        extra_active: 1.9
-      };
-      const actMult = activityMultipliers[hp.activityLevel] || 1.2;
-      const suggestedTdee = bmr ? Math.round(bmr * actMult) : null;
-
-      // 4. Waist-to-Height Ratio (WHtR)
-      let whtr = null;
-      let whtrCat = '';
-      const waistInches = latestMeas && Number(latestMeas.waist) > 0 ? Number(latestMeas.waist) : null;
-      if (waistInches && heightInches > 0) {
-        whtr = (waistInches / heightInches);
-        if (whtr < 0.5) whtrCat = uiText('Riesgo bajo (<0.50)', 'Low risk (<0.50)');
-        else if (whtr < 0.6) whtrCat = uiText('Riesgo moderado (0.50–0.59)', 'Moderate risk (0.50–0.59)');
-        else whtrCat = uiText('Riesgo elevado (≥0.60)', 'Elevated risk (≥0.60)');
-      }
-
-      // 5. Estimated Body Fat % (U.S. Navy formula)
-      let bodyFatPct = null;
-      const neckInches = latestMeas && Number(latestMeas.neck) > 0 ? Number(latestMeas.neck) : null;
-      const hipsInches = latestMeas && Number(latestMeas.hips) > 0 ? Number(latestMeas.hips) : null;
-
-      if (heightInches > 0 && waistInches && neckInches && waistInches > neckInches) {
-        if (hp.sex === 'female' && hipsInches) {
-          const val = 163.205 * Math.log10(waistInches + hipsInches - neckInches) - 97.684 * Math.log10(heightInches) - 78.387;
-          if (val > 5 && val < 65) bodyFatPct = Math.round(val * 10) / 10;
-        } else if (hp.sex !== 'female') {
-          const val = 86.010 * Math.log10(waistInches - neckInches) - 70.041 * Math.log10(heightInches) + 36.76;
-          if (val > 3 && val < 60) bodyFatPct = Math.round(val * 10) / 10;
-        }
-      }
-
-      // 6. Fat Mass & Lean Mass
-      let fatMassLb = null;
-      let leanMassLb = null;
-      if (bodyFatPct !== null) {
-        fatMassLb = curWeightLb * (bodyFatPct / 100);
-        leanMassLb = curWeightLb - fatMassLb;
-      }
-
-      // 7. Suggested Hydration
-      const hydrationOz = Math.round((curWeightLb * 0.5) + (hp.activityLevel === 'sedentary' ? 0 : 12));
-
-      return {
-        curWeightLb,
-        bmi,
-        bmiCat,
-        bmr,
-        suggestedTdee,
-        whtr,
-        whtrCat,
-        bodyFatPct,
-        fatMassLb,
-        leanMassLb,
-        hydrationOz,
-        hasMeasurements: Boolean(latestMeas)
-      };
-    }
-
-    function renderSmartBodyMetrics() {
-      const metrics = calculateSmartBodyMetrics();
-      const bmiEl = document.getElementById('metric-bmi');
-      const bmiCatEl = document.getElementById('metric-bmi-cat');
-      const bmrEl = document.getElementById('metric-bmr');
-      const whtrEl = document.getElementById('metric-whtr');
-      const whtrCatEl = document.getElementById('metric-whtr-cat');
-      const bfEl = document.getElementById('metric-bodyfat');
-      const fmEl = document.getElementById('metric-fat-mass');
-      const lmEl = document.getElementById('metric-lean-mass');
-      const waterEl = document.getElementById('metric-suggested-water');
-      const tdeeDisp = document.getElementById('metric-tdee-display');
-      const btnTdee = document.getElementById('btn-apply-suggested-tdee');
-
-      if (!metrics) {
-        if (bmiEl) bmiEl.innerText = '--';
-        if (bmrEl) bmrEl.innerText = '--';
-        if (tdeeDisp) tdeeDisp.innerText = '-- kcal/día';
-        return;
-      }
-
-      if (bmiEl) bmiEl.innerText = metrics.bmi ? metrics.bmi.toFixed(1) : '--';
-      if (bmiCatEl) bmiCatEl.innerText = metrics.bmiCat || uiText('Ingresa altura en tu perfil', 'Enter height in profile');
-      if (bmrEl) bmrEl.innerText = metrics.bmr ? `~${metrics.bmr}` : '--';
-      if (whtrEl) whtrEl.innerText = metrics.whtr ? metrics.whtr.toFixed(2) : '--';
-      if (whtrCatEl) whtrCatEl.innerText = metrics.whtrCat || uiText('Requiere cintura y altura', 'Requires waist & height');
-      if (bfEl) bfEl.innerText = metrics.bodyFatPct !== null ? `${metrics.bodyFatPct}%` : '--%';
-      if (fmEl) fmEl.innerText = metrics.fatMassLb !== null ? formatWeight(metrics.fatMassLb, 1) : '--';
-      if (lmEl) lmEl.innerText = metrics.leanMassLb !== null ? formatWeight(metrics.leanMassLb, 1) : '--';
-      if (waterEl) waterEl.innerText = `${Math.round(displayWater(metrics.hydrationOz))} ${waterUnit()}/${uiText('día', 'day')}`;
-
-      if (tdeeDisp) {
-        tdeeDisp.innerText = metrics.suggestedTdee ? `~${metrics.suggestedTdee} kcal/${uiText('día','day')}` : '--';
-      }
-      if (btnTdee) {
-        btnTdee.disabled = !metrics.suggestedTdee;
-        btnTdee.setAttribute('data-tdee-val', metrics.suggestedTdee || '');
-      }
-    }
-
-    function applySuggestedTdee() {
-      const btn = document.getElementById('btn-apply-suggested-tdee');
-      const val = Number(btn?.getAttribute('data-tdee-val'));
-      if (!Number.isFinite(val) || val <= 0) return;
-      state.settings.tdee = val;
-      const input = document.getElementById('setting-tdee');
-      if (input) input.value = val;
-      markSettingsChanged();
-      persistState({ userMutation: true });
-      updateDashboardView();
-      showToast(uiText(`Meta de TDEE actualizada a ${val} kcal/día.`, `TDEE goal updated to ${val} kcal/day.`));
-    }
-
     function renderToolsView() {
       renderMaintenanceMode();
       state.weights.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -5119,16 +4645,11 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       if (state.weights.length > 0) {
         const startW = state.weights[0].weight;
         const curW = state.weights[state.weights.length - 1].weight;
-        const diff = startW - curW;
-        const isLoss = diff >= 0;
+        const totalLost = (startW - curW).toFixed(1);
 
         document.getElementById('prog-start-w').innerText = displayWeight(startW).toFixed(1);
         document.getElementById('prog-cur-w').innerText = displayWeight(curW).toFixed(1);
-        const lostEl = document.getElementById('prog-lost-w');
-        if (lostEl) {
-          lostEl.innerText = `${isLoss ? '-' : '+'}${Math.abs(displayWeight(diff)).toFixed(1)}`;
-          lostEl.className = isLoss ? "text-base font-black text-emerald-400" : "text-base font-black text-amber-400";
-        }
+        document.getElementById('prog-lost-w').innerText = `${Number(totalLost)>0?'-':''}${Math.abs(displayWeight(Number(totalLost))).toFixed(1)}`;
         document.getElementById('apple-health-weight-val').innerText = formatWeight(curW,1);
 
         const remainingToGoal = curW - goalW;
@@ -5136,15 +4657,11 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
           document.getElementById('proj-summary-text').innerText = isEnglish() ? `Goal reached or exceeded! (${formatWeight(curW,1)} vs ${formatWeight(goalW,1)} goal)` : `¡Meta alcanzada o superada! (${formatWeight(curW,1)} vs meta de ${formatWeight(goalW,1)})`;
           document.getElementById('proj-subtext').innerText = uiText("Fase de consolidación y mantenimiento clínico.", "Maintenance phase.");
         } else if (state.weights.length >= 2) {
-          // Use recent weights window (up to 8 weeks) for realistic projection
+          const firstDate = new Date(state.weights[0].date + "T12:00:00");
           const latestDate = new Date(state.weights[state.weights.length - 1].date + "T12:00:00");
-          const recentThreshold = new Date(latestDate.getTime() - 56 * 86400000);
-          const recentWeights = state.weights.filter(w => new Date(w.date + "T12:00:00") >= recentThreshold);
-          const baselineWeightObj = (recentWeights.length >= 2) ? recentWeights[0] : state.weights[0];
-          const baselineDate = new Date(baselineWeightObj.date + "T12:00:00");
-          const totalDays = Math.max(7, (latestDate - baselineDate) / (1000 * 60 * 60 * 24));
+          const totalDays = Math.max(1, (latestDate - firstDate) / (1000 * 60 * 60 * 24));
           const totalWeeks = totalDays / 7;
-          const lossRatePerWeek = (baselineWeightObj.weight - curW) / totalWeeks;
+          const lossRatePerWeek = (startW - curW) / Math.max(1, totalWeeks);
 
           if (lossRatePerWeek > 0.1) {
             const weeksRemaining = remainingToGoal / lossRatePerWeek;
@@ -5202,10 +4719,10 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
           r.innerHTML = `
             <span class="text-slate-300 font-medium">${escapeHtml(m.date)}</span>
             <div class="text-slate-400 space-x-2 text-[11px]">
-              <span>${uiText("Cint", "Waist")}: <strong class="text-white">${(m.waist && Number(m.waist)>0)?escapeHtml(formatLength(m.waist,1)):'--'}</strong></span>
-              <span>${uiText("Pech", "Chest")}: <strong class="text-white">${(m.chest && Number(m.chest)>0)?escapeHtml(formatLength(m.chest,1)):'--'}</strong></span>
-              <span>${uiText("Cad", "Hips")}: <strong class="text-white">${(m.hips && Number(m.hips)>0)?escapeHtml(formatLength(m.hips,1)):'--'}</strong></span>
-              <span>${uiText("Cuell", "Neck")}: <strong class="text-white">${(m.neck && Number(m.neck)>0)?escapeHtml(formatLength(m.neck,1)):'--'}</strong></span>
+              <span>${uiText("Cint", "Waist")}: <strong class="text-white">${escapeHtml(formatLength(m.waist,1))}</strong></span>
+              <span>${uiText("Pech", "Chest")}: <strong class="text-white">${escapeHtml(formatLength(m.chest,1))}</strong></span>
+              <span>${uiText("Cad", "Hips")}: <strong class="text-white">${escapeHtml(formatLength(m.hips,1))}</strong></span>
+              <span>${uiText("Cuell", "Neck")}: <strong class="text-white">${m.neck?escapeHtml(formatLength(m.neck,1)):'--'}</strong></span>
             </div>
           `;
           mList.appendChild(r);
@@ -5213,8 +4730,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       }
 
       renderChartJs();
-      renderHealthProfile();
-      renderSmartBodyMetrics();
       updateWaterGoalSuggestion();
       applyStaticTranslations();
       applyUnitLabels();
@@ -5818,22 +5333,22 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
     }
 
     function openAppleHealthModal() {
-      const curW = state.weights.length ? state.weights[state.weights.length - 1].weight : null;
       const valEl = document.getElementById('apple-health-weight-val');
       const btn = document.getElementById('btn-run-health-shortcut');
-      if (curW !== null && Number.isFinite(curW) && curW > 0) {
-        if (valEl) valEl.innerText = formatWeight(curW, 1);
+      if (state.weights.length) {
+        const curW = state.weights[state.weights.length - 1].weight;
+        if (valEl) valEl.innerText = formatWeight(curW,1);
         if (btn) {
           btn.href = `shortcuts://run-shortcut?name=LogWeight&input=${encodeURIComponent(curW)}`;
-          btn.classList.remove('opacity-40', 'pointer-events-none');
-          btn.removeAttribute('aria-disabled');
+          btn.classList.remove('opacity-40','pointer-events-none');
+          btn.setAttribute('aria-disabled','false');
         }
       } else {
-        if (valEl) valEl.innerText = uiText('Sin pesajes registrados', 'No weights logged');
+        if (valEl) valEl.innerText = `-- ${weightUnit()}`;
         if (btn) {
-          btn.href = '#';
-          btn.classList.add('opacity-40', 'pointer-events-none');
-          btn.setAttribute('aria-disabled', 'true');
+          btn.removeAttribute('href');
+          btn.classList.add('opacity-40','pointer-events-none');
+          btn.setAttribute('aria-disabled','true');
         }
       }
       document.getElementById('modal-apple-health').classList.remove('hidden');
@@ -5933,31 +5448,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       return Number.isFinite(n) && n > 0 ? n : 1;
     }
 
-    let pendingRestoreState = null;
-
-    function closeBackupPreviewModal() {
-      pendingRestoreState = null;
-      document.getElementById('modal-backup-preview').classList.add('hidden');
-      document.getElementById('modal-backup-preview').classList.remove('flex');
-    }
-
-    function confirmExecuteRestore() {
-      if (!pendingRestoreState) return;
-      const next = pendingRestoreState;
-      pendingRestoreState = null;
-      closeBackupPreviewModal();
-
-      state = next;
-      cleanupTombstones();
-      ensureInjectionIds();
-      renderSettingsFormFromState();
-      persistState({ userMutation: true, immediateCloud: true });
-      applyMedicationTheme();
-      renderCurrentDay();
-      if (activeTab === 'tools') renderToolsView();
-      showToast(uiText('Backup restaurado de forma segura. Se creó una copia del estado anterior.', 'Backup restored safely. A copy of the previous state was created.'), 5000);
-    }
-
     function importDataJSON(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -5965,20 +5455,9 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       reader.onload = function(evt) {
         try {
           const imported = JSON.parse(evt.target.result);
-          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) {
-            throw new Error("Formato inválido: se esperaba un objeto JSON");
-          }
+          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) throw new Error("Formato inválido");
 
-          // Strict validation: must contain recognizable tracker containers
-          const hasDays = imported.daysData && typeof imported.daysData === 'object' && Object.keys(imported.daysData).length > 0;
-          const hasWeights = Array.isArray(imported.weights) && imported.weights.length > 0;
-          const hasInjections = Array.isArray(imported.injections) && imported.injections.length > 0;
-          const hasSettings = imported.settings && typeof imported.settings === 'object' && Object.keys(imported.settings).length > 2;
-
-          if (!hasDays && !hasWeights && !hasInjections && !hasSettings) {
-            throw new Error("Archivo incompatible o vacío: no contiene datos reconocibles de GLP-1 Companion");
-          }
-
+          // Always preserve a recoverable local copy before an explicit restore.
           localStorage.setItem(PRE_IMPORT_BACKUP_KEY, JSON.stringify(state));
           try { downloadBackupSnapshot(state, 'before_import'); } catch (_) {}
 
@@ -5998,23 +5477,15 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
           const importedRange = Number(next.settings.maintenanceRangeLb);
           next.settings.maintenanceRangeLb = Number.isFinite(importedRange) && importedRange >= 1 && importedRange <= 15 ? importedRange : 3;
 
-          if (imported.healthProfile && typeof imported.healthProfile === 'object' && !Array.isArray(imported.healthProfile)) {
-            next.healthProfile = Object.assign(next.healthProfile, imported.healthProfile);
-          }
-
-          let totalMealsCount = 0;
-          let daysCount = 0;
           if (imported.daysData && typeof imported.daysData === 'object' && !Array.isArray(imported.daysData)) {
             Object.keys(imported.daysData).forEach(dateKey => {
               if (!isValidDateKey(dateKey)) return;
               const rawDay = imported.daysData[dateKey];
               if (!rawDay || typeof rawDay !== 'object' || Array.isArray(rawDay)) return;
-              daysCount++;
               const validMeals = [];
               if (Array.isArray(rawDay.meals)) rawDay.meals.forEach((m, idx) => {
                 if (!m || typeof m !== 'object' || Array.isArray(m)) return;
                 const cal=parseFloat(m.calories), p=parseFloat(m.protein), c=parseFloat(m.carbs), f=parseFloat(m.fat);
-                totalMealsCount++;
                 validMeals.push({
                   id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():(`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`),
                   name:String(m.name||uiText('Comida','Meal')), slot:typeof m.slot==='string'?m.slot:'Comida',
@@ -6032,6 +5503,7 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
                 waterUpdatedAt:normalizeImportedTimestamp(rawDay.waterUpdatedAt),
                 meals:validMeals,
                 bowelMovements:validBM,
+                bowelMovementsUpdatedAt:normalizeImportedTimestamp(rawDay.bowelMovementsUpdatedAt),
                 symptoms:(rawDay.symptoms&&typeof rawDay.symptoms==='object'&&!Array.isArray(rawDay.symptoms))?rawDay.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},
                 symptomsUpdatedAt:normalizeImportedTimestamp(rawDay.symptomsUpdatedAt),
                 electrolytes:(rawDay.electrolytes&&typeof rawDay.electrolytes==='object'&&!Array.isArray(rawDay.electrolytes))?rawDay.electrolytes:{},
@@ -6050,13 +5522,7 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
             const med=MEDICATION_PROFILES[i.medication]?i.medication:next.settings.medication;
             next.injections.push({
               id:(typeof i.id==='string'&&i.id.trim())?i.id.trim():`inj_import_${Math.random().toString(36).slice(2,10)}`,
-              date,
-              time:typeof i.time==='string'?i.time:'12:00',
-              dose:i.dose,
-              medication:med,
-              site:typeof i.site==='string'?i.site:'Abdomen derecho',
-              notes:typeof i.notes==='string'?i.notes:'',
-              updatedAt:normalizeImportedTimestamp(i.updatedAt)
+              date,dose:i.dose,medication:med,site:typeof i.site==='string'?i.site:'Abdomen derecho',notes:typeof i.notes==='string'?i.notes:'',updatedAt:normalizeImportedTimestamp(i.updatedAt)
             });
           });
 
@@ -6084,40 +5550,13 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
             lastMutationAt: restoreTime
           };
           next.selectedDate=getFormattedDate(new Date());
-
-          // Display preview modal before applying
-          pendingRestoreState = next;
-          const detailsEl = document.getElementById('backup-preview-details');
-          if (detailsEl) {
-            const medName = getMedicationLabel(getMedicationProfile(next.settings.medication), true);
-            detailsEl.innerHTML = `
-              <div class="flex justify-between border-b border-[#223455] pb-1">
-                <span class="text-slate-400">Archivo:</span>
-                <span class="font-bold text-white truncate max-w-[200px]">${escapeHtml(file.name)}</span>
-              </div>
-              <div class="flex justify-between border-b border-[#223455] pb-1">
-                <span class="text-slate-400">Medicamento:</span>
-                <span class="font-bold text-cyan-300">${escapeHtml(medName)}</span>
-              </div>
-              <div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                <div>• Pesajes: <strong class="text-white">${next.weights.length}</strong></div>
-                <div>• Dosis: <strong class="text-white">${next.injections.length}</strong></div>
-                <div>• Días con diario: <strong class="text-white">${daysCount}</strong></div>
-                <div>• Comidas: <strong class="text-white">${totalMealsCount}</strong></div>
-                <div>• Medidas: <strong class="text-white">${next.measurements.length}</strong></div>
-                <div>• Perfil salud: <strong class="text-emerald-400">${next.healthProfile?.height ? 'Configurado' : 'Básico'}</strong></div>
-              </div>
-            `;
-          }
-          const modalPreview = document.getElementById('modal-backup-preview');
-          if (modalPreview) {
-            modalPreview.classList.remove('hidden');
-            modalPreview.classList.add('flex');
-            lucide.createIcons();
-          }
+          state=next; cleanupTombstones(); ensureInjectionIds();
+          persistState({ userMutation: true, immediateCloud: true });
+          applyMedicationTheme(); renderCurrentDay(); if(activeTab==='tools')renderToolsView();
+          showToast(uiText('Backup restaurado de forma segura. Se creó una copia del estado anterior.', 'Backup restored safely. A copy of the previous state was created.'), 5000);
         } catch (err) {
           console.error("Error importando backup:", err);
-          showToast(uiText("Error: Archivo incompatible o no contiene datos válidos.", "Error: incompatible file or missing valid tracker data."));
+          showToast(uiText("Error: Archivo dañado o estructura incompatible.", "Error: damaged file or incompatible structure."));
         } finally {
           e.target.value='';
         }
@@ -6125,7 +5564,7 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
       reader.readAsText(file);
     }
 
-        function openResetModal() {
+    function openResetModal() {
       document.getElementById('modal-reset').classList.remove('hidden');
       document.getElementById('modal-reset').classList.add('flex');
     }
@@ -6174,17 +5613,6 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
         toast.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none');
         if(undoBtn)undoBtn.classList.add('hidden');
       }, duration);
-    }
-
-
-    function checkMidnightRollover() {
-      const realToday = getFormattedDate(new Date());
-      if (state.selectedDate < realToday) {
-        // If current date was yesterday, automatically roll over
-        state.selectedDate = realToday;
-        updateDateBadge();
-        showToast(uiText("Nuevo día detectado: diario actualizado a hoy.", "New day detected: diary refreshed to today."));
-      }
     }
 
     function handleAppResume() {
@@ -6331,9 +5759,15 @@ Analiza únicamente el alimento mostrado en la imagen y/o descrito por el usuari
         }
       });
 
-      renderSettingsFormFromState();
-      renderHealthProfile();
-      setInterval(checkMidnightRollover, 60000);
+      document.getElementById('setting-goal-weight').value = displayWeight(state.settings.goalWeight || 180).toFixed(1);
+      document.getElementById('setting-cal-goal').value = state.settings.calGoal || 1400;
+      document.getElementById('setting-tdee').value = state.settings.tdee || 2000;
+      document.getElementById('setting-protein-goal').value = state.settings.proteinGoal || 110;
+      document.getElementById('setting-water-goal').value = Math.round(displayWater(state.settings.waterGoal || 96));
+      const languageSelector = document.getElementById('setting-language');
+      if (languageSelector) languageSelector.value = state.settings.language || 'es';
+      const unitSelector = document.getElementById('setting-units');
+      if (unitSelector) unitSelector.value = state.settings.units || 'imperial';
       applyUnitLabels();
       
 
