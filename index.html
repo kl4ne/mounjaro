@@ -233,7 +233,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.0</p>
+          <p id="print-app-version">Versión: v4.0.1</p>
         </div>
       </div>
     </div>
@@ -250,7 +250,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.1</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -610,15 +610,20 @@
           </div>
         </div>
 
-        <!-- v4.0 Pharmacokinetic estimate -->
+        <!-- v4.0.1 Pharmacokinetic estimate -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2"><div><span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Nivel estimado de medicamento (PK)</span><h3 id="pk-medication-name" class="text-sm font-bold text-white">--</h3></div><span id="pk-phase" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Sin datos</span></div>
-          <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Activo estimado</span><p id="pk-active-mg" class="text-sm font-black text-emerald-300">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Relativo estable</span><p id="pk-steady-percent" class="text-sm font-black text-cyan-300">--</p></div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Vs pico esperado</span><p id="pk-steady-percent" class="text-sm font-black text-cyan-300">--</p></div>
             <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Desde última dosis</span><p id="pk-hours-since" class="text-sm font-black text-violet-300">--</p></div>
+            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Próxima dosis estimada</span><p id="pk-next-dose" class="text-[10px] font-black text-amber-300">--</p></div>
           </div>
           <div class="h-2 rounded-full bg-[#111a2e] overflow-hidden border border-[#223455]"><div id="pk-level-bar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div></div>
+          <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-2">
+            <div class="flex items-center justify-between mb-1"><span class="text-[8px] text-slate-500 font-bold uppercase">Curva estimada hasta la próxima dosis</span><span class="text-[8px] text-slate-600">No es concentración sanguínea</span></div>
+            <div class="relative h-36"><canvas id="pkCurveChart"></canvas></div>
+          </div>
           <p id="pk-note" class="text-[9px] text-slate-500 leading-relaxed">Estimación educativa de dosis-equivalente activa; no representa una concentración sanguínea medida.</p>
         </div>
 
@@ -706,9 +711,12 @@
               <h3 class="text-sm font-bold text-white">Síntomas y tolerancia digestiva</h3>
               <p class="text-[10px] text-slate-400">Monitorea efectos secundarios para tu consulta médica</p>
             </div>
-            <button onclick="saveDailySymptoms()" class="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-colors">
-              Guardar
-            </button>
+            <div class="flex flex-col items-end gap-1">
+              <span id="symptoms-today-status" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">Hoy: no registrado</span>
+              <button onclick="saveDailySymptoms()" class="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition-colors">
+                Guardar
+              </button>
+            </div>
           </div>
 
           <div id="correlation-alert-box" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs space-y-1 text-amber-200">
@@ -908,7 +916,7 @@
           <div id="measurements-history-list" class="space-y-1.5 text-xs"></div>
         </div>
 
-        <!-- v4.0 Health Profile -->
+        <!-- v4.0.1 Health Profile -->
         <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div><span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Health Profile</span><h3 class="text-sm font-bold text-white">Perfil para métricas corporales</h3></div>
@@ -924,7 +932,7 @@
           <p class="text-[9px] text-slate-500">La app no inventa sexo, edad, altura ni medidas faltantes. Las métricas dependientes muestran “--” hasta tener los datos necesarios.</p>
         </div>
 
-        <!-- v4.0 Smart Body Metrics -->
+        <!-- v4.0.1 Smart Body Metrics -->
         <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div><span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Smart Body Metrics</span><h3 class="text-sm font-bold text-white">Métricas calculadas con tus registros</h3></div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
@@ -1129,20 +1137,26 @@
               <p id="ai-fallback-last" class="text-[9px] text-slate-500">Último uso: --</p>
             </div>
           </div>
-          <p class="text-[9px] text-slate-500 leading-relaxed">El estado refleja solicitudes reales; la app no hace llamadas automáticas solo para comprobar disponibilidad. Si la principal falla, intenta el respaldo y luego ofrece captura manual guiada.</p>
+          <p class="text-[9px] text-slate-500 leading-relaxed">El estado refleja solicitudes reales; la app no hace llamadas automáticas solo para comprobar disponibilidad. El respaldo se usa únicamente ante errores recuperables de la IA principal; si el problema es conexión, App Check, autenticación o permisos, pasa directo a captura manual.</p>
         </div>
 
         <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <h3 class="text-sm font-bold text-white">Copia de seguridad local (Backup)</h3>
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-white">Sistema de backups</h3>
+              <p id="backup-local-status" class="text-[9px] text-slate-500 mt-0.5">Backups locales rotativos: --/3</p>
+            </div>
+            <button onclick="openServerSafetyBackups()" class="px-2.5 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/25 text-violet-300 text-[10px] font-bold hover:bg-violet-500/20">Server Safety Backups</button>
+          </div>
           <p class="text-xs text-slate-400">
-            Descarga un archivo `.json` con todos tus pesajes, dosis e historial, o impórtalo en otro teléfono.
+            Exporta tu información o restaura copias de seguridad. En iPhone/iPad, usa Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.
           </p>
           <div class="grid grid-cols-2 gap-2">
-            <button onclick="exportDataJSON()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow shadow-emerald-950/30">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar JSON
+            <button onclick="openExportBackupOptions()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow shadow-emerald-950/30">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar Backup
             </button>
             <label class="py-2.5 bg-cyan-600 hover:bg-cyan-500 border border-cyan-400/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center shadow shadow-cyan-950/30">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar JSON
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar Backup
               <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="importDataJSON(event)">
             </label>
           </div>
@@ -1621,7 +1635,7 @@
       </div>
     </div>
 
-    <!-- Modal Import Preview v4.0 -->
+    <!-- Modal Import Preview v4.0.1 -->
     <div id="modal-import-preview" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><span class="text-[10px] text-cyan-300 font-bold uppercase">Vista previa</span><h3 class="text-sm font-bold text-white">Importar backup</h3></div><button onclick="cancelImportPreview()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1655,6 +1669,36 @@
       </div>
     </div>
 
+    <!-- Export Backup Options v4.0.1 -->
+    <div id="modal-export-backup" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Export Backup</h3><p class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div class="space-y-2">
+          <button onclick="exportBackupPackage('current')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-emerald-500/40"><p class="text-xs font-bold text-white">Current Data</p><p class="text-[9px] text-slate-500">Solo el estado actual</p></button>
+          <button onclick="exportBackupPackage('local')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-cyan-500/40"><p class="text-xs font-bold text-white">Current + Local Backups</p><p class="text-[9px] text-slate-500">Incluye hasta 3 snapshots locales rotativos</p></button>
+          <button onclick="exportBackupPackage('server')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-violet-500/40"><p class="text-xs font-bold text-white">Current + Server Backups</p><p class="text-[9px] text-slate-500">Incluye las copias Server Safety disponibles</p></button>
+          <button onclick="exportBackupPackage('complete')" class="w-full text-left p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15"><p class="text-xs font-black text-emerald-300">Complete Backup — Recommended</p><p class="text-[9px] text-slate-400">Current + local + server backups</p></button>
+        </div>
+        <p class="text-[9px] text-slate-500">iPhone/iPad: selecciona <b>Save to Files</b> y guarda preferiblemente en <b>iCloud Drive → GLP-1 Companion</b>.</p>
+      </div>
+    </div>
+
+    <!-- Server Safety Backups v4.0.1 -->
+    <div id="modal-server-backups" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Server Safety Backups</h3><p class="text-[10px] text-slate-400">Las 3 copias rotativas conservadas por Firebase</p></div><button onclick="closeServerSafetyBackups()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div id="server-backups-list" class="space-y-2"><p class="text-xs text-slate-500">Cargando…</p></div>
+      </div>
+    </div>
+
+    <!-- Backup View v4.0.1 -->
+    <div id="modal-backup-view" class="fixed inset-0 z-[60] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between"><h3 class="text-sm font-black text-white">Backup Summary</h3><button onclick="closeBackupView()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div id="backup-view-content" class="text-xs text-slate-300 space-y-2"></div>
+      </div>
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="toast" class="fixed bottom-20 z-50 max-w-sm px-4 py-2.5 rounded-2xl bg-[#162238] text-white text-xs font-bold shadow-2xl border border-[#223455] transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2">
       <i id="toast-icon" data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
@@ -1668,9 +1712,9 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0";
+    const APP_VERSION = "v4.0.1";
     const CLIENT_SCHEMA_VERSION = 9;
-    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0";
+    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.1";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
     const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_8";
     const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_8";
@@ -1680,6 +1724,9 @@
     const PRE_CLOUD_WRITE_BACKUP_KEY = "glp1_pre_cloud_write_backup_v3_8";
     const CLOUD_SIZE_WARN_BYTES = 600 * 1024;
     const CLOUD_SIZE_HARD_LIMIT_BYTES = 750 * 1024;
+    const LOCAL_SAFETY_BACKUP_PREFIX = "glp1_local_safety_v401_slot_";
+    const LOCAL_SAFETY_BACKUP_SLOTS = 3;
+    const LOCAL_SAFETY_BACKUP_CURSOR_KEY = "glp1_local_safety_v401_cursor";
 
     function formatSyncTime(timestamp) {
       if (!timestamp) return "";
@@ -2122,7 +2169,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.0": "Version: v4.0",
+      "Versión: v4.0.1": "Version: v4.0.1",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -2135,7 +2182,7 @@
       "Éxito": "Success rate",
       "Último uso: --": "Last use: --",
       "Sin comprobar": "Unchecked",
-      "El estado refleja solicitudes reales; la app no hace llamadas automáticas solo para comprobar disponibilidad. Si la principal falla, intenta el respaldo y luego ofrece captura manual guiada.": "Status reflects real requests; the app does not make automatic calls just to check availability. If primary fails, it tries fallback and then offers guided manual entry.",
+      "El estado refleja solicitudes reales; la app no hace llamadas automáticas solo para comprobar disponibilidad. El respaldo se usa únicamente ante errores recuperables de la IA principal; si el problema es conexión, App Check, autenticación o permisos, pasa directo a captura manual.": "Status reflects real requests; the app does not make automatic calls just to check availability. Fallback is used only for recoverable primary-AI errors; connection, App Check, authentication, or permission problems go directly to manual entry.",
       "Nivel estimado de medicamento (PK)": "Estimated medication level (PK)",
       "Activo estimado": "Estimated active",
       "Relativo estable": "Steady-state relative",
@@ -2247,7 +2294,24 @@
       "No hay dosis guardadas aún.": "No doses recorded yet.",
       "Conteo de temperatura ambiente iniciado para el medicamento en uso.": "Room-temperature countdown started for the medication in use.",
       "Comida": "Meal",
-      "Eliminar registro": "Delete record"
+      "Eliminar registro": "Delete record",
+      "Vs pico esperado": "Vs expected peak",
+      "Próxima dosis estimada": "Estimated next dose",
+      "Curva estimada hasta la próxima dosis": "Estimated curve until next dose",
+      "No es concentración sanguínea": "Not a blood concentration",
+      "Sistema de backups": "Backup system",
+      "Backups locales rotativos: --/3": "Rotating local backups: --/3",
+      "Exporta tu información o restaura copias de seguridad. En iPhone/iPad, usa Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.": "Export your information or restore backups. On iPhone/iPad, use Save to Files and preferably save to iCloud Drive → GLP-1 Companion.",
+      "Exportar Backup": "Export Backup",
+      "Importar Backup": "Import Backup",
+      "Selecciona qué deseas guardar": "Choose what you want to save",
+      "Solo el estado actual": "Current data only",
+      "Incluye hasta 3 snapshots locales rotativos": "Includes up to 3 rotating local snapshots",
+      "Incluye las copias Server Safety disponibles": "Includes available Server Safety backups",
+      "iPhone/iPad: selecciona Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.": "iPhone/iPad: choose Save to Files and preferably save to iCloud Drive → GLP-1 Companion.",
+      "Las 3 copias rotativas conservadas por Firebase": "The 3 rotating copies preserved by Firebase",
+      "Backup Summary": "Backup Summary",
+      "Hoy: no registrado": "Today: not logged"
     };
 
     const STATIC_ATTRIBUTE_TRANSLATIONS = {
@@ -2715,6 +2779,7 @@
     let activeTab = 'dashboard';
     let weightChartInstance = null;
     let symptomTrendChartInstance = null;
+    let pkCurveChartInstance = null;
     let selectedImageBase64 = null;
     let pacingTimerInterval = null;
     let pacingSecondsLeft = 20 * 60;
@@ -2906,6 +2971,42 @@
       return `{${keys.map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
     }
 
+    function getLocalSafetyBackups() {
+      const items=[];
+      for(let i=0;i<LOCAL_SAFETY_BACKUP_SLOTS;i++) {
+        try {
+          const raw=localStorage.getItem(`${LOCAL_SAFETY_BACKUP_PREFIX}${i}`);
+          if(!raw) continue;
+          const parsed=JSON.parse(raw);
+          if(parsed && parsed.snapshot && typeof parsed.snapshot==='object') items.push(Object.assign({slot:i},parsed));
+        } catch(_) {}
+      }
+      return items.sort((a,b)=>(Number(b.savedAt)||0)-(Number(a.savedAt)||0));
+    }
+
+    function rotateLocalSafetySnapshot() {
+      try {
+        const raw=localStorage.getItem(STORAGE_KEY);
+        if(!raw) return;
+        const previous=JSON.parse(raw);
+        if(!previous || typeof previous!=='object') return;
+        const existing=getLocalSafetyBackups();
+        const previousComparable=stableStringify(previous);
+        if(existing.some(x=>{try{return stableStringify(x.snapshot)===previousComparable;}catch(_){return false;}})) return;
+        let target=Number(localStorage.getItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY));
+        if(!Number.isInteger(target)||target<0||target>=LOCAL_SAFETY_BACKUP_SLOTS) target=0;
+        const maxSaved=existing.reduce((m,x)=>Math.max(m,Number(x.savedAt)||0),0);
+        const savedAt=Math.max(Date.now(),maxSaved+1);
+        localStorage.setItem(`${LOCAL_SAFETY_BACKUP_PREFIX}${target}`,JSON.stringify({savedAt,appVersion:APP_VERSION,snapshot:previous}));
+        localStorage.setItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY,String((target+1)%LOCAL_SAFETY_BACKUP_SLOTS));
+      } catch(err) { console.warn('Local safety snapshot skipped:',err); }
+    }
+
+    function updateLocalBackupStatus() {
+      const el=document.getElementById('backup-local-status');
+      if(el) el.innerText=isEnglish()?`Rotating local backups: ${getLocalSafetyBackups().length}/3`:`Backups locales rotativos: ${getLocalSafetyBackups().length}/3`;
+    }
+
     const CLOUD_SYNC_DELAY_MS = 1800;
     let cloudSyncTimer = null;
     let cloudSyncInFlight = false;
@@ -2917,7 +3018,9 @@
       ensureV4State();
       if (currentUser) state.meta.ownerUid = currentUser.uid;
       state.meta.clientVersion = APP_VERSION;
+      if(options.userMutation === true && options.skipLocalSafetyBackup !== true) rotateLocalSafetySnapshot();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateLocalBackupStatus();
 
       if (options.localOnly) return;
 
@@ -3086,6 +3189,7 @@
       setValue('setting-language', state.settings.language || 'es');
       setValue('setting-units', state.settings.units || 'imperial');
       applyUnitLabels();
+      updateLocalBackupStatus();
     }
 
     function applyCloudDataMerge(cloud, options = {}) {
@@ -3165,7 +3269,7 @@
       state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
       state.meta.clientVersion = APP_VERSION;
 
-      // v4.0 Health Profile: last-write-wins by explicit updatedAt.
+      // v4.0.1 Health Profile: last-write-wins by explicit updatedAt.
       const localHealth = sanitizeHealthProfile(state.healthProfile);
       const cloudHealth = sanitizeHealthProfile(cloud.healthProfile);
       if (cloudHealth.updatedAt > localHealth.updatedAt || (cloudHealth.updatedAt === localHealth.updatedAt && options.preferCloudOnTie !== false && cloudHealth.updatedAt > 0)) {
@@ -3174,7 +3278,7 @@
         state.healthProfile = localHealth;
       }
 
-      // v4.0 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
+      // v4.0.1 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
       state.aiTelemetry = mergeAiTelemetry(state.aiTelemetry, cloud.aiTelemetry);
 
       // Fusión de registros eliminados (tombstones)
@@ -4123,7 +4227,7 @@
       document.getElementById('dash-halflife-pct').innerText=pk?`${pct}%`:'--'; document.getElementById('dash-halflife-bar').style.width=`${Math.min(100,Math.max(0,pct))}%`;
       const hl=p.halfLifeDays<1?`${Math.round(p.halfLifeDays*24)} h`:`~${p.halfLifeDays} ${uiText('días','days')}`;
       const amount=pk?`${pk.active.toFixed(2)} mg`:'--';
-      document.getElementById('dash-halflife-expl').innerText=pk?(isEnglish()?`Simplified PK estimate from all logged doses: ~${amount} active dose-equivalent. Approx. half-life: ${hl} (${p.generic}). Relative to an estimated steady-state pattern; not a blood measurement.`:`Estimación PK simplificada de todas las dosis registradas: ~${amount} de dosis-equivalente activa. Vida media aprox.: ${hl} (${p.generic}). Relativa a un patrón estable estimado; no es una medición en sangre.`):uiText('Registra una dosis para calcular el nivel estimado.','Log a dose to calculate the estimated medication level.'); lucide.createIcons();
+      document.getElementById('dash-halflife-expl').innerText=pk?(isEnglish()?`Simplified PK estimate from all logged doses: ~${amount} active dose-equivalent. Approx. half-life: ${hl} (${p.generic}). Relative to an estimated expected peak for the logged regimen; not a blood measurement.`:`Estimación PK simplificada de todas las dosis registradas: ~${amount} de dosis-equivalente activa. Vida media aprox.: ${hl} (${p.generic}). Relativa al pico esperado estimado del régimen registrado; no es una medición en sangre.`):uiText('Registra una dosis para calcular el nivel estimado.','Log a dose to calculate the estimated medication level.'); lucide.createIcons();
     }
 
     function quickWater(multiplier) {
@@ -4425,6 +4529,26 @@
       reader.readAsDataURL(file);
     }
 
+    function classifyAiFailure(error) {
+      const message=String(error?.message||error||'').toLowerCase();
+      const code=String(error?.code||error?.status||'').toLowerCase();
+      const combined=`${code} ${message}`;
+      if(typeof navigator!=='undefined' && navigator.onLine===false) return {recoverable:false,reason:'offline'};
+      const nonRecoverable=[
+        'app-check','appcheck','recaptcha','permission-denied','permission_denied','unauthenticated','unauthorized',
+        'forbidden','invalid-api-key','api key not valid','auth/','authentication','401','403'
+      ];
+      if(nonRecoverable.some(x=>combined.includes(x))) return {recoverable:false,reason:'security'};
+      const recoverable=[
+        'resource-exhausted','resource_exhausted','too many requests','429','unavailable','service unavailable',
+        'deadline-exceeded','deadline_exceeded','timeout','timed out','internal','500','502','503','504',
+        'temporar','overload','capacity','empty firebase ai logic response','unexpected token','json'
+      ];
+      if(error instanceof SyntaxError || recoverable.some(x=>combined.includes(x))) return {recoverable:true,reason:'temporary_or_invalid_response'};
+      // Unknown provider/model errors are allowed one fallback attempt unless they are clearly connectivity/security failures.
+      return {recoverable:true,reason:'unknown_provider_error'};
+    }
+
     async function runMealAnalysis() {
       const textQuery = document.getElementById('scanner-text-input').value.trim();
       if (!selectedImageBase64 && !textQuery) {
@@ -4462,9 +4586,20 @@
           persistState({userMutation:true}); renderAiStatus();
           return;
         } catch(primaryError) {
+          const classification=classifyAiFailure(primaryError);
+          if(!classification.recoverable) {
+            // Connectivity/App Check/auth failures are infrastructure blocks, not model failures;
+            // do not distort the model reliability counters or waste a fallback request.
+            console.warn('Primary AI blocked by a non-model error; fallback skipped:',primaryError);
+            document.getElementById('ai-results-container').classList.add('hidden');
+            const offline=classification.reason==='offline';
+            showToast(offline?uiText('Sin conexión. No se intentó el respaldo; se abrió la captura manual.','Offline. Fallback was not attempted; manual entry was opened.'):uiText('La IA no pudo usarse por App Check, autenticación o permisos. No se intentó el respaldo; se abrió la captura manual.','AI could not be used because of App Check, authentication, or permissions. Fallback was not attempted; manual entry was opened.'),5000);
+            openManualMealModal();
+            return;
+          }
           recordAiAttempt('primary',false,performance.now()-t0); recordAiFailover(); telemetryChanged=true;
-          console.warn('Primary AI failed; trying fallback:',primaryError);
-          btnText.innerText=uiText("Principal no respondió; usando respaldo...","Primary unavailable; using fallback...");
+          console.warn('Primary AI failed with a recoverable error; trying fallback:',primaryError);
+          btnText.innerText=uiText("Error temporal; usando respaldo...","Temporary error; using fallback...");
         }
 
         const t1=performance.now();
@@ -4824,34 +4959,82 @@
       return Number.isFinite(value)?Math.max(0,value):0;
     }
 
+    function getPkRecords(profile=getMedicationProfile(), atTs=Date.now()) {
+      return getInjectionsForMedication(profile.key)
+        .map(i=>({inj:i,ts:injectionTimestamp(i),dose:doseMgValue(i.dose)}))
+        .filter(x=>Number.isFinite(x.ts)&&x.ts>0&&Number.isFinite(x.dose)&&x.dose>0&&x.ts<=atTs)
+        .sort((a,b)=>b.ts-a.ts);
+    }
+
+    function calculatePkLevelAt(profile, atTs, records=null) {
+      const source=records||getPkRecords(profile,atTs);
+      let total=0;
+      source.forEach(x=>{
+        if(x.ts<=atTs) total+=activeDoseEquivalent(x.dose,(atTs-x.ts)/3600000,profile);
+      });
+      return Number.isFinite(total)?Math.max(0,total):0;
+    }
+
     function calculatePkEstimate(profile=getMedicationProfile()) {
       const now=Date.now();
-      const records=getInjectionsForMedication(profile.key).map(i=>({inj:i,ts:injectionTimestamp(i),dose:doseMgValue(i.dose)})).filter(x=>x.ts&&x.dose&&x.ts<=now).sort((a,b)=>b.ts-a.ts);
+      const records=getPkRecords(profile,now);
       if(!records.length)return null;
-      let active=0;
-      records.forEach(x=>{active+=activeDoseEquivalent(x.dose,(now-x.ts)/3600000,profile);});
-      const latest=records[0], hoursSince=(now-latest.ts)/3600000, interval=Math.max(1,Number(profile.frequencyDays)||1)*24;
-      let steady=0;
-      for(let n=0;n<80;n++) steady+=activeDoseEquivalent(latest.dose,hoursSince+n*interval,profile);
-      const pct=steady>0?Math.max(0,Math.min(999,(active/steady)*100)):null;
+      const latest=records[0], hoursSince=Math.max(0,(now-latest.ts)/3600000);
+      const interval=Math.max(1,Number(profile.frequencyDays)||1)*24;
       const tmax=Math.max(.25,Number(profile.pkTmaxHours)||24);
+      const active=calculatePkLevelAt(profile,now,records);
+      // Expected peak for the currently logged dose/regimen at steady-state: latest dose
+      // at Tmax plus accumulated residuals from prior scheduled doses of the same amount.
+      let expectedPeak=0;
+      for(let n=0;n<80;n++) expectedPeak+=activeDoseEquivalent(latest.dose,tmax+n*interval,profile);
+      const peakPct=expectedPeak>0?Math.max(0,Math.min(999,(active/expectedPeak)*100)):null;
       let phase='elimination';
       if(hoursSince<tmax*.8)phase='rising'; else if(hoursSince<=tmax*1.25)phase='peak';
-      return {active,pct,hoursSince,phase,latest,legacyTime:!latest.inj.time};
+      const nextDoseTs=latest.ts+interval*3600000;
+      return {active,pct:peakPct,peakPct,expectedPeak,hoursSince,phase,latest,nextDoseTs,legacyTime:!latest.inj.time,records};
+    }
+
+    function renderPkCurve(profile, est) {
+      const canvas=document.getElementById('pkCurveChart');
+      if(!canvas||typeof Chart==='undefined')return;
+      if(pkCurveChartInstance){pkCurveChartInstance.destroy();pkCurveChartInstance=null;}
+      if(!est)return;
+      const start=est.latest.ts;
+      const scheduledEnd=est.nextDoseTs;
+      const end=Math.max(start+3600000,scheduledEnd,Date.now());
+      const span=Math.max(1,end-start);
+      const step=Math.max(3600000,Math.round(span/32));
+      const labels=[],values=[];
+      for(let ts=start;ts<=end+step/2;ts+=step){
+        labels.push(new Date(Math.min(ts,end)).toLocaleString(isEnglish()?'en-US':'es-US',{month:'short',day:'numeric',hour:'numeric'}));
+        values.push(Number(calculatePkLevelAt(profile,Math.min(ts,end),est.records).toFixed(3)));
+        if(ts>=end)break;
+      }
+      pkCurveChartInstance=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[{label:uiText('Nivel activo estimado','Estimated active level'),data:values,tension:.3,pointRadius:0,borderWidth:2,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>` ${ctx.parsed.y.toFixed(2)} mg ${uiText('estimados','estimated')}`}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',maxTicksLimit:5,font:{size:8}}},y:{beginAtZero:true,ticks:{color:'#64748b',font:{size:8}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
     }
 
     function renderPkEstimate() {
       const p=getMedicationProfile(), est=calculatePkEstimate(p);
       const name=document.getElementById('pk-medication-name'); if(name)name.innerText=getMedicationLabel(p,true);
-      const active=document.getElementById('pk-active-mg'), pct=document.getElementById('pk-steady-percent'), hrs=document.getElementById('pk-hours-since'), phase=document.getElementById('pk-phase'), bar=document.getElementById('pk-level-bar'), note=document.getElementById('pk-note');
-      if(!est){if(active)active.innerText='--';if(pct)pct.innerText='--';if(hrs)hrs.innerText='--';if(phase){phase.innerText=uiText('Sin datos','No data');phase.className='text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700';}if(bar)bar.style.width='0%';if(note)note.innerText=uiText('Registra una dosis con fecha y hora para calcular una estimación educativa de dosis-equivalente activa.','Log a dose with date and time to calculate an educational active dose-equivalent estimate.');return;}
+      const active=document.getElementById('pk-active-mg'), pct=document.getElementById('pk-steady-percent'), hrs=document.getElementById('pk-hours-since'), phase=document.getElementById('pk-phase'), bar=document.getElementById('pk-level-bar'), note=document.getElementById('pk-note'), next=document.getElementById('pk-next-dose');
+      if(!est){
+        if(active)active.innerText='--';if(pct)pct.innerText='--';if(hrs)hrs.innerText='--';if(next)next.innerText='--';
+        if(phase){phase.innerText=uiText('Sin datos','No data');phase.className='text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700';}
+        if(bar)bar.style.width='0%';if(note)note.innerText=uiText('Registra una dosis con fecha y hora para calcular una estimación educativa de dosis-equivalente activa.','Log a dose with date and time to calculate an educational active dose-equivalent estimate.');
+        renderPkCurve(p,null);return;
+      }
       if(active)active.innerText=`${est.active.toFixed(2)} mg`;
-      if(pct)pct.innerText=Number.isFinite(est.pct)?`${est.pct.toFixed(0)}%`:'--';
+      if(pct)pct.innerText=Number.isFinite(est.peakPct)?`${est.peakPct.toFixed(0)}%`:'--';
       if(hrs)hrs.innerText=est.hoursSince<48?`${est.hoursSince.toFixed(1)} h`:`${(est.hoursSince/24).toFixed(1)} d`;
-      const labels={rising:uiText('Subiendo · absorción','Rising · absorption'),peak:uiText('Pico estimado','Estimated peak'),elimination:uiText('Fase de eliminación','Elimination phase')};
+      if(next){
+        const d=new Date(est.nextDoseTs);
+        next.innerText=d.toLocaleString(isEnglish()?'en-US':'es-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+      }
+      const labels={rising:uiText('Subiendo · absorción','Rising · absorption'),peak:uiText('Cerca del pico','Near expected peak'),elimination:uiText('Fase de eliminación','Elimination phase')};
       if(phase){phase.innerText=labels[est.phase];phase.className=est.phase==='rising'?'text-[9px] font-bold px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30':est.phase==='peak'?'text-[9px] font-bold px-2 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30':'text-[9px] font-bold px-2 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';}
-      if(bar)bar.style.width=`${Math.max(0,Math.min(100,est.pct||0))}%`;
-      if(note)note.innerText=(est.legacyTime?uiText('La última dosis es de una versión anterior sin hora; para esta estimación se usa 12:00 PM sin modificar el registro. ','Latest dose is from an older version without a time; 12:00 PM is used for this estimate without changing the record. '):'')+uiText('Modelo simplificado de absorción/eliminación. No representa una concentración sanguínea medida ni guía cambios de dosis.','Simplified absorption/elimination model. It is not a measured blood concentration and does not guide dose changes.');
+      if(bar)bar.style.width=`${Math.max(0,Math.min(100,est.peakPct||0))}%`;
+      if(note)note.innerText=(est.legacyTime?uiText('La última dosis es de una versión anterior sin hora; para esta estimación se usa 12:00 PM sin modificar el registro. ','Latest dose is from an older version without a time; 12:00 PM is used for this estimate without changing the record. '):'')+uiText('Modelo simplificado de absorción, eliminación y acumulación. El porcentaje compara el nivel estimado actual con un pico esperado del régimen registrado. No representa una concentración sanguínea medida ni guía cambios de dosis.','Simplified absorption, elimination, and accumulation model. The percentage compares the current estimate with an expected peak for the logged regimen. It is not a measured blood concentration and does not guide dose changes.');
+      renderPkCurve(p,est);
     }
 
     function renderMounjaroView() {
@@ -4932,6 +5115,7 @@
       document.getElementById('input-symptom-sulfur').value = s.sulfur || "none";
       document.getElementById('input-symptom-fatigue').value = s.fatigue || "none";
       document.getElementById('input-symptom-notes').value = s.notes || "";
+      renderSymptomsLoggedStatus();
 
       checkBowelMovementAlert();
       renderBowelStats();
@@ -4980,6 +5164,15 @@
       lbl.innerText = `${n} / 10 (${label})`;
     }
 
+    function renderSymptomsLoggedStatus() {
+      const badge=document.getElementById('symptoms-today-status');if(!badge)return;
+      const day=state.daysData?.[state.selectedDate];
+      const saved=Boolean(day && Number(day.symptomsUpdatedAt)>0);
+      const isToday=state.selectedDate===getFormattedDate(new Date());
+      badge.innerText=saved?(isToday?uiText("Síntomas de hoy: Guardados","Today's symptoms: Saved"):uiText('Este día: Guardado','This day: Saved')):(isToday?uiText("Síntomas de hoy: No registrados","Today's symptoms: Not logged today"):uiText('Este día: Sin datos','This day: No data'));
+      badge.className=saved?'text-[9px] font-bold px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30':'text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700';
+    }
+
     function saveDailySymptoms() {
       const day = getSelectedDay();
       day.symptoms = {
@@ -4992,6 +5185,8 @@
       };
       day.symptomsUpdatedAt = mutationNow();
       persistState({ userMutation: true });
+      renderSymptomsLoggedStatus();
+      renderSymptomTrendChart();
       checkFoodSymptomCorrelation();
       showToast(uiText("Tolerancia y síntomas guardados.", "Symptoms and tolerance saved."));
     }
@@ -5009,14 +5204,19 @@
       const canvas=document.getElementById('symptomTrendChart'); if(!canvas||typeof Chart==='undefined')return;
       const keys=getLastNDaysKeys(30);
       const labels=keys.map(k=>{const p=k.split('-');return `${p[2]}/${p[1]}`;});
-      const series=(field,type='standard')=>keys.map(k=>symptomSeverity(state.daysData?.[k]?.symptoms?.[field],type));
+      const series=(field,type='standard')=>keys.map(k=>{
+        const day=state.daysData?.[k];
+        // Explicitly saved "None" is 0. A day never saved is null / No data.
+        if(!day || !(Number(day.symptomsUpdatedAt)>0)) return null;
+        return symptomSeverity(day.symptoms?.[field],type);
+      });
       if(symptomTrendChartInstance)symptomTrendChartInstance.destroy();
       symptomTrendChartInstance=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
-        {label:uiText('Náuseas','Nausea'),data:series('nausea'),tension:.25,pointRadius:1.5,borderWidth:2},
-        {label:uiText('Reflujo','Reflux'),data:series('heartburn'),tension:.25,pointRadius:1.5,borderWidth:2},
-        {label:uiText('Eructos de azufre','Sulfur burps'),data:series('sulfur','sulfur'),tension:.25,pointRadius:1.5,borderWidth:2},
-        {label:uiText('Fatiga','Fatigue'),data:series('fatigue'),tension:.25,pointRadius:1.5,borderWidth:2}
-      ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#94a3b8',boxWidth:10,font:{size:9}}},tooltip:{callbacks:{label:(ctx)=>{const words=isEnglish()?['None','Mild','Moderate','High']:['Ninguno','Leve','Moderado','Alto'];return ` ${ctx.dataset.label}: ${words[Math.max(0,Math.min(3,ctx.parsed.y||0))]}`;}}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',maxTicksLimit:8}},y:{min:0,max:3,ticks:{stepSize:1,color:'#64748b',callback:(v)=>isEnglish()?['None','Mild','Moderate','High'][v]:['Ninguno','Leve','Moderado','Alto'][v]},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+        {label:uiText('Náuseas','Nausea'),data:series('nausea'),tension:.25,pointRadius:1.5,borderWidth:2,spanGaps:false},
+        {label:uiText('Reflujo','Reflux'),data:series('heartburn'),tension:.25,pointRadius:1.5,borderWidth:2,spanGaps:false},
+        {label:uiText('Eructos de azufre','Sulfur burps'),data:series('sulfur','sulfur'),tension:.25,pointRadius:1.5,borderWidth:2,spanGaps:false},
+        {label:uiText('Fatiga','Fatigue'),data:series('fatigue'),tension:.25,pointRadius:1.5,borderWidth:2,spanGaps:false}
+      ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#94a3b8',boxWidth:10,font:{size:9}}},tooltip:{callbacks:{label:(ctx)=>{if(ctx.raw===null||ctx.raw===undefined)return ` ${ctx.dataset.label}: ${uiText('Sin datos','No data')}`;const words=isEnglish()?['None','Mild','Moderate','High']:['Ninguno','Leve','Moderado','Alto'];return ` ${ctx.dataset.label}: ${words[Math.max(0,Math.min(3,ctx.parsed.y||0))]}`;}}}},scales:{x:{grid:{display:false},ticks:{color:'#64748b',maxTicksLimit:8}},y:{min:0,max:3,ticks:{stepSize:1,color:'#64748b',callback:(v)=>isEnglish()?['None','Mild','Moderate','High'][v]:['Ninguno','Leve','Moderado','Alto'][v]},grid:{color:'rgba(255,255,255,0.05)'}}}}});
     }
 
     /* ==========================================================================
@@ -5897,26 +6097,147 @@
     }
 
 
-    function downloadBackupSnapshot(snapshot, label = '') {
-      const exportObject = JSON.parse(JSON.stringify(snapshot));
-      if (exportObject.settings) delete exportObject.settings.apiKey;
-      const suffix = label ? `_${label}` : '';
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
-      const a = document.createElement('a');
-      a.setAttribute("href", dataStr);
-      a.setAttribute("download", `glp1_backup_${getFormattedDate(new Date())}${suffix}.json`);
-      document.body.appendChild(a); a.click(); a.remove();
+    function formatBackupFileStamp(date=new Date()) {
+      const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
+      const hh=String(date.getHours()).padStart(2,'0'),mm=String(date.getMinutes()).padStart(2,'0'),ss=String(date.getSeconds()).padStart(2,'0');
+      return `${y}-${m}-${d}_${hh}-${mm}-${ss}`;
     }
 
-    function exportDataJSON() {
-      const payload=JSON.parse(JSON.stringify(state));
-      if(payload.settings)delete payload.settings.apiKey;
-      const exportObject=Object.assign({
-        backupMeta:{appId:'GLP1-Companion',exportVersion:APP_VERSION,schemaVersion:CLIENT_SCHEMA_VERSION,exportedAt:new Date().toISOString()}
-      },payload);
-      const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(exportObject,null,2));
-      const a=document.createElement('a');a.href=dataStr;a.download=`glp1_backup_${getFormattedDate(new Date())}_v4.json`;document.body.appendChild(a);a.click();a.remove();
-      showToast(uiText("Copia de seguridad v4 descargada (sin credenciales privadas).", "v4 backup downloaded (private credentials excluded)."));
+    function sanitizedBackupState(snapshot) {
+      const copy=JSON.parse(JSON.stringify(snapshot||{}));
+      if(copy.settings) delete copy.settings.apiKey;
+      return copy;
+    }
+
+    function createCurrentBackupObject(snapshot=state) {
+      const payload=sanitizedBackupState(snapshot);
+      delete payload.backupMeta;
+      return Object.assign({backupMeta:{appId:'GLP1-Companion',exportVersion:APP_VERSION,schemaVersion:CLIENT_SCHEMA_VERSION,exportedAt:new Date().toISOString()}},payload);
+    }
+
+    async function deliverJsonBackup(exportObject, filename) {
+      const json=JSON.stringify(exportObject,null,2);
+      const blob=new Blob([json],{type:'application/json'});
+      const file=typeof File!=='undefined'?new File([blob],filename,{type:'application/json'}):null;
+      if(file && navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))) {
+        try {
+          await navigator.share({title:'GLP-1 Companion Backup',text:uiText('Guarda preferiblemente en iCloud Drive → GLP-1 Companion.','Prefer saving to iCloud Drive → GLP-1 Companion.'),files:[file]});
+          showToast(uiText('Backup preparado. En iPhone/iPad usa Save to Files → iCloud Drive → GLP-1 Companion.','Backup prepared. On iPhone/iPad use Save to Files → iCloud Drive → GLP-1 Companion.'),5000);
+          return;
+        } catch(err) {
+          if(err && err.name==='AbortError') return;
+          console.warn('Native share unavailable; using download fallback:',err);
+        }
+      }
+      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      showToast(uiText('Backup descargado. Ubicación recomendada: iCloud Drive → GLP-1 Companion.','Backup downloaded. Recommended location: iCloud Drive → GLP-1 Companion.'),5000);
+    }
+
+    function downloadBackupSnapshot(snapshot, label = '') {
+      const exportObject=createCurrentBackupObject(snapshot);
+      const suffix=label?`_${String(label).replace(/[^a-z0-9_-]+/gi,'_')}`:'';
+      return deliverJsonBackup(exportObject,`glp1_backup_${formatBackupFileStamp()}${suffix}.json`);
+    }
+
+    function openExportBackupOptions() {
+      const modal=document.getElementById('modal-export-backup');if(modal){modal.classList.remove('hidden');modal.classList.add('flex');lucide.createIcons();}
+    }
+    function closeExportBackupOptions() {const modal=document.getElementById('modal-export-backup');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
+
+    function firestoreTimestampToMillis(value) {
+      if(!value)return 0;
+      if(typeof value.toMillis==='function')return value.toMillis();
+      if(typeof value.toDate==='function')return value.toDate().getTime();
+      if(Number.isFinite(Number(value)))return Number(value);
+      if(Number.isFinite(Number(value.seconds)))return Number(value.seconds)*1000+Math.floor((Number(value.nanoseconds)||0)/1e6);
+      return 0;
+    }
+
+    let serverSafetyBackupsCache=[];
+    async function fetchServerSafetyBackups() {
+      if(!currentUser) throw new Error('AUTH_REQUIRED');
+      if(navigator.onLine===false) throw new Error('OFFLINE');
+      const snap=await db.collection('trackers').doc(currentUser.uid).collection('safety').get();
+      const items=[];
+      snap.forEach(doc=>{const d=doc.data()||{};if(d.snapshot&&typeof d.snapshot==='object')items.push({slot:doc.id,revision:Number(d.revision)||0,savedAt:firestoreTimestampToMillis(d.savedAt),snapshot:d.snapshot});});
+      items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+      serverSafetyBackupsCache=items.slice(0,3);
+      return serverSafetyBackupsCache;
+    }
+
+    function backupSummary(snapshot) {
+      const validation=validateBackupStructure(snapshot);
+      if(validation.ok)return validation.counts;
+      let meals=0,days=0;
+      if(snapshot?.daysData&&typeof snapshot.daysData==='object')Object.values(snapshot.daysData).forEach(day=>{if(day&&typeof day==='object'){days++;if(Array.isArray(day.meals))meals+=day.meals.length;}});
+      return {weights:Array.isArray(snapshot?.weights)?snapshot.weights.length:0,injections:Array.isArray(snapshot?.injections)?snapshot.injections.length:0,measurements:Array.isArray(snapshot?.measurements)?snapshot.measurements.length:0,meals,days,health:snapshot?.healthProfile?1:0};
+    }
+
+    async function openServerSafetyBackups() {
+      const modal=document.getElementById('modal-server-backups'),list=document.getElementById('server-backups-list');
+      if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
+      if(list)list.innerHTML=`<p class="text-xs text-slate-500">${escapeHtml(uiText('Cargando copias de Firebase…','Loading Firebase backups…'))}</p>`;
+      try {
+        const items=await fetchServerSafetyBackups();
+        if(!list)return;
+        if(!items.length){list.innerHTML=`<p class="text-xs text-slate-500">${escapeHtml(uiText('Todavía no hay copias Server Safety disponibles. Se crean al sincronizar cambios posteriores.','No Server Safety backups are available yet. They are created as later changes sync.'))}</p>`;return;}
+        list.innerHTML=items.map((item,idx)=>{const c=backupSummary(item.snapshot),stamp=item.savedAt?new Date(item.savedAt).toLocaleString(isEnglish()?'en-US':'es-US'):'--';return `<div class="p-3 rounded-xl bg-[#111a2e] border border-[#223455] space-y-2"><div class="flex items-start justify-between gap-2"><div><p class="text-xs font-black text-white">${escapeHtml(uiText('Copia de servidor','Server backup'))} ${idx+1}</p><p class="text-[9px] text-slate-500">${escapeHtml(stamp)} · rev ${item.revision}</p></div><span class="text-[9px] text-cyan-300">${c.weights} ${escapeHtml(uiText('pesajes','weights'))} · ${c.injections} ${escapeHtml(uiText('dosis','doses'))}</span></div><div class="grid grid-cols-2 gap-2"><button onclick="viewServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-1.5 rounded-lg bg-slate-800 text-slate-200 text-[10px] font-bold">View</button><button onclick="restoreServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold">Restore</button></div></div>`;}).join('');
+        lucide.createIcons();
+      } catch(err) {
+        console.error('Server safety backup read failed:',err);
+        if(list)list.innerHTML=`<p class="text-xs text-rose-300">${escapeHtml(err?.message==='OFFLINE'?uiText('Sin conexión. Conéctate para consultar Server Safety Backups.','Offline. Connect to view Server Safety Backups.'):err?.message==='AUTH_REQUIRED'?uiText('Inicia sesión para consultar Server Safety Backups.','Sign in to view Server Safety Backups.'):uiText('No se pudieron leer las copias del servidor. Revisa conexión/permisos de Firebase.','Server backups could not be read. Check Firebase connection/permissions.'))}</p>`;
+      }
+    }
+    function closeServerSafetyBackups(){const m=document.getElementById('modal-server-backups');if(m){m.classList.add('hidden');m.classList.remove('flex');}}
+    function closeBackupView(){const m=document.getElementById('modal-backup-view');if(m){m.classList.add('hidden');m.classList.remove('flex');}}
+
+    function viewServerSafetyBackup(slot) {
+      const item=serverSafetyBackupsCache.find(x=>x.slot===slot);if(!item)return;
+      const c=backupSummary(item.snapshot),content=document.getElementById('backup-view-content'),modal=document.getElementById('modal-backup-view');
+      const stamp=item.savedAt?new Date(item.savedAt).toLocaleString(isEnglish()?'en-US':'es-US'):'--';
+      if(content)content.innerHTML=`<p><b>${escapeHtml(uiText('Fecha/hora','Date/time'))}:</b> ${escapeHtml(stamp)}</p><p><b>Revision:</b> ${item.revision}</p><div class="grid grid-cols-2 gap-2 mt-2">${[[uiText('Pesajes','Weights'),c.weights],[uiText('Dosis','Doses'),c.injections],[uiText('Comidas','Meals'),c.meals],[uiText('Medidas','Measurements'),c.measurements],[uiText('Días','Days'),c.days],[uiText('Health Profile','Health Profile'),c.health?uiText('Sí','Yes'):uiText('No','No')]].map(([l,v])=>`<div class="p-2 rounded-lg bg-[#111a2e] border border-[#223455]"><span class="text-[9px] text-slate-500">${escapeHtml(String(l))}</span><p class="font-black text-white">${escapeHtml(String(v))}</p></div>`).join('')}</div>`;
+      if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
+    }
+
+    function restoreServerSafetyBackup(slot) {
+      const item=serverSafetyBackupsCache.find(x=>x.slot===slot);if(!item)return;
+      const validation=validateBackupStructure(item.snapshot);
+      if(!validation.ok){showToast(uiText('Esta copia del servidor no tiene una estructura restaurable.','This server backup is not restorable.'));return;}
+      closeServerSafetyBackups();
+      showImportPreview(item.snapshot,Object.assign({},validation,{version:`${validation.version} · Server Safety`}));
+    }
+
+    async function exportBackupPackage(mode='current') {
+      try {
+        const current=createCurrentBackupObject(state),stamp=formatBackupFileStamp();
+        let output=current,descriptor='current';
+        if(mode!=='current') {
+          const packageMeta={appId:'GLP1-Companion',packageVersion:'1',exportVersion:APP_VERSION,exportedAt:new Date().toISOString(),type:mode,recommendedLocation:'iCloud Drive/GLP-1 Companion'};
+          output={backupPackage:packageMeta,currentData:current};
+          if(mode==='local'||mode==='complete') output.localBackups=getLocalSafetyBackups().map(x=>({savedAt:x.savedAt,appVersion:x.appVersion||'',snapshot:sanitizedBackupState(x.snapshot)}));
+          if(mode==='server'||mode==='complete') {
+            const server=await fetchServerSafetyBackups();
+            output.serverBackups=server.map(x=>({slot:x.slot,revision:x.revision,savedAt:x.savedAt,snapshot:sanitizedBackupState(x.snapshot)}));
+          }
+          descriptor=mode==='complete'?'complete':mode;
+        }
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.1.json`);
+        closeExportBackupOptions();
+      } catch(err) {
+        console.error('Backup export failed:',err);
+        showToast(err?.message==='OFFLINE'?uiText('Necesitas conexión para incluir Server Backups. Puedes exportar Current o Local sin conexión.','You need a connection to include Server Backups. Current or Local can be exported offline.'):err?.message==='AUTH_REQUIRED'?uiText('Inicia sesión para incluir Server Backups.','Sign in to include Server Backups.'):uiText('No se pudo completar la exportación solicitada.','The requested export could not be completed.'),5000);
+      }
+    }
+
+    function exportDataJSON() { openExportBackupOptions(); }
+
+    function normalizeBackupEnvelope(raw) {
+      if(raw&&typeof raw==='object'&&!Array.isArray(raw)&&raw.backupPackage){
+        const meta=raw.backupPackage;
+        if(!meta||meta.appId!=='GLP1-Companion'||!raw.currentData||typeof raw.currentData!=='object')return {data:raw,packageInfo:null};
+        return {data:raw.currentData,packageInfo:{type:String(meta.type||'package'),localCount:Array.isArray(raw.localBackups)?raw.localBackups.length:0,serverCount:Array.isArray(raw.serverBackups)?raw.serverBackups.length:0}};
+      }
+      return {data:raw,packageInfo:null};
     }
 
     function normalizeImportedTimestamp(value) {
@@ -5952,7 +6273,7 @@
     function showImportPreview(imported,validation) {
       pendingImportCandidate=imported;
       const modal=document.getElementById('modal-import-preview'),grid=document.getElementById('import-preview-grid'),version=document.getElementById('import-preview-version');
-      if(version)version.innerText=isEnglish()?`Detected: ${validation.version}${validation.legacy?' · compatible legacy format':''}`:`Detectado: ${validation.version}${validation.legacy?' · formato anterior compatible':''}`;
+      if(version){const pkg=validation.packageInfo?` · ${validation.packageInfo.type} (${validation.packageInfo.localCount} local / ${validation.packageInfo.serverCount} server)`:'';version.innerText=isEnglish()?`Detected: ${validation.version}${validation.legacy?' · compatible legacy format':''}${pkg}`:`Detectado: ${validation.version}${validation.legacy?' · formato anterior compatible':''}${pkg}`;}
       if(grid){const c=validation.counts;grid.innerHTML=[['scale',uiText('Pesajes','Weights'),c.weights],['pill',uiText('Dosis','Doses'),c.injections],['utensils',uiText('Comidas','Meals'),c.meals],['ruler',uiText('Medidas','Measurements'),c.measurements],['calendar',uiText('Días','Days'),c.days],['user-round',uiText('Health Profile','Health Profile'),c.health?uiText('Sí','Yes'):uiText('No','No')]].map(([icon,label,val])=>`<div class="p-2 rounded-xl bg-[#111a2e] border border-[#223455]"><i data-lucide="${icon}" class="w-3.5 h-3.5 text-cyan-400 mx-auto mb-1"></i><p class="text-sm font-black text-white">${escapeHtml(String(val))}</p><span class="text-[8px] text-slate-500">${escapeHtml(label)}</span></div>`).join('');}
       if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}lucide.createIcons();
     }
@@ -5969,7 +6290,7 @@
     function applyImportedBackup(imported) {
       // Preserve a recoverable copy only after the user confirms the preview.
       localStorage.setItem(PRE_IMPORT_BACKUP_KEY,JSON.stringify(state));
-      try{downloadBackupSnapshot(state,'before_import');}catch(_){}
+      try{rotateLocalSafetySnapshot();}catch(_){}
       const localLanguage=state.settings.language==='en'?'en':'es',fallbackUnits=state.settings.units==='metric'?'metric':'imperial';
       const next=createDefaultState({language:localLanguage,units:fallbackUnits});
       if(imported.settings&&typeof imported.settings==='object'&&!Array.isArray(imported.settings)){
@@ -5984,7 +6305,7 @@
         if(!isValidDateKey(dateKey))return;const raw=imported.daysData[dateKey];if(!raw||typeof raw!=='object'||Array.isArray(raw))return;
         const meals=[];if(Array.isArray(raw.meals))raw.meals.forEach((m,idx)=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const cal=parseFloat(m.calories),pr=parseFloat(m.protein),ca=parseFloat(m.carbs),fa=parseFloat(m.fat);meals.push({id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`,name:String(m.name||uiText('Comida','Meal')),slot:typeof m.slot==='string'?m.slot:'Comida',calories:Number.isFinite(cal)&&cal>=0?cal:0,protein:Number.isFinite(pr)&&pr>=0?pr:0,carbs:Number.isFinite(ca)&&ca>=0?ca:0,fat:Number.isFinite(fa)&&fa>=0?fa:0,tip:typeof m.tip==='string'?m.tip:'',time:typeof m.time==='string'?m.time:'',updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
         const bm=[];if(Array.isArray(raw.bowelMovements))raw.bowelMovements.forEach(v=>{if(typeof v==='string'&&!isNaN(new Date(v).getTime()))bm.push(v);});const water=parseFloat(raw.water);
-        next.daysData[dateKey]={water:Number.isFinite(water)&&water>=0?water:0,waterUpdatedAt:normalizeImportedTimestamp(raw.waterUpdatedAt),meals,bowelMovements:bm,bowelMovementsUpdatedAt:normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt),symptoms:(raw.symptoms&&typeof raw.symptoms==='object'&&!Array.isArray(raw.symptoms))?raw.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:normalizeImportedTimestamp(raw.symptomsUpdatedAt),electrolytes:(raw.electrolytes&&typeof raw.electrolytes==='object'&&!Array.isArray(raw.electrolytes))?raw.electrolytes:{},electrolytesUpdatedAt:normalizeImportedTimestamp(raw.electrolytesUpdatedAt)};
+        next.daysData[dateKey]={water:Number.isFinite(water)&&water>=0?water:0,waterUpdatedAt:normalizeImportedTimestamp(raw.waterUpdatedAt),meals,bowelMovements:bm,bowelMovementsUpdatedAt:normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt),symptoms:(raw.symptoms&&typeof raw.symptoms==='object'&&!Array.isArray(raw.symptoms))?raw.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:(Number(raw.symptomsUpdatedAt)>0?normalizeImportedTimestamp(raw.symptomsUpdatedAt):0),electrolytes:(raw.electrolytes&&typeof raw.electrolytes==='object'&&!Array.isArray(raw.electrolytes))?raw.electrolytes:{},electrolytesUpdatedAt:normalizeImportedTimestamp(raw.electrolytesUpdatedAt)};
       });
       if(Array.isArray(imported.weights))imported.weights.forEach(w=>{if(!w||typeof w!=='object'||Array.isArray(w))return;const date=normalizeDateKey(w.date),num=parseFloat(w.weight);if(date&&Number.isFinite(num)&&num>0)next.weights.push({date,weight:num,updatedAt:normalizeImportedTimestamp(w.updatedAt)});});
       if(Array.isArray(imported.injections))imported.injections.forEach(i=>{if(!i||typeof i!=='object'||Array.isArray(i))return;const date=normalizeDateKey(i.date);if(!date||typeof i.dose!=='string')return;const med=MEDICATION_PROFILES[i.medication]?i.medication:next.settings.medication;const time=typeof i.time==='string'&&/^([01]\\d|2[0-3]):[0-5]\\d$/.test(i.time)?i.time:'';next.injections.push({id:(typeof i.id==='string'&&i.id.trim())?i.id.trim():`inj_import_${Math.random().toString(36).slice(2,10)}`,date,time,dose:i.dose,medication:med,site:typeof i.site==='string'?i.site:'Abdomen derecho',notes:typeof i.notes==='string'?i.notes:'',updatedAt:normalizeImportedTimestamp(i.updatedAt)});});
@@ -6006,8 +6327,9 @@
       const reader=new FileReader();
       reader.onload=function(evt){
         try{
-          const imported=JSON.parse(evt.target.result);const validation=validateBackupStructure(imported);
+          const raw=JSON.parse(evt.target.result);const envelope=normalizeBackupEnvelope(raw);const imported=envelope.data;const validation=validateBackupStructure(imported);
           if(!validation.ok)throw new Error(`Invalid backup: ${validation.reason}`);
+          if(envelope.packageInfo)validation.packageInfo=envelope.packageInfo;
           showImportPreview(imported,validation);
         }catch(err){console.error('Backup validation failed:',err);showToast(uiText('Error: el archivo no es un backup GLP-1 Companion compatible.','Error: the file is not a compatible GLP-1 Companion backup.'),5000);}
         finally{input.value='';}
@@ -6066,27 +6388,37 @@
       }, duration);
     }
 
-    function handleAppResume() {
-      const realToday = getFormattedDate(new Date());
-      if (state.selectedDate !== realToday) {
-        state.selectedDate = realToday;
+    let lastObservedTodayKey = getFormattedDate(new Date());
+    function handleDayRollover(forceToday=false) {
+      const realToday=getFormattedDate(new Date());
+      const changed=realToday!==lastObservedTodayKey;
+      if(changed) lastObservedTodayKey=realToday;
+      if(changed || forceToday) {
+        if(state.selectedDate!==realToday) state.selectedDate=realToday;
+        // getSelectedDay creates today's empty symptom form with symptomsUpdatedAt=0;
+        // it never copies yesterday's symptom values.
+        getSelectedDay();
+        persistState({localOnly:true});
         updateDateBadge();
+        renderCurrentDay();
       }
-      updateFastingDisplay();
-      if (state.settings.isFasting && state.settings.fastingStart && !fastingTimerInterval) {
-        startFastingTicker();
-      }
+      return changed;
     }
 
+    function handleAppResume() {
+      handleDayRollover(true);
+      updateFastingDisplay();
+      if (state.settings.isFasting && state.settings.fastingStart && !fastingTimerInterval) startFastingTicker();
+    }
+
+    // If the PWA remains visible through midnight, switch to the new Today automatically.
+    setInterval(()=>{if(document.visibilityState==='visible')handleDayRollover(false);},30000);
+
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        handleAppResume();
-      }
+      if (document.visibilityState === 'visible') handleAppResume();
     });
 
-    window.addEventListener('pageshow', () => {
-      handleAppResume();
-    });
+    window.addEventListener('pageshow', () => { handleAppResume(); });
 
     /* ==========================================================================
        GESTO PULL-TO-REFRESH PARA IPHONE / NAVEGADOR
@@ -6220,6 +6552,7 @@
       const unitSelector = document.getElementById('setting-units');
       if (unitSelector) unitSelector.value = state.settings.units || 'imperial';
       applyUnitLabels();
+      updateLocalBackupStatus();
       
 
       document.getElementById('btn-prev-day').addEventListener('click', () => changeDate(-1));
