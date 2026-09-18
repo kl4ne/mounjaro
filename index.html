@@ -249,7 +249,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.0.5</p>
+          <p id="print-app-version">Versión: v4.0.6</p>
         </div>
       </div>
     </div>
@@ -272,7 +272,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.5</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.6</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -677,7 +677,7 @@
                 <span id="room-temp-days-label" class="text-[10px] text-slate-400 block">Días restantes:</span>
                 <strong id="room-temp-days-left" class="text-sm text-cyan-300 font-black">--</strong>
               </div>
-              <button id="room-temp-restart-btn" onclick="startRoomTempCountdown()" class="px-2 py-1 bg-slate-700/50 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded-lg border border-slate-600/50">Reiniciar hoy</button>
+              <button id="room-temp-restart-btn" onclick="resetStorageTrackerForNewUnit()" class="px-2 py-1 bg-slate-700/50 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded-lg border border-slate-600/50">Nueva unidad</button>
             </div>
           </div>
 
@@ -1091,6 +1091,12 @@
               <option value="ozempic_tablets">Ozempic Tablets (semaglutide)</option>
             </select>
             <p id="medication-regimen-help" class="text-[10px] text-slate-500 mt-1">La app adapta frecuencia, vida media y registro según el medicamento seleccionado. No modifica ni recomienda tratamiento.</p>
+          </div>
+
+          <div id="setting-presentation-wrap">
+            <label id="setting-presentation-label" class="block text-slate-300 font-semibold mb-1 text-xs">Presentación:</label>
+            <select id="setting-presentation" class="w-full p-2.5 bg-[#111a2e] border border-amber-500/35 rounded-xl text-amber-300 font-bold text-xs" onchange="handlePresentationChange(this.value)"></select>
+            <p id="setting-presentation-help" class="text-[10px] text-slate-500 mt-1">La presentación determina las reglas correctas de almacenamiento e inventario.</p>
           </div>
 
           <div class="grid grid-cols-2 gap-3 text-xs pt-1">
@@ -1746,9 +1752,9 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0.5";
-    const CLIENT_SCHEMA_VERSION = 10;
-    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.2";
+    const APP_VERSION = "v4.0.6";
+    const CLIENT_SCHEMA_VERSION = 11;
+    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.6";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
     const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_8";
     const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_8";
@@ -1760,7 +1766,10 @@
     const CLOUD_SIZE_HARD_LIMIT_BYTES = 750 * 1024;
     const LOCAL_SAFETY_BACKUP_PREFIX = "glp1_local_safety_v401_slot_";
     const LOCAL_SAFETY_BACKUP_SLOTS = 3;
+    const SERVER_SAFETY_BACKUP_SLOTS = 3;
     const LOCAL_SAFETY_BACKUP_CURSOR_KEY = "glp1_local_safety_v401_cursor";
+    const LOCAL_BACKUP_DB_NAME = "glp1_companion_safety_v406";
+    const LOCAL_BACKUP_DB_VERSION = 1;
 
     function formatSyncTime(timestamp) {
       if (!timestamp) return "";
@@ -2203,7 +2212,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.0.5": "Version: v4.0.5",
+      "Versión: v4.0.6": "Version: v4.0.6",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -2530,6 +2539,9 @@
         selectedDate: getFormattedDate(new Date()),
         settings: {
           medication: "mounjaro",
+          presentation: "single_dose",
+          inventoryByProduct: {},
+          roomTempTrackers: {},
           goalWeight: 180,
           calGoal: 1400,
           tdee: 2000,
@@ -2561,7 +2573,8 @@
           meals: {},
           weights: {},
           injections: {},
-          measurements: {}
+          measurements: {},
+          bowelMovements: {}
         },
         meta: {
           schemaVersion: CLIENT_SCHEMA_VERSION,
@@ -2569,6 +2582,7 @@
           dataEpoch: 'legacy-v1',
           resetAt: 0,
           settingsUpdatedAt: 0,
+          settingsFieldUpdatedAt: {},
           clientVersion: APP_VERSION,
           lastMutationAt: 0
         }
@@ -2652,11 +2666,23 @@
       state.healthProfile = sanitizeHealthProfile(state.healthProfile);
       state.aiTelemetry = sanitizeAiTelemetry(state.aiTelemetry);
       if (!state.settings || typeof state.settings !== 'object') state.settings = createDefaultState().settings;
-      if (typeof state.settings.roomTempTrackingEnabled !== 'boolean') {
-        // Migration: an existing countdown from v4.0.1 means tracking was intentionally active.
-        state.settings.roomTempTrackingEnabled = Boolean(state.settings.roomTempPenStart);
+      ensureStateMetadata();
+      if (!state.deletedRecords || typeof state.deletedRecords!=='object' || Array.isArray(state.deletedRecords)) state.deletedRecords={meals:{},weights:{},injections:{},measurements:{},bowelMovements:{}};
+      if (!state.deletedRecords.bowelMovements || typeof state.deletedRecords.bowelMovements!=='object' || Array.isArray(state.deletedRecords.bowelMovements)) state.deletedRecords.bowelMovements={};
+      if (!state.settings.inventoryByProduct || typeof state.settings.inventoryByProduct!=='object' || Array.isArray(state.settings.inventoryByProduct)) state.settings.inventoryByProduct={};
+      if (!state.settings.roomTempTrackers || typeof state.settings.roomTempTrackers!=='object' || Array.isArray(state.settings.roomTempTrackers)) state.settings.roomTempTrackers={};
+      const med=MEDICATION_PROFILES[state.settings.medication]?state.settings.medication:'mounjaro';
+      state.settings.medication=med;
+      const presKeys=getPresentationOptions(med).map(x=>x.key);
+      if(!presKeys.includes(state.settings.presentation)) state.settings.presentation=getDefaultPresentationKey(med);
+      const productKey=getCurrentProductKey();
+      if(!Number.isFinite(Number(state.settings.inventoryByProduct[productKey]))) state.settings.inventoryByProduct[productKey]=Math.max(0,Math.floor(Number(state.settings.pensInStock)||0));
+      state.settings.pensInStock=Math.max(0,Math.floor(Number(state.settings.inventoryByProduct[productKey])||0));
+      // Migrate the old single countdown into the presentation-specific tracker once.
+      if((state.settings.roomTempPenStart||state.settings.roomTempTrackingEnabled) && !state.settings.roomTempTrackers[productKey]) {
+        state.settings.roomTempTrackers[productKey]={active:Boolean(state.settings.roomTempTrackingEnabled&&state.settings.roomTempPenStart),startedAt:Number(state.settings.roomTempPenStart)||0,accumulatedMs:0,firstUseAt:0,updatedAt:Number(state.meta.settingsUpdatedAt)||0};
       }
-      if (!state.settings.roomTempTrackingEnabled && !state.settings.roomTempPenStart) state.settings.roomTempPenStart = null;
+      Object.keys(state.daysData||{}).forEach(dateKey=>{const day=state.daysData[dateKey];if(day&&typeof day==='object'&&!Array.isArray(day))ensureGranularDayData(dateKey,day);});
       ensureInjectionIds();
     }
 
@@ -2761,13 +2787,23 @@
       if (!state.meta.dataEpoch || typeof state.meta.dataEpoch !== 'string') state.meta.dataEpoch = 'legacy-v1';
       if (!Number.isFinite(Number(state.meta.resetAt)) || Number(state.meta.resetAt) < 0) state.meta.resetAt = 0;
       if (!Number.isFinite(Number(state.meta.settingsUpdatedAt)) || Number(state.meta.settingsUpdatedAt) < 0) state.meta.settingsUpdatedAt = 0;
+      if (!state.meta.settingsFieldUpdatedAt || typeof state.meta.settingsFieldUpdatedAt !== 'object' || Array.isArray(state.meta.settingsFieldUpdatedAt)) state.meta.settingsFieldUpdatedAt = {};
+      Object.keys(state.meta.settingsFieldUpdatedAt).forEach(k=>{const n=Number(state.meta.settingsFieldUpdatedAt[k]);if(!Number.isFinite(n)||n<0)delete state.meta.settingsFieldUpdatedAt[k];});
       state.meta.clientVersion = APP_VERSION;
       if (!Number.isFinite(Number(state.meta.lastMutationAt)) || Number(state.meta.lastMutationAt) < 0) state.meta.lastMutationAt = 0;
     }
 
-    function markSettingsChanged() {
+    function cloudSettingKeys() {
+      return Object.keys(state.settings || {}).filter(k=>!['language','units'].includes(k));
+    }
+
+    function markSettingsChanged(fields=null) {
       ensureStateMetadata();
-      state.meta.settingsUpdatedAt = mutationNow();
+      const ts = mutationNow();
+      state.meta.settingsUpdatedAt = ts;
+      const list = Array.isArray(fields) && fields.length ? fields : cloudSettingKeys();
+      list.forEach(k=>{ if(k && !['language','units'].includes(k)) state.meta.settingsFieldUpdatedAt[k]=ts; });
+      return ts;
     }
 
     function getInjectionMedicationKey(injection) {
@@ -2814,7 +2850,7 @@
       if (!state.deletedRecords || typeof state.deletedRecords !== 'object' || Array.isArray(state.deletedRecords)) {
         state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
       }
-      ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
+      ['meals', 'weights', 'injections', 'measurements', 'bowelMovements'].forEach(type => {
         if (!state.deletedRecords[type] || typeof state.deletedRecords[type] !== 'object' || Array.isArray(state.deletedRecords[type])) state.deletedRecords[type] = {};
         Object.keys(state.deletedRecords[type]).forEach(id => {
           const ts = Number(state.deletedRecords[type][id]);
@@ -2898,14 +2934,14 @@
         state.meta.ownerUid = uid;
         hadLocalStateAtBoot = false;
         clearExplicitMutationPending();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        writePrimaryLocalState();
         applyMedicationTheme();
         renderCurrentDay();
         if (activeTab === 'tools') renderToolsView();
         showToast(uiText('Cuenta diferente detectada. Se cargará únicamente su información desde Firebase.', 'Different account detected. Only that account’s Firebase data will be loaded.'));
       } else if (!state.meta.ownerUid) {
         state.meta.ownerUid = uid;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        writePrimaryLocalState();
       }
     }
 
@@ -2922,6 +2958,8 @@
       return Number(day.water || 0) <= 0 &&
         (!Array.isArray(day.meals) || day.meals.length === 0) &&
         (!Array.isArray(day.bowelMovements) || day.bowelMovements.length === 0) &&
+        (!Array.isArray(day.waterEvents) || day.waterEvents.length === 0) &&
+        (!Array.isArray(day.bowelMovementRecords) || day.bowelMovementRecords.length === 0) &&
         symptomsAreDefault &&
         !Object.values(electrolytes).some(Boolean) &&
         (Number(day.waterUpdatedAt) || 0) === 0 &&
@@ -2937,6 +2975,9 @@
         delete cleanCopy.settings.apiKey;
         delete cleanCopy.settings.language;
         delete cleanCopy.settings.units;
+        delete cleanCopy.settings.pensInStock;
+        delete cleanCopy.settings.roomTempTrackingEnabled;
+        delete cleanCopy.settings.roomTempPenStart;
       }
       if (cleanCopy._sync) delete cleanCopy._sync;
       if (cleanCopy.daysData && typeof cleanCopy.daysData === 'object' && !Array.isArray(cleanCopy.daysData)) {
@@ -2975,35 +3016,86 @@
       return `{${keys.map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
     }
 
-    function getLocalSafetyBackups() {
-      const items=[];
-      for(let i=0;i<LOCAL_SAFETY_BACKUP_SLOTS;i++) {
-        try {
-          const raw=localStorage.getItem(`${LOCAL_SAFETY_BACKUP_PREFIX}${i}`);
-          if(!raw) continue;
-          const parsed=JSON.parse(raw);
-          if(parsed && parsed.snapshot && typeof parsed.snapshot==='object') items.push(Object.assign({slot:i},parsed));
-        } catch(_) {}
-      }
-      return items.sort((a,b)=>(Number(b.savedAt)||0)-(Number(a.savedAt)||0));
+    let localSafetyBackupCache=[];
+    let localSafetyBackupsReady=false;
+    let localBackupInitPromise=Promise.resolve();
+
+    function openLocalBackupDb(){
+      return new Promise((resolve,reject)=>{
+        if(!('indexedDB' in window)){reject(new Error('INDEXEDDB_UNAVAILABLE'));return;}
+        const req=indexedDB.open(LOCAL_BACKUP_DB_NAME,LOCAL_BACKUP_DB_VERSION);
+        req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('backups'))db.createObjectStore('backups',{keyPath:'slot'});if(!db.objectStoreNames.contains('emergency'))db.createObjectStore('emergency',{keyPath:'key'});};
+        req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error||new Error('INDEXEDDB_OPEN_FAILED'));
+      });
+    }
+    async function idbPut(storeName,value){const db=await openLocalBackupDb();return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readwrite');tx.objectStore(storeName).put(value);tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{const e=tx.error;db.close();reject(e||new Error('INDEXEDDB_WRITE_FAILED'));};});}
+    async function idbGetAll(storeName){const db=await openLocalBackupDb();return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readonly');const req=tx.objectStore(storeName).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error||new Error('INDEXEDDB_READ_FAILED'));tx.oncomplete=()=>db.close();});}
+    async function idbClear(storeName){const db=await openLocalBackupDb();return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readwrite');tx.objectStore(storeName).clear();tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{const e=tx.error;db.close();reject(e||new Error('INDEXEDDB_CLEAR_FAILED'));};});}
+
+    async function initLocalSafetyBackups(){
+      try{
+        // One-time migration from v4.0.5 localStorage snapshots into IndexedDB.
+        for(let i=0;i<LOCAL_SAFETY_BACKUP_SLOTS;i++){
+          const key=`${LOCAL_SAFETY_BACKUP_PREFIX}${i}`; const raw=localStorage.getItem(key); if(!raw)continue;
+          try{const parsed=JSON.parse(raw);if(parsed&&parsed.snapshot&&typeof parsed.snapshot==='object')await idbPut('backups',{slot:i,savedAt:Number(parsed.savedAt)||Date.now(),appVersion:parsed.appVersion||'',snapshot:parsed.snapshot});}catch(_){}
+          try{localStorage.removeItem(key);}catch(_){}
+        }
+        localSafetyBackupCache=(await idbGetAll('backups')).filter(x=>x&&x.snapshot&&typeof x.snapshot==='object').sort((a,b)=>(Number(b.savedAt)||0)-(Number(a.savedAt)||0));
+      }catch(err){console.warn('IndexedDB safety backups unavailable; continuing without rotating local snapshots.',err);localSafetyBackupCache=[];}
+      localSafetyBackupsReady=true; updateLocalBackupStatus(); return localSafetyBackupCache;
     }
 
-    function rotateLocalSafetySnapshot() {
-      try {
-        const raw=localStorage.getItem(STORAGE_KEY);
-        if(!raw) return;
-        const previous=JSON.parse(raw);
-        if(!previous || typeof previous!=='object') return;
-        const existing=getLocalSafetyBackups();
-        const previousComparable=stableStringify(previous);
-        if(existing.some(x=>{try{return stableStringify(x.snapshot)===previousComparable;}catch(_){return false;}})) return;
-        let target=Number(localStorage.getItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY));
-        if(!Number.isInteger(target)||target<0||target>=LOCAL_SAFETY_BACKUP_SLOTS) target=0;
-        const maxSaved=existing.reduce((m,x)=>Math.max(m,Number(x.savedAt)||0),0);
-        const savedAt=Math.max(Date.now(),maxSaved+1);
-        localStorage.setItem(`${LOCAL_SAFETY_BACKUP_PREFIX}${target}`,JSON.stringify({savedAt,appVersion:APP_VERSION,snapshot:previous}));
-        localStorage.setItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY,String((target+1)%LOCAL_SAFETY_BACKUP_SLOTS));
-      } catch(err) { console.warn('Local safety snapshot skipped:',err); }
+    function getLocalSafetyBackups(){return localSafetyBackupCache.slice().sort((a,b)=>(Number(b.savedAt)||0)-(Number(a.savedAt)||0));}
+
+    function commitLocalSafetySnapshot(previous){
+      try{
+        if(!previous||typeof previous!=='object')return;
+        const existing=getLocalSafetyBackups(); const previousComparable=stableStringify(previous);
+        if(existing.some(x=>{try{return stableStringify(x.snapshot)===previousComparable;}catch(_){return false;}}))return;
+        let target=Number(localStorage.getItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY));if(!Number.isInteger(target)||target<0||target>=LOCAL_SAFETY_BACKUP_SLOTS)target=0;
+        const maxSaved=existing.reduce((m,x)=>Math.max(m,Number(x.savedAt)||0),0);const item={slot:target,savedAt:Math.max(Date.now(),maxSaved+1),appVersion:APP_VERSION,snapshot:previous};
+        localSafetyBackupCache=localSafetyBackupCache.filter(x=>Number(x.slot)!==target);localSafetyBackupCache.push(item);localSafetyBackupCache.sort((a,b)=>(Number(b.savedAt)||0)-(Number(a.savedAt)||0));
+        try{localStorage.setItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY,String((target+1)%LOCAL_SAFETY_BACKUP_SLOTS));}catch(_){}
+        idbPut('backups',item).catch(err=>console.warn('Could not persist local safety snapshot to IndexedDB:',err));updateLocalBackupStatus();
+      }catch(err){console.warn('Local safety snapshot skipped:',err);}
+    }
+
+    function rotateLocalSafetySnapshot(){
+      let previous=null;try{const raw=localStorage.getItem(STORAGE_KEY);if(raw)previous=JSON.parse(raw);}catch(_){}
+      if(!previous||typeof previous!=='object')return;
+      if(!localSafetyBackupsReady){localBackupInitPromise.then(()=>commitLocalSafetySnapshot(previous)).catch(()=>{});return;}
+      commitLocalSafetySnapshot(previous);
+    }
+
+    async function replaceLocalSafetyBackups(items){
+      const clean=(Array.isArray(items)?items:[]).slice(0,LOCAL_SAFETY_BACKUP_SLOTS).map((x,idx)=>({slot:idx,savedAt:Number(x?.savedAt)||Date.now()+idx,appVersion:String(x?.appVersion||APP_VERSION),snapshot:x?.snapshot&&typeof x.snapshot==='object'?x.snapshot:{}}));
+      try{await idbClear('backups');for(const item of clean)await idbPut('backups',item);localSafetyBackupCache=clean.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));localSafetyBackupsReady=true;try{localStorage.setItem(LOCAL_SAFETY_BACKUP_CURSOR_KEY,String(clean.length%LOCAL_SAFETY_BACKUP_SLOTS));}catch(_){}updateLocalBackupStatus();return true;}catch(err){console.warn('Could not restore local backup history:',err);return false;}
+    }
+
+    function isQuotaExceededError(err){return Boolean(err&&(err.name==='QuotaExceededError'||err.code===22||err.code===1014));}
+    function emergencyStateToIndexedDb(snapshot){return idbPut('emergency',{key:'latest',savedAt:Date.now(),appVersion:APP_VERSION,snapshot:JSON.parse(JSON.stringify(snapshot))}).catch(err=>console.error('Emergency IndexedDB save failed:',err));}
+    async function recoverEmergencyStateIfNewer(){
+      try{
+        const rows=await idbGetAll('emergency');const item=(rows||[]).find(x=>x&&x.key==='latest'&&x.snapshot&&typeof x.snapshot==='object');if(!item)return false;
+        const localMutation=Number(state?.meta?.lastMutationAt)||0,emergencyMutation=Number(item.snapshot?.meta?.lastMutationAt)||Number(item.savedAt)||0;
+        const localOwner=state?.meta?.ownerUid||null,emergencyOwner=item.snapshot?.meta?.ownerUid||null;
+        if(localOwner&&emergencyOwner&&localOwner!==emergencyOwner)return false;
+        if(emergencyMutation<=localMutation)return false;
+        state=JSON.parse(JSON.stringify(item.snapshot));ensureStateMetadata();ensureV4State();state.selectedDate=getFormattedDate(new Date());
+        const saved=writePrimaryLocalState();markExplicitMutationPending();
+        if(saved)await idbClear('emergency');
+        applyMedicationTheme();renderCurrentDay();if(activeTab==='tools')renderToolsView();renderAiStatus();
+        showToast(uiText('Se recuperó un cambio desde la copia de emergencia local.','A change was recovered from the local emergency copy.'),6000);return true;
+      }catch(err){console.warn('Emergency recovery check failed:',err);return false;}
+    }
+    function writePrimaryLocalState(){
+      const raw=JSON.stringify(state);
+      try{localStorage.setItem(STORAGE_KEY,raw);return true;}catch(err){
+        if(!isQuotaExceededError(err)){console.error('Local state save failed:',err);return false;}
+        // v4.0.6 snapshots no longer consume localStorage; clear legacy slots and retry once.
+        for(let i=0;i<LOCAL_SAFETY_BACKUP_SLOTS;i++){try{localStorage.removeItem(`${LOCAL_SAFETY_BACKUP_PREFIX}${i}`);}catch(_){}}
+        try{localStorage.setItem(STORAGE_KEY,raw);return true;}catch(err2){console.error('Local storage quota exhausted:',err2);emergencyStateToIndexedDb(state);showToast(uiText('Almacenamiento local lleno. Se creó una copia de emergencia y se intentará sincronizar este cambio con Firebase. Exporta un backup pronto.','Local storage is full. An emergency copy was created and this change will still try to sync with Firebase. Export a backup soon.'),8000);return false;}
+      }
     }
 
     function updateLocalBackupStatus() {
@@ -3023,30 +3115,22 @@
       if (currentUser) state.meta.ownerUid = currentUser.uid;
       state.meta.clientVersion = APP_VERSION;
       if(options.userMutation === true && options.skipLocalSafetyBackup !== true) rotateLocalSafetySnapshot();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Mark the mutation BEFORE the local write so a QuotaExceededError can never make
+      // an explicit user change disappear from the cloud-sync queue.
+      if (options.userMutation === true) markExplicitMutationPending();
+      const localSaved=writePrimaryLocalState();
       updateLocalBackupStatus();
 
-      if (options.localOnly) return;
-
-      // v3.8 safety rule: saving locally is NOT permission to write to Firestore.
-      // Only call sites representing an explicit user action may set userMutation:true.
+      if (options.localOnly) return localSaved;
       if (options.userMutation !== true) {
         console.warn('Cloud write skipped: persistState was called without an explicit user mutation.');
-        return;
+        return localSaved;
       }
-
-      markExplicitMutationPending();
-      if (!currentUser) return;
-      if (cloudWriteBlockedByVersion) {
-        setSyncStatus('update-required');
-        return;
-      }
-      if (!cloudInitialReadComplete) {
-        cloudSyncDeferredUntilBootstrap = true;
-        setSyncStatus('waiting');
-        return;
-      }
-      scheduleCloudSync(Boolean(options.immediateCloud));
+      if (!currentUser) return localSaved;
+      if (cloudWriteBlockedByVersion) { setSyncStatus('update-required'); return localSaved; }
+      if (!cloudInitialReadComplete) { cloudSyncDeferredUntilBootstrap = true; setSyncStatus('waiting'); return localSaved; }
+      scheduleCloudSync(Boolean(options.immediateCloud)||!localSaved);
+      return localSaved;
     }
 
     function scheduleCloudSync(immediate = false) {
@@ -3211,6 +3295,7 @@
         dataEpoch: typeof cloudMetaRaw.dataEpoch === 'string' && cloudMetaRaw.dataEpoch ? cloudMetaRaw.dataEpoch : (cloud._sync && cloud._sync.dataEpoch) || 'legacy-v1',
         resetAt: Number(cloudMetaRaw.resetAt) || 0,
         settingsUpdatedAt: Number(cloudMetaRaw.settingsUpdatedAt) || 0,
+        settingsFieldUpdatedAt: (cloudMetaRaw.settingsFieldUpdatedAt && typeof cloudMetaRaw.settingsFieldUpdatedAt==='object' && !Array.isArray(cloudMetaRaw.settingsFieldUpdatedAt)) ? cloudMetaRaw.settingsFieldUpdatedAt : {},
         clientVersion: cloudMetaRaw.clientVersion || (cloud._sync && cloud._sync.clientVersion) || ''
       };
 
@@ -3233,13 +3318,13 @@
           replacement.measurements = Array.isArray(cloud.measurements) ? JSON.parse(JSON.stringify(cloud.measurements)) : [];
           replacement.healthProfile = sanitizeHealthProfile(cloud.healthProfile);
           replacement.aiTelemetry = mergeAiTelemetry({}, cloud.aiTelemetry);
-          replacement.deletedRecords = (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) ? JSON.parse(JSON.stringify(cloud.deletedRecords)) : { meals:{}, weights:{}, injections:{}, measurements:{} };
+          replacement.deletedRecords = (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) ? JSON.parse(JSON.stringify(cloud.deletedRecords)) : { meals:{}, weights:{}, injections:{}, measurements:{}, bowelMovements:{} };
           replacement.meta = Object.assign(replacement.meta, cloudMeta, { schemaVersion: CLIENT_SCHEMA_VERSION, ownerUid: currentUser ? currentUser.uid : cloudMeta.ownerUid, clientVersion: APP_VERSION });
           replacement.selectedDate = localSelectedDate;
           state = replacement;
           cleanupTombstones();
           ensureV4State();
-          if (!options.suppressLocalSave) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          if (!options.suppressLocalSave) writePrimaryLocalState();
           if (!options.suppressRender) {
             applyMedicationTheme();
             renderCurrentDay();
@@ -3257,16 +3342,31 @@
       delete cloudSettings.apiKey;
       delete cloudSettings.language;
       delete cloudSettings.units;
-      const localSettingsTs = Number(state.meta.settingsUpdatedAt) || 0;
-      const cloudSettingsTs = Number(cloudMeta.settingsUpdatedAt) || 0;
-      const cloudWinsSettings = cloudSettingsTs > localSettingsTs || (cloudSettingsTs === localSettingsTs && options.preferCloudOnTie !== false && cloudSettingsTs === 0);
-      if (cloudWinsSettings) {
-        state.settings = Object.assign(state.settings, cloudSettings);
-        state.settings.language = localLanguage;
-        state.settings.units = localUnits;
-        state.meta.settingsUpdatedAt = cloudSettingsTs;
-        renderSettingsFormFromState();
-      }
+      const localSettingsTs=Number(state.meta.settingsUpdatedAt)||0, cloudSettingsTs=Number(cloudMeta.settingsUpdatedAt)||0;
+      const localFieldTs=state.meta.settingsFieldUpdatedAt||{}, cloudFieldTs=cloudMeta.settingsFieldUpdatedAt||{};
+      const localHasFieldMap=Object.keys(localFieldTs).length>0, cloudHasFieldMap=Object.keys(cloudFieldTs).length>0;
+      const fieldStamp=(map,hasMap,globalTs,key,parentKey=null)=>{
+        if(Object.prototype.hasOwnProperty.call(map,key))return Number(map[key])||0;
+        if(parentKey&&Object.prototype.hasOwnProperty.call(map,parentKey))return Number(map[parentKey])||0;
+        return hasMap?0:globalTs; // global timestamp is legacy fallback only
+      };
+      let settingsChangedFromCloud=false;
+      const mergeNestedSetting=(key)=>{
+        const localObj=(state.settings[key]&&typeof state.settings[key]==='object'&&!Array.isArray(state.settings[key]))?state.settings[key]:{};
+        const cloudObj=(cloudSettings[key]&&typeof cloudSettings[key]==='object'&&!Array.isArray(cloudSettings[key]))?cloudSettings[key]:{};
+        const out=JSON.parse(JSON.stringify(localObj));
+        new Set([...Object.keys(localObj),...Object.keys(cloudObj)]).forEach(sub=>{const stampKey=`${key}.${sub}`,lts=fieldStamp(localFieldTs,localHasFieldMap,localSettingsTs,stampKey,key),cts=fieldStamp(cloudFieldTs,cloudHasFieldMap,cloudSettingsTs,stampKey,key);if(sub in cloudObj&&(cts>lts||(cts===lts&&cts===0&&options.preferCloudOnTie!==false&&!(sub in localObj)))){out[sub]=JSON.parse(JSON.stringify(cloudObj[sub]));if(cts>0)state.meta.settingsFieldUpdatedAt[stampKey]=cts;settingsChangedFromCloud=true;}});
+        state.settings[key]=out;
+      };
+      mergeNestedSetting('inventoryByProduct');mergeNestedSetting('roomTempTrackers');
+      Object.keys(cloudSettings).forEach(key=>{
+        if(['language','units','apiKey','inventoryByProduct','roomTempTrackers','pensInStock','roomTempTrackingEnabled','roomTempPenStart'].includes(key))return;
+        const lts=fieldStamp(localFieldTs,localHasFieldMap,localSettingsTs,key), cts=fieldStamp(cloudFieldTs,cloudHasFieldMap,cloudSettingsTs,key);
+        const cloudWins=cts>lts || (cts===lts && cts===0 && options.preferCloudOnTie!==false && !(key in state.settings));
+        if(cloudWins){state.settings[key]=JSON.parse(JSON.stringify(cloudSettings[key]));if(cts>0)state.meta.settingsFieldUpdatedAt[key]=cts;settingsChangedFromCloud=true;}
+      });
+      state.meta.settingsUpdatedAt=Math.max(localSettingsTs,cloudSettingsTs,...Object.values(state.meta.settingsFieldUpdatedAt||{}).map(v=>Number(v)||0),0);
+      state.settings.language=localLanguage;state.settings.units=localUnits;if(settingsChangedFromCloud){ensureV4State();renderSettingsFormFromState();}
       state.meta.dataEpoch = cloudMeta.dataEpoch || state.meta.dataEpoch;
       state.meta.resetAt = Math.max(Number(state.meta.resetAt) || 0, cloudMeta.resetAt || 0);
       state.meta.ownerUid = currentUser ? currentUser.uid : (state.meta.ownerUid || cloudMeta.ownerUid);
@@ -3287,7 +3387,7 @@
 
       // Fusión de registros eliminados (tombstones)
       if (cloud.deletedRecords && typeof cloud.deletedRecords === 'object' && !Array.isArray(cloud.deletedRecords)) {
-        ['meals', 'weights', 'injections', 'measurements'].forEach(type => {
+        ['meals', 'weights', 'injections', 'measurements', 'bowelMovements'].forEach(type => {
           if (!state.deletedRecords[type]) state.deletedRecords[type] = {};
           const cloudDeletes = (cloud.deletedRecords[type] && typeof cloud.deletedRecords[type] === 'object')
             ? cloud.deletedRecords[type]
@@ -3322,6 +3422,7 @@
             cloudDay.bowelMovements = cloudBowelMovements.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
             cloudDay.bowelMovementsUpdatedAt = Number(cloudDay.bowelMovementsUpdatedAt) || 0;
             state.daysData[dateKey] = cloudDay;
+            ensureGranularDayData(dateKey,state.daysData[dateKey]);
           } else {
             const localDay = state.daysData[dateKey];
             const localMeals = Array.isArray(localDay.meals) ? localDay.meals : [];
@@ -3353,35 +3454,17 @@
             });
             localDay.meals = Array.from(mealMap.values());
 
-            // Fusión de agua mediante timestamp. 0 oz es un valor válido y no debe
-            // ser reemplazado por un registro de nube más antiguo.
-            const localWaterTs = Number(localDay.waterUpdatedAt) || 0;
-            const cloudWaterTs = Number(cloudDay.waterUpdatedAt) || 0;
-            const localWaterValue = Number(localDay.water) || 0;
-            const cloudWaterValue = Number(cloudDay.water) || 0;
-            if (cloudWaterTs > localWaterTs) {
-              localDay.water = cloudWaterValue;
-              localDay.waterUpdatedAt = cloudWaterTs;
-            } else if (!localWaterTs && !cloudWaterTs) {
-              localDay.water = Math.max(localWaterValue, cloudWaterValue);
-            }
+            // v4.0.6 water: merge immutable additive events by ID so concurrent
+            // offline additions from two devices are preserved instead of last-write-wins.
+            ensureGranularDayData(dateKey,localDay); ensureGranularDayData(dateKey,cloudDay);
+            const waterMap=new Map();
+            [...(cloudDay.waterEvents||[]),...(localDay.waterEvents||[])].forEach(e=>{if(!e||!e.id)return;const prev=waterMap.get(e.id);if(!prev||(Number(e.updatedAt)||0)>=(Number(prev.updatedAt)||0))waterMap.set(e.id,{id:e.id,delta:Number(e.delta)||0,updatedAt:Number(e.updatedAt)||0});});
+            localDay.waterEvents=Array.from(waterMap.values());recalcWaterFromEvents(localDay);
 
-            // Fusión de evacuaciones. En datos nuevos, la colección con timestamp
-            // más reciente es autoritativa para que una eliminación no reaparezca.
-            // En datos legacy sin timestamp se conserva la unión sin duplicados.
-            const localBM = Array.isArray(localDay.bowelMovements) ? localDay.bowelMovements : [];
-            const validLocalBM = localBM.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
-            const validCloudBM = cloudBowelMovements.filter(bm => typeof bm === 'string' && !isNaN(new Date(bm).getTime()));
-            const localBmTs = Number(localDay.bowelMovementsUpdatedAt) || 0;
-            const cloudBmTs = Number(cloudDay.bowelMovementsUpdatedAt) || 0;
-            if (cloudBmTs > localBmTs) {
-              localDay.bowelMovements = Array.from(new Set(validCloudBM));
-              localDay.bowelMovementsUpdatedAt = cloudBmTs;
-            } else if (localBmTs > cloudBmTs) {
-              localDay.bowelMovements = Array.from(new Set(validLocalBM));
-            } else {
-              localDay.bowelMovements = Array.from(new Set([...validLocalBM, ...validCloudBM]));
-            }
+            // v4.0.6 bowel movements: records have unique IDs and deletion tombstones.
+            const bmMap=new Map();
+            [...(cloudDay.bowelMovementRecords||[]),...(localDay.bowelMovementRecords||[])].forEach(r=>{if(!r||!r.id)return;const del=Number(state.deletedRecords.bowelMovements?.[r.id])||0;if(del>(Number(r.updatedAt)||0))return;const prev=bmMap.get(r.id);if(!prev||(Number(r.updatedAt)||0)>=(Number(prev.updatedAt)||0))bmMap.set(r.id,r);});
+            localDay.bowelMovementRecords=Array.from(bmMap.values());ensureGranularDayData(dateKey,localDay);
 
             // Fusión de síntomas mediante timestamp
             const localSymptomsTs = Number(localDay.symptomsUpdatedAt) || 0;
@@ -3518,7 +3601,7 @@
       state.selectedDate = localSelectedDate;
       state.settings.language = localLanguage;
       state.settings.units = localUnits;
-      if (!options.suppressLocalSave) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!options.suppressLocalSave) writePrimaryLocalState();
       if (!options.suppressRender) {
         applyMedicationTheme();
         renderCurrentDay();
@@ -3551,7 +3634,7 @@
       state.selectedDate = localSelectedDate;
       state.settings.language = localLanguage;
       ensureStateMetadata();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      writePrimaryLocalState();
       applyMedicationTheme();
       renderCurrentDay();
       if (activeTab === 'tools') renderToolsView();
@@ -3716,6 +3799,55 @@
       ]}
     };
 
+    const MEDICATION_PRESENTATIONS = Object.freeze({
+      mounjaro: [
+        {key:'single_dose', es:'Pluma o vial monodosis', en:'Single-dose pen or vial', timerMode:'cumulative_room', roomTempDays:21, maxF:86, maxC:30, inventoryMode:'perDose'},
+        {key:'multi_dose', es:'Vial multidosis / KwikPen (4 dosis)', en:'Multi-dose vial / KwikPen (4 doses)', timerMode:'combined', roomTempDays:30, firstUseDays:30, maxUnitDoses:4, maxF:86, maxC:30, inventoryMode:'manual'}
+      ],
+      zepbound: [
+        {key:'single_dose', es:'Pluma o vial monodosis', en:'Single-dose pen or vial', timerMode:'cumulative_room', roomTempDays:21, noReturnToFridge:true, maxF:86, maxC:30, inventoryMode:'perDose'},
+        {key:'multi_dose', es:'Vial multidosis / KwikPen (4 dosis)', en:'Multi-dose vial / KwikPen (4 doses)', timerMode:'combined', roomTempDays:30, firstUseDays:30, maxUnitDoses:4, maxF:86, maxC:30, inventoryMode:'manual'}
+      ],
+      ozempic: [
+        {key:'multi_pen', es:'Pluma multidosis', en:'Multi-dose pen', timerMode:'first_use', firstUseDays:56, roomTempDays:56, maxF:86, maxC:30, inventoryMode:'manual'},
+        {key:'single_syringe', es:'Jeringa prellenada monodosis', en:'Single-dose prefilled syringe', timerMode:'cumulative_room', roomTempDays:28, maxF:86, maxC:30, inventoryMode:'perDose'}
+      ],
+      wegovy: [{key:'single_pen', es:'Pluma monodosis', en:'Single-dose pen', timerMode:'cumulative_room', roomTempDays:28, maxF:86, maxC:30, inventoryMode:'perDose'}],
+      trulicity: [{key:'single_pen', es:'Pluma monodosis', en:'Single-dose pen', timerMode:'cumulative_room', roomTempDays:14, maxF:86, maxC:30, inventoryMode:'perDose'}],
+      saxenda: [{key:'multi_pen', es:'Pluma multidosis', en:'Multi-dose pen', timerMode:'first_use', firstUseDays:30, roomTempDays:30, maxF:86, maxC:30, inventoryMode:'manual'}],
+      victoza: [{key:'multi_pen', es:'Pluma multidosis', en:'Multi-dose pen', timerMode:'first_use', firstUseDays:30, roomTempDays:30, maxF:86, maxC:30, inventoryMode:'manual'}],
+      ozempic_tablets: [{key:'tablets', es:'Tabletas', en:'Tablets', timerMode:'none', roomTempDays:null, maxF:null, maxC:null, inventoryMode:'perDose'}]
+    });
+
+    function getPresentationOptions(medKey=state?.settings?.medication||'mounjaro') { return MEDICATION_PRESENTATIONS[medKey] || [{key:'default',es:'Estándar',en:'Standard',timerMode:'none',inventoryMode:'manual'}]; }
+    function getDefaultPresentationKey(medKey=state?.settings?.medication||'mounjaro') { return getPresentationOptions(medKey)[0].key; }
+    function getPresentationProfile(medKey=state?.settings?.medication||'mounjaro', presentationKey=state?.settings?.presentation) { const opts=getPresentationOptions(medKey); return opts.find(x=>x.key===presentationKey)||opts[0]; }
+    function getProductKey(medKey=state?.settings?.medication||'mounjaro', presentationKey=state?.settings?.presentation) { return `${medKey}:${presentationKey||getDefaultPresentationKey(medKey)}`; }
+    function getCurrentProductKey(){ return getProductKey(state.settings.medication,state.settings.presentation); }
+    function getInventoryCount(productKey=getCurrentProductKey()){ const n=Number(state.settings.inventoryByProduct?.[productKey]); return Number.isFinite(n)&&n>=0?Math.floor(n):0; }
+    function setInventoryCount(value, productKey=getCurrentProductKey()){ if(!state.settings.inventoryByProduct||typeof state.settings.inventoryByProduct!=='object')state.settings.inventoryByProduct={}; const n=Math.max(0,Math.floor(Number(value)||0)); state.settings.inventoryByProduct[productKey]=n; if(productKey===getCurrentProductKey())state.settings.pensInStock=n; return n; }
+    function getRoomTempTracker(productKey=getCurrentProductKey()){ if(!state.settings.roomTempTrackers||typeof state.settings.roomTempTrackers!=='object')state.settings.roomTempTrackers={}; if(!state.settings.roomTempTrackers[productKey])state.settings.roomTempTrackers[productKey]={active:false,startedAt:0,accumulatedMs:0,firstUseAt:0,updatedAt:0}; return state.settings.roomTempTrackers[productKey]; }
+
+    function simpleStableHash(text){ let h=2166136261; for(let i=0;i<String(text).length;i++){h^=String(text).charCodeAt(i);h=Math.imul(h,16777619);} return (h>>>0).toString(36); }
+    function ensureGranularDayData(dateKey,day){
+      if(!Array.isArray(day.waterEvents)){
+        day.waterEvents=[];
+        const legacy=Number(day.water)||0;
+        if(legacy!==0)day.waterEvents.push({id:`water_base_${dateKey}`,delta:legacy,updatedAt:Number(day.waterUpdatedAt)||0});
+      }
+      day.waterEvents=day.waterEvents.filter(e=>e&&typeof e==='object'&&typeof e.id==='string'&&Number.isFinite(Number(e.delta))).map(e=>({id:e.id,delta:Number(e.delta),updatedAt:Math.max(0,Number(e.updatedAt)||0)}));
+      const total=day.waterEvents.reduce((sum,e)=>sum+Number(e.delta||0),0); day.water=Math.max(0,total); day.waterUpdatedAt=Math.max(Number(day.waterUpdatedAt)||0,...day.waterEvents.map(e=>Number(e.updatedAt)||0),0);
+      if(!Array.isArray(day.bowelMovementRecords)){
+        const legacy=Array.isArray(day.bowelMovements)?day.bowelMovements:[];
+        day.bowelMovementRecords=legacy.filter(v=>typeof v==='string'&&!isNaN(new Date(v).getTime())).map(v=>({id:`bm_${simpleStableHash(dateKey+'|'+v)}`,at:v,updatedAt:Number(day.bowelMovementsUpdatedAt)||0}));
+      }
+      const seen=new Set(); day.bowelMovementRecords=day.bowelMovementRecords.filter(r=>{if(!r||typeof r.id!=='string'||seen.has(r.id)||typeof r.at!=='string'||isNaN(new Date(r.at).getTime()))return false;seen.add(r.id);return true;}).map(r=>({id:r.id,at:r.at,updatedAt:Math.max(0,Number(r.updatedAt)||0)}));
+      const dels=state.deletedRecords?.bowelMovements||{}; day.bowelMovementRecords=day.bowelMovementRecords.filter(r=>(Number(dels[r.id])||0)<=(Number(r.updatedAt)||0));
+      day.bowelMovements=day.bowelMovementRecords.map(r=>r.at).sort(); day.bowelMovementsUpdatedAt=Math.max(Number(day.bowelMovementsUpdatedAt)||0,...day.bowelMovementRecords.map(r=>Number(r.updatedAt)||0),0);
+      return day;
+    }
+    function recalcWaterFromEvents(day){ if(!day)return 0; const total=(Array.isArray(day.waterEvents)?day.waterEvents:[]).reduce((sum,e)=>sum+Number(e?.delta||0),0); day.water=Math.max(0,total); day.waterUpdatedAt=Math.max(Number(day.waterUpdatedAt)||0,...(day.waterEvents||[]).map(e=>Number(e?.updatedAt)||0),0); return day.water; }
+
     function getMedicationProfile(key = null) {
       return MEDICATION_PROFILES[key || state.settings.medication] || MEDICATION_PROFILES.mounjaro;
     }
@@ -3736,19 +3868,45 @@
        ADAPTACIÓN DINÁMICA: MOUNJARO VS OZEMPIC
        ========================================================================== */
     function handleMedicationChange(selectedMed) {
-      if (!MEDICATION_PROFILES[selectedMed]) selectedMed = 'mounjaro';
-      state.settings.medication = selectedMed;
-      markSettingsChanged();
-      // Room-temperature tracking is product-specific; reset when medication changes.
-      state.settings.roomTempTrackingEnabled = false;
-      state.settings.roomTempPenStart = null;
-      persistState({ userMutation: true });
-      applyMedicationTheme();
-      updateHalfLifeAndNextDose();
-      renderMounjaroView();
-      renderPersonalInsights();
-      showToast(isEnglish() ? `Medication set: ${getMedicationLabel(getMedicationProfile(), true)}` : `Medicamento configurado: ${getMedicationLabel(getMedicationProfile(), true)}`);
+      if (!MEDICATION_PROFILES[selectedMed]) selectedMed='mounjaro';
+      state.settings.medication=selectedMed;
+      const valid=getPresentationOptions(selectedMed).map(x=>x.key);if(!valid.includes(state.settings.presentation))state.settings.presentation=getDefaultPresentationKey(selectedMed);
+      state.settings.pensInStock=getInventoryCount(getCurrentProductKey());
+      markSettingsChanged(['medication','presentation']);persistState({userMutation:true});applyMedicationTheme();updateHalfLifeAndNextDose();renderMounjaroView();renderPersonalInsights();
+      showToast(isEnglish()?`Medication set: ${getMedicationLabel(getMedicationProfile(),true)}`:`Medicamento configurado: ${getMedicationLabel(getMedicationProfile(),true)}`);
     }
+
+    function renderPresentationSelector(){
+      const select=document.getElementById('setting-presentation'),wrap=document.getElementById('setting-presentation-wrap'),help=document.getElementById('setting-presentation-help');if(!select)return;
+      const opts=getPresentationOptions();if(!opts.some(x=>x.key===state.settings.presentation))state.settings.presentation=opts[0].key;
+      select.innerHTML=opts.map(x=>`<option value="${escapeHtml(x.key)}">${escapeHtml(isEnglish()?x.en:x.es)}</option>`).join('');select.value=state.settings.presentation;
+      if(wrap)wrap.classList.toggle('hidden',opts.length===1&&getMedicationProfile().route==='oral');
+      const pr=getPresentationProfile();if(help)help.innerText=isEnglish()?`Storage and inventory rules use this exact presentation. ${pr.maxF?`Maximum ${pr.maxF}°F (${pr.maxC}°C).`:''}`:`Las reglas de almacenamiento e inventario usan esta presentación exacta. ${pr.maxF?`Máximo ${pr.maxF}°F (${pr.maxC}°C).`:''}`;
+    }
+    function handlePresentationChange(value){const opts=getPresentationOptions();const next=opts.some(x=>x.key===value)?value:opts[0].key;if(next===state.settings.presentation)return;state.settings.presentation=next;state.settings.pensInStock=getInventoryCount(getCurrentProductKey());markSettingsChanged(['presentation']);persistState({userMutation:true});applyMedicationTheme();renderMounjaroView();showToast(uiText('Presentación actualizada. Se aplicaron las reglas de almacenamiento correspondientes.','Presentation updated. The matching storage rules are now active.'));}
+    function storageTrackerElapsedRoomMs(tracker,now=Date.now()){return Math.max(0,Number(tracker.accumulatedMs)||0)+(tracker.active&&Number(tracker.startedAt)>0?Math.max(0,now-Number(tracker.startedAt)):0);}
+    function getStorageTrackerStatus(now=Date.now()){
+      const pr=getPresentationProfile(),t=getRoomTempTracker(),dayMs=86400000;let roomLeft=null,firstUseLeft=null;
+      if(pr.roomTempDays)roomLeft=pr.roomTempDays-storageTrackerElapsedRoomMs(t,now)/dayMs;
+      if(pr.firstUseDays&&Number(t.firstUseAt)>0)firstUseLeft=pr.firstUseDays-Math.max(0,now-Number(t.firstUseAt))/dayMs;
+      let doseCount=0;
+      if(pr.maxUnitDoses&&Number(t.firstUseAt)>0){
+        const key=getCurrentProductKey();doseCount=(state.injections||[]).filter(i=>i&&String(i.productKey||'')===key&&(injectionTimestamp(i)||0)>=Number(t.firstUseAt)).length;
+      }
+      const values=[roomLeft,firstUseLeft].filter(v=>Number.isFinite(v));const left=values.length?Math.min(...values):null;
+      const doseLimitExpired=Boolean(pr.maxUnitDoses&&doseCount>=pr.maxUnitDoses);
+      return {presentation:pr,tracker:t,roomLeft,firstUseLeft,daysLeft:left,doseCount,doseLimitExpired,expired:(Number.isFinite(left)&&left<=0)||doseLimitExpired};
+    }
+    function noteFirstUseForCurrentProduct(atMs=Date.now()){
+      const pr=getPresentationProfile();if(!pr.firstUseDays)return;const t=getRoomTempTracker();if(!Number(t.firstUseAt)){t.firstUseAt=atMs;t.updatedAt=mutationNow();markSettingsChanged([`roomTempTrackers.${getCurrentProductKey()}`]);}
+    }
+    function resetStorageTrackerForNewUnit(){
+      const pr=getPresentationProfile();if(pr.timerMode==='none')return;
+      if(!confirm(uiText('¿Comenzaste una unidad nueva de este medicamento? Esto reiniciará únicamente el historial de almacenamiento de esta presentación.','Did you start a new unit of this medication? This resets only the storage history for this presentation.')))return;
+      if(!confirm(uiText('Segunda confirmación: el tiempo ya consumido de la unidad anterior no podrá recuperarse desde este contador. ¿Continuar?','Second confirmation: time already used by the previous unit will no longer appear in this tracker. Continue?')))return;
+      state.settings.roomTempTrackers[getCurrentProductKey()]={active:false,startedAt:0,accumulatedMs:0,firstUseAt:0,updatedAt:mutationNow()};markSettingsChanged([`roomTempTrackers.${getCurrentProductKey()}`]);persistState({userMutation:true});renderMounjaroView();showToast(uiText('Seguimiento preparado para una unidad nueva.','Storage tracking reset for a new unit.'));
+    }
+
 
     function applyMedicationTheme() {
       const p = getMedicationProfile();
@@ -3764,6 +3922,7 @@
 
       const medSelector = document.getElementById('setting-medication');
       if (medSelector) medSelector.value = state.settings.medication;
+      renderPresentationSelector();
       const help = document.getElementById('medication-regimen-help');
       if (help) help.innerText = `${getRegimenLabel(p)} · ${uiText('Vida media aproximada', 'Approx. half-life')}: ${p.halfLifeDays < 1 ? Math.round(p.halfLifeDays*24)+' h' : p.halfLifeDays+' '+uiText('días','days')}. ${uiText('La app no modifica ni recomienda tratamiento.', 'The app does not change or recommend treatment.')}`;
 
@@ -3790,20 +3949,16 @@
       const roomCard = document.getElementById('room-temp-card');
       const roomBadge = document.getElementById('room-temp-status-badge');
       const roomExpl = document.getElementById('room-temp-expl-text');
-      if (roomCard) roomCard.classList.toggle('hidden', !p.roomTempDays);
-      if (p.roomTempDays) {
-        if (roomBadge) roomBadge.innerText = isEnglish() ? `${p.roomTempDays} days max.` : `${p.roomTempDays} días máx.`;
-        if (roomExpl) roomExpl.innerText = isEnglish()
-          ? `Optional travel/out-of-refrigerator tracker. Activate it only when needed. ${p.name}: up to ${p.roomTempDays} days in this tracker; always follow the product label for storage.`
-          : `Seguimiento opcional para viajes o cuando esté fuera de la nevera. Actívalo solo cuando lo necesites. ${p.name}: hasta ${p.roomTempDays} días en este seguimiento; sigue siempre la etiqueta del producto.`;
-      }
+      const pr=getPresentationProfile();
+      if(roomCard)roomCard.classList.toggle('hidden',pr.timerMode==='none');
+      if(pr.timerMode!=='none'){if(roomBadge)roomBadge.innerText=uiText('Reglas por presentación','Presentation-specific');if(roomExpl)roomExpl.innerText=pr.timerMode==='first_use'?uiText('Esta presentación vence según el tiempo desde el primer uso, aunque vuelva a refrigerarse.','This presentation expires based on time since first use, even if returned to refrigeration.'):pr.timerMode==='combined'?uiText('Se aplica el límite que ocurra primero: tiempo fuera de refrigeración, tiempo desde primer uso o el límite del producto.','The earliest applicable limit wins: room-temperature exposure, time since first use, or product-use limit.'):uiText('El tiempo fuera de refrigeración se acumula; apagar el seguimiento lo pausa, no reinicia el tiempo consumido.','Time out of refrigeration accumulates; turning tracking off pauses it and does not reset time already used.');}
 
       const invTitle = document.getElementById('inventory-card-title');
       const invSubtitle = document.getElementById('inventory-card-subtitle');
       if (invTitle) invTitle.innerText = uiText('Inventario de medicamento', 'Medication inventory');
       if (invSubtitle) invSubtitle.innerText = isOral ? uiText('Tabletas disponibles para seguimiento.', 'Tablets available for tracking.') : uiText('Unidades disponibles para seguimiento.', 'Units available for tracking.');
       const penVal = document.getElementById('pen-stock-val');
-      if (penVal) penVal.innerText = `${state.settings.pensInStock || 0} ${isEnglish() ? p.inventoryUnitEn : p.inventoryUnitEs}`;
+      const inv=getInventoryCount();state.settings.pensInStock=inv;if(penVal)penVal.innerText=`${inv} ${isEnglish()?p.inventoryUnitEn:p.inventoryUnitEs}`;
     }
 
     function updateTitrationStatus() {
@@ -3845,19 +4000,10 @@
       }
     }
 
-    function addToAppleCalendar() {
-      if (!state.injections || state.injections.length === 0) { showToast(uiText('Registra primero una dosis para generar el recordatorio.', 'Log a dose first to create the reminder.')); return; }
-      const p=getMedicationProfile(); const sorted=getInjectionsForMedication(p.key).sort((a,b)=>(injectionTimestamp(b)||0)-(injectionTimestamp(a)||0)); const latest=sorted[0];
-      if (!latest) { showToast(uiText('Registra primero una dosis de este medicamento.', 'Log a dose of this medication first.')); return; }
-      const latestTs=injectionTimestamp(latest); if(!latestTs){showToast(uiText('Revisa la fecha de la última dosis.','Review the latest dose date.'));return;}
-      const nextDate=new Date(latestTs); nextDate.setDate(nextDate.getDate()+p.frequencyDays);
-      const y=nextDate.getFullYear(),m=String(nextDate.getMonth()+1).padStart(2,'0'),d=String(nextDate.getDate()).padStart(2,'0');
-      let hh='09',mm='00';if(latest.time&&/^([01]\d|2[0-3]):[0-5]\d$/.test(latest.time)){[hh,mm]=latest.time.split(':');}
-      const start=`${y}${m}${d}T${hh}${mm}00`, endDate=new Date(nextDate);endDate.setMinutes(endDate.getMinutes()+30);const ey=endDate.getFullYear(),em=String(endDate.getMonth()+1).padStart(2,'0'),ed=String(endDate.getDate()).padStart(2,'0'),eh=String(endDate.getHours()).padStart(2,'0'),emin=String(endDate.getMinutes()).padStart(2,'0');
-      const freq=p.frequencyDays===1?'DAILY':'WEEKLY',medName=p.name;
-      const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//GLP1 Companion//BILINGUAL','CALSCALE:GREGORIAN','BEGIN:VEVENT',`SUMMARY:${uiText('Dosis de','Dose of')} ${medName} (${latest.dose})`,`DESCRIPTION:${uiText('Recordatorio según el régimen registrado en GLP-1 Companion. Sigue siempre tu plan prescrito.','Reminder based on the regimen logged in GLP-1 Companion. Always follow your prescribed plan.')}`,`DTSTART:${start}`,`DTEND:${ey}${em}${ed}T${eh}${emin}00`,`RRULE:FREQ=${freq}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY',`DESCRIPTION:${uiText('Recordatorio de dosis','Dose reminder')}`,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
-      const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${medName.toLowerCase().replace(/\s+/g,'_')}_reminder.ics`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-      showToast(uiText('Archivo de calendario generado con la hora registrada de tu dosis.','Calendar file created using your recorded dose time.'));
+    function addToAppleCalendar(){
+      if(!state.injections||state.injections.length===0){showToast(uiText('Registra primero una dosis para generar el recordatorio.','Log a dose first to create the reminder.'));return;}const p=getMedicationProfile(),sorted=getInjectionsForMedication(p.key).sort((a,b)=>(injectionTimestamp(b)||0)-(injectionTimestamp(a)||0)),latest=sorted[0];if(!latest){showToast(uiText('Registra primero una dosis de este medicamento.','Log a dose of this medication first.'));return;}
+      const baseDate=String(latest.date).split('T')[0];if(!isValidDateKey(baseDate)){showToast(uiText('Revisa la fecha de la última dosis.','Review the latest dose date.'));return;}const time=(latest.time&&/^([01]\d|2[0-3]):[0-5]\d$/.test(latest.time))?latest.time:'09:00';const startDate=new Date(`${baseDate}T${time}:00`);startDate.setDate(startDate.getDate()+p.frequencyDays);const endDate=new Date(startDate.getTime()+30*60000);const fmt=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}00`;const freq=p.frequencyDays===1?'DAILY':'WEEKLY',medName=p.name;
+      const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//GLP1 Companion//BILINGUAL','CALSCALE:GREGORIAN','BEGIN:VEVENT',`SUMMARY:${uiText('Dosis de','Dose of')} ${medName} (${latest.dose})`,`DESCRIPTION:${uiText('Recordatorio según el régimen registrado en GLP-1 Companion. Sigue siempre tu plan prescrito.','Reminder based on the regimen logged in GLP-1 Companion. Always follow your prescribed plan.')}`,`DTSTART:${fmt(startDate)}`,`DTEND:${fmt(endDate)}`,`RRULE:FREQ=${freq}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY',`DESCRIPTION:${uiText('Recordatorio de dosis','Dose reminder')}`,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${medName.toLowerCase().replace(/\s+/g,'_')}_reminder.ics`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);showToast(uiText('Archivo de calendario generado. Registros antiguos sin hora usan 9:00 AM y duran 30 minutos.','Calendar file created. Older records without a time use 9:00 AM and a 30-minute duration.'));
     }
 
     // v4.0.5 — iOS/iPadOS standalone PWAs can silently ignore window.print().
@@ -4090,25 +4236,13 @@
     function getSelectedDay() {
       if (!state.daysData[state.selectedDate]) {
         state.daysData[state.selectedDate] = {
-          water: 0,
-          waterUpdatedAt: 0,
-          meals: [],
-          symptoms: {
-            hunger: 3,
-            nausea: "none",
-            heartburn: "none",
-            sulfur: "none",
-            fatigue: "none",
-            notes: ""
-          },
-          symptomsUpdatedAt: 0,
-          bowelMovements: [],
-          bowelMovementsUpdatedAt: 0,
-          electrolytes: { mg: false, k: false, na: false, multi: false },
-          electrolytesUpdatedAt: 0
+          water: 0, waterUpdatedAt: 0, waterEvents: [], meals: [],
+          symptoms: { hunger: 3, nausea: "none", heartburn: "none", sulfur: "none", fatigue: "none", notes: "" }, symptomsUpdatedAt: 0,
+          bowelMovements: [], bowelMovementRecords: [], bowelMovementsUpdatedAt: 0,
+          electrolytes: { mg: false, k: false, na: false, multi: false }, electrolytesUpdatedAt: 0
         };
       }
-      return state.daysData[state.selectedDate];
+      return ensureGranularDayData(state.selectedDate,state.daysData[state.selectedDate]);
     }
 
     /* ==========================================================================
@@ -4423,13 +4557,10 @@
 
     function addWater(oz) {
       const day = getSelectedDay();
-      day.water = Math.max(0, (day.water || 0) + Number(oz||0));
-      day.waterUpdatedAt = mutationNow();
-      persistState({ userMutation: true });
+      const current=Math.max(0,Number(day.water)||0), requested=Number(oz)||0, target=Math.max(0,current+requested), actualDelta=target-current;
+      if(actualDelta!==0){const ts=mutationNow();day.waterEvents.push({id:`water_${ts}_${Math.random().toString(36).slice(2,8)}`,delta:actualDelta,updatedAt:ts});recalcWaterFromEvents(day);persistState({ userMutation: true });}
       updateDashboardView();
-      const shown=displayWater(Math.abs(Number(oz||0)));
-      const total=displayWater(day.water);
-      const sign=Number(oz)>0?'+':Number(oz)<0?'-':'';
+      const shown=displayWater(Math.abs(actualDelta)); const total=displayWater(day.water); const sign=actualDelta>0?'+':actualDelta<0?'-':'';
       showToast(isEnglish() ? `${sign}${Math.round(shown)} ${waterUnit()} water logged (Total: ${Math.round(total)} ${waterUnit()})` : `${sign}${Math.round(shown)} ${waterUnit()} de agua registradas (Total: ${Math.round(total)} ${waterUnit()})`);
     }
 
@@ -4442,47 +4573,20 @@
        BOWEL MOVEMENT & SÍNTOMAS
        ========================================================================== */
     function logBowelMovementNow() {
-      const todayStr = getFormattedDate(new Date());
-      if (!state.daysData[todayStr]) {
-        state.daysData[todayStr] = { water:0, waterUpdatedAt:0, meals:[], bowelMovements:[], bowelMovementsUpdatedAt:0, symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''}, symptomsUpdatedAt:0, electrolytes:{mg:false,k:false,na:false,multi:false}, electrolytesUpdatedAt:0 };
-      }
-      const day = state.daysData[todayStr];
-      if (!Array.isArray(day.bowelMovements)) day.bowelMovements = [];
-      const newEntry = new Date().toISOString();
-      day.bowelMovements.push(newEntry);
-      day.bowelMovementsUpdatedAt = mutationNow();
-      persistState({ userMutation: true });
-      checkBowelMovementAlert();
-      renderCurrentDay();
-      showUndoToast(uiText("Evacuación registrada hoy.", "Bowel movement recorded today."), () => {
-        const idx = day.bowelMovements.indexOf(newEntry);
-        if (idx !== -1) {
-          day.bowelMovements.splice(idx, 1);
-          day.bowelMovementsUpdatedAt = mutationNow();
-          persistState({ userMutation: true });
-          checkBowelMovementAlert();
-          renderCurrentDay();
-        }
-      });
+      const todayStr=getFormattedDate(new Date());
+      if(!state.daysData[todayStr])state.daysData[todayStr]={water:0,waterUpdatedAt:0,waterEvents:[],meals:[],bowelMovements:[],bowelMovementRecords:[],bowelMovementsUpdatedAt:0,symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:0,electrolytes:{mg:false,k:false,na:false,multi:false},electrolytesUpdatedAt:0};
+      const day=ensureGranularDayData(todayStr,state.daysData[todayStr]);const ts=mutationNow();const rec={id:`bm_${ts}_${Math.random().toString(36).slice(2,8)}`,at:new Date().toISOString(),updatedAt:ts};
+      day.bowelMovementRecords.push(rec);ensureGranularDayData(todayStr,day);persistState({userMutation:true});checkBowelMovementAlert();renderCurrentDay();
+      showUndoToast(uiText('Evacuación registrada hoy.','Bowel movement recorded today.'),()=>{state.deletedRecords.bowelMovements[rec.id]=mutationNow();day.bowelMovementRecords=day.bowelMovementRecords.filter(r=>r.id!==rec.id);ensureGranularDayData(todayStr,day);persistState({userMutation:true});checkBowelMovementAlert();renderCurrentDay();});
     }
 
-
-    function removeBowelMovement(dateKey, idx) {
-      const day = state.daysData && state.daysData[dateKey];
-      if (!day || !Array.isArray(day.bowelMovements) || !day.bowelMovements[idx]) return;
-      const removed = day.bowelMovements.splice(idx, 1)[0];
-      day.bowelMovementsUpdatedAt = mutationNow();
-      persistState({ userMutation: true });
-      checkBowelMovementAlert();
-      renderCurrentDay();
-      showUndoToast(uiText("Registro de evacuación eliminado.", "Bowel record deleted."), () => {
-        day.bowelMovements.splice(Math.min(idx, day.bowelMovements.length), 0, removed);
-        day.bowelMovementsUpdatedAt = mutationNow();
-        persistState({ userMutation: true });
-        checkBowelMovementAlert();
-        renderCurrentDay();
-      });
+    function removeBowelMovement(dateKey,idx){
+      const day=state.daysData&&state.daysData[dateKey];if(!day)return;ensureGranularDayData(dateKey,day);const at=day.bowelMovements?.[idx];if(!at)return;
+      const pos=day.bowelMovementRecords.findIndex(r=>r.at===at);if(pos<0)return;const removed=JSON.parse(JSON.stringify(day.bowelMovementRecords[pos]));const delTs=mutationNow();state.deletedRecords.bowelMovements[removed.id]=delTs;day.bowelMovementRecords.splice(pos,1);ensureGranularDayData(dateKey,day);persistState({userMutation:true});checkBowelMovementAlert();renderCurrentDay();
+      showUndoToast(uiText('Registro de evacuación eliminado.','Bowel record deleted.'),()=>{delete state.deletedRecords.bowelMovements[removed.id];removed.updatedAt=mutationNow();day.bowelMovementRecords.push(removed);ensureGranularDayData(dateKey,day);persistState({userMutation:true});checkBowelMovementAlert();renderCurrentDay();});
     }
+
+    
     function checkBowelMovementAlert() {
       let latestBMTime = 0;
       Object.keys(state.daysData).forEach(d => {
@@ -4924,69 +5028,37 @@
     }
 
     function saveInjectionRecord() {
-      const date = document.getElementById('inj-date').value || state.selectedDate;
-      const timeInput = document.getElementById('inj-time').value;
-      const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(timeInput) ? timeInput : '';
-      const dose = document.getElementById('inj-dose').value;
-      const medProfile = getMedicationProfile();
-      const site = medProfile.route === 'oral' ? 'Oral' : document.getElementById('inj-site').value;
-      const notes = document.getElementById('inj-notes').value.trim();
-      if(!isValidDateKey(date)){showToast(uiText('Selecciona una fecha válida.','Select a valid date.'));return;}
-      const eventTs=new Date(`${date}T${time||'12:00'}:00`).getTime();
-      if(Number.isFinite(eventTs) && eventTs>Date.now()+5*60*1000){showToast(uiText('La hora de la dosis no puede estar en el futuro.','Dose time cannot be in the future.'));return;}
-      const newId = "inj_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
-      if (state.deletedRecords && state.deletedRecords.injections) delete state.deletedRecords.injections[newId];
-      state.injections.push({ id:newId,date,time,dose,medication:medProfile.key,site,notes,updatedAt:mutationNow() });
-      if (state.settings.pensInStock > 0) { state.settings.pensInStock--; markSettingsChanged(); }
-      persistState({ userMutation: true });
-      closeLogInjectionModal(); renderMounjaroView(); updateDashboardView();
-      showToast(isEnglish()?`Dose saved: ${dose}${time?` · ${time}`:''}${medProfile.route==='oral'?'':` (${site})`}`:`Dosis guardada: ${dose}${time?` · ${time}`:''}${medProfile.route==='oral'?'':` (${site})`}`);
+      const date=document.getElementById('inj-date').value||state.selectedDate,timeInput=document.getElementById('inj-time').value,time=/^([01]\d|2[0-3]):[0-5]\d$/.test(timeInput)?timeInput:'',dose=document.getElementById('inj-dose').value,medProfile=getMedicationProfile(),presentation=getPresentationProfile(),site=medProfile.route==='oral'?'Oral':document.getElementById('inj-site').value,notes=document.getElementById('inj-notes').value.trim();
+      if(!isValidDateKey(date)){showToast(uiText('Selecciona una fecha válida.','Select a valid date.'));return;}const eventTs=new Date(`${date}T${time||'12:00'}:00`).getTime();if(Number.isFinite(eventTs)&&eventTs>Date.now()+5*60*1000){showToast(uiText('La hora de la dosis no puede estar en el futuro.','Dose time cannot be in the future.'));return;}
+      const duplicate=(state.injections||[]).find(i=>i&&getInjectionMedicationKey(i)===medProfile.key&&String(i.date).split('T')[0]===date&&(i.time||'')===time);
+      if(duplicate&&!confirm(uiText(`Ya existe una dosis de ${medProfile.name} con esta misma fecha${time?' y hora':''}. ¿Guardar otra de todos modos?`,`A ${medProfile.name} dose already exists with this same date${time?' and time':''}. Save another anyway?`)))return;
+      const productKey=getCurrentProductKey(),today=getFormattedDate(new Date()),isHistorical=date<today;let inventoryConsumed=false;
+      if(presentation.inventoryMode==='perDose'&&getInventoryCount(productKey)>0){let consume=!isHistorical;if(isHistorical)consume=confirm(uiText('Esta dosis es histórica. ¿También deseas descontar una unidad del inventario actual?','This is a historical dose. Also subtract one unit from current inventory?'));if(consume){setInventoryCount(getInventoryCount(productKey)-1,productKey);inventoryConsumed=true;markSettingsChanged([`inventoryByProduct.${productKey}`]);}}
+      const newId=`inj_${Date.now()}_${Math.random().toString(36).substring(2,6)}`;if(state.deletedRecords?.injections)delete state.deletedRecords.injections[newId];state.injections.push({id:newId,date,time,dose,medication:medProfile.key,presentation:state.settings.presentation,productKey,site,notes,inventoryConsumed,updatedAt:mutationNow()});
+      if(date===today&&presentation.firstUseDays&&!getRoomTempTracker(productKey).firstUseAt){const t=getRoomTempTracker(productKey);t.firstUseAt=eventTs;t.updatedAt=mutationNow();markSettingsChanged([`roomTempTrackers.${productKey}`]);}
+      persistState({userMutation:true});closeLogInjectionModal();renderMounjaroView();updateDashboardView();showToast(isEnglish()?`Dose saved: ${dose}${time?` · ${time}`:''}${medProfile.route==='oral'?'':` (${site})`}`:`Dosis guardada: ${dose}${time?` · ${time}`:''}${medProfile.route==='oral'?'':` (${site})`}`);
     }
 
-    function adjustPenCount(delta) {
-      state.settings.pensInStock = Math.max(0, (state.settings.pensInStock || 0) + delta);
-      markSettingsChanged();
-      const p = getMedicationProfile();
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock} ${isEnglish() ? p.inventoryUnitEn : p.inventoryUnitEs}`;
-      persistState({ userMutation: true });
-      renderMounjaroView();
-    }
+    function adjustPenCount(delta) {const key=getCurrentProductKey();const next=setInventoryCount(getInventoryCount(key)+delta,key);markSettingsChanged([`inventoryByProduct.${key}`]);const p=getMedicationProfile();const el=document.getElementById('pen-stock-val');if(el)el.innerText=`${next} ${isEnglish()?p.inventoryUnitEn:p.inventoryUnitEs}`;persistState({userMutation:true});renderMounjaroView();}
 
     function startRoomTempCountdown() {
-      const p=getMedicationProfile();
-      if (!p.roomTempDays) {
-        showToast(uiText('Este medicamento no usa este seguimiento de temperatura ambiente.','This medication does not use this room-temperature tracker.'));
-        return;
+      const pr=getPresentationProfile(),key=getCurrentProductKey(),t=getRoomTempTracker(key);if(pr.timerMode==='none'){showToast(uiText('Esta presentación no usa este seguimiento.','This presentation does not use this tracker.'));return;}
+      if(pr.timerMode==='first_use'){
+        if(t.firstUseAt){showToast(uiText('El reloj de primer uso ya está activo y no puede pausarse. Usa “Nueva unidad” solamente cuando realmente abras una unidad nueva.','The first-use clock is already running and cannot be paused. Use “New unit” only when you actually start a new unit.'));return;}
+        if(!confirm(uiText('¿Comenzar ahora el reloj desde el primer uso? Continuará aunque la pluma vuelva a la nevera.','Start the first-use clock now? It will continue even if the pen returns to the refrigerator.')))return;t.firstUseAt=Date.now();t.updatedAt=mutationNow();
+      }else{
+        if(t.active){showToast(uiText('El seguimiento fuera de la nevera ya está activo.','Out-of-refrigerator tracking is already active.'));return;}
+        if(!confirm(uiText('¿La unidad está ahora fuera de refrigeración? El tiempo se acumulará y no se reiniciará al pausarlo.','Is the unit now out of refrigeration? Time will accumulate and will not reset when paused.')))return;t.active=true;t.startedAt=Date.now();if(pr.firstUseDays&&!t.firstUseAt)t.firstUseAt=Date.now();t.updatedAt=mutationNow();
       }
-      if (!state.settings.roomTempTrackingEnabled) {
-        if (!confirm(uiText('Activa este seguimiento solamente cuando la pluma esté fuera de la nevera, por ejemplo durante un viaje. ¿Activarlo ahora?','Use this tracker only when the pen is out of the refrigerator, for example while traveling. Activate it now?'))) return;
-        state.settings.roomTempTrackingEnabled = true;
-      } else if (state.settings.roomTempPenStart) {
-        if (!confirm(uiText('Ya existe un conteo activo. ¿Deseas reiniciarlo desde hoy?','A countdown is already active. Restart it from today?'))) return;
-      }
-      state.settings.roomTempPenStart = Date.now();
-      markSettingsChanged();
-      persistState({ userMutation: true });
-      renderMounjaroView();
-      showToast(uiText('Seguimiento fuera de la nevera activado desde hoy.','Out-of-refrigerator tracking started today.'));
+      markSettingsChanged([`roomTempTrackers.${key}`]);persistState({userMutation:true});renderMounjaroView();showToast(uiText('Seguimiento de almacenamiento actualizado.','Storage tracking updated.'));
     }
 
     function toggleRoomTempTracking() {
-      const active=Boolean(state.settings.roomTempTrackingEnabled && state.settings.roomTempPenStart);
-      if (!active) {
-        startRoomTempCountdown();
-        return;
-      }
-      const first=confirm(uiText('¿Seguro que deseas apagar el seguimiento de la pluma fuera de la nevera? Hazlo solamente si ya volvió a refrigeración o si terminaste este seguimiento.','Are you sure you want to turn off out-of-refrigerator pen tracking? Do this only if the pen is back under refrigeration or you are done tracking it.'));
-      if (!first) return;
-      const second=confirm(uiText('Segunda confirmación: se borrará el conteo actual de temperatura ambiente. ¿Apagarlo definitivamente?','Second confirmation: the current room-temperature countdown will be cleared. Turn it off?'));
-      if (!second) return;
-      state.settings.roomTempTrackingEnabled=false;
-      state.settings.roomTempPenStart=null;
-      markSettingsChanged();
-      persistState({userMutation:true});
-      renderMounjaroView();
-      showToast(uiText('Seguimiento fuera de la nevera desactivado.','Out-of-refrigerator tracking turned off.'));
+      const pr=getPresentationProfile(),key=getCurrentProductKey(),t=getRoomTempTracker(key);if(pr.noReturnToFridge&&t.active){showToast(uiText('Esta presentación no debe volver a refrigerarse una vez iniciada la ventana a temperatura ambiente. El contador continuará.','This presentation should not be returned to refrigeration once the room-temperature window starts. The timer will continue.'));return;}if(pr.timerMode==='none')return;
+      if(pr.timerMode==='first_use'){startRoomTempCountdown();return;}
+      if(!t.active){startRoomTempCountdown();return;}
+      if(!confirm(uiText('¿Pausar el conteo de tiempo fuera de refrigeración porque la unidad volvió a refrigerarse? El tiempo ya consumido se conservará.','Pause out-of-refrigeration time because the unit returned to refrigeration? Time already used will be preserved.')))return;
+      t.accumulatedMs=storageTrackerElapsedRoomMs(t);t.active=false;t.startedAt=0;t.updatedAt=mutationNow();markSettingsChanged([`roomTempTrackers.${key}`]);persistState({userMutation:true});renderMounjaroView();showToast(uiText('Seguimiento pausado; el tiempo acumulado se conservó.','Tracking paused; accumulated time was preserved.'));
     }
 
     function getDateOffsetKey(dateKey, offsetDays) {
@@ -5303,47 +5375,21 @@
         document.getElementById('hub-last-site').innerText = uiText("Sin registro", "No record");
       }
 
-      document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} ${isEnglish() ? medProfile.inventoryUnitEn : medProfile.inventoryUnitEs}`;
-      const warningEl = document.getElementById('dash-pen-warning');
-      if (state.settings.pensInStock <= 1) {
-        warningEl.classList.remove('hidden');
-      } else {
-        warningEl.classList.add('hidden');
-      }
+      const inv=getInventoryCount();state.settings.pensInStock=inv;document.getElementById('pen-stock-val').innerText=`${inv} ${isEnglish()?medProfile.inventoryUnitEn:medProfile.inventoryUnitEs}`;
+      const warningEl=document.getElementById('dash-pen-warning');warningEl.classList.toggle('hidden',inv>1);
 
-      if (maxDays > 0) {
-        const active=Boolean(state.settings.roomTempTrackingEnabled && state.settings.roomTempPenStart);
-        const badge=document.getElementById('room-temp-status-badge');
-        const textEl=document.getElementById('room-temp-days-left');
-        const panel=document.getElementById('room-temp-countdown-panel');
-        const toggle=document.getElementById('room-temp-toggle');
-        const title=document.getElementById('room-temp-card-title');
-        const daysLabel=document.getElementById('room-temp-days-label');
-        const maxLabel=document.getElementById('room-temp-max-label');
-        const maxValue=document.getElementById('room-temp-max-value');
-        const limitLabel=document.getElementById('room-temp-limit-label');
-        const limitValue=document.getElementById('room-temp-limit-value');
-        if(title)title.innerText=uiText('Pluma fuera de la nevera','Pen out of refrigerator');
-        if(daysLabel)daysLabel.innerText=uiText('Días restantes:','Days remaining:');
-        if(maxLabel)maxLabel.innerText=uiText('Temperatura máxima','Maximum temperature');
-        if(maxValue)maxValue.innerText=`${medProfile.roomTempMaxF || 86}°F (${medProfile.roomTempMaxC || 30}°C)`;
-        if(limitLabel)limitLabel.innerText=uiText('Límite fuera de nevera','Out-of-refrigerator limit');
-        if(limitValue)limitValue.innerText=isEnglish()?`${maxDays} days`:`${maxDays} días`;
-        if(active){
-          if(panel)panel.classList.remove('hidden');
-          if(toggle){toggle.innerText=uiText('Apagar seguimiento','Turn tracking off');toggle.className='w-full py-2 bg-rose-600/15 hover:bg-rose-600/25 text-rose-300 text-[10px] font-bold rounded-xl border border-rose-500/30';}
-          const elapsedDays=(Date.now()-Number(state.settings.roomTempPenStart))/(1000*60*60*24);
-          const daysLeft=Math.max(0,Math.ceil(maxDays-elapsedDays));
-          if(textEl)textEl.innerText=daysLeft<=0?uiText('Ventana terminada (Desechar)','Window ended (Discard)'):(isEnglish()?`${daysLeft} days`:`${daysLeft} días`);
-          if(daysLeft<=0){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';badge.innerText=uiText('Desechar','Discard');}
-          else if(daysLeft<=4){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';badge.innerText=uiText('Por vencer','Expiring soon');}
-          else{badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';badge.innerText=uiText('Activo','Active');}
-        }else{
-          if(panel)panel.classList.add('hidden');
-          if(textEl)textEl.innerText='--';
-          if(toggle){toggle.innerText=uiText('Activar seguimiento fuera de la nevera','Activate out-of-refrigerator tracking');toggle.className='w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/35 text-cyan-200 text-[10px] font-bold rounded-xl border border-cyan-500/35';}
-          if(badge){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30';badge.innerText=uiText('Desactivado','Off');}
-        }
+      const pr=getPresentationProfile(),storage=getStorageTrackerStatus();
+      const badge=document.getElementById('room-temp-status-badge'),textEl=document.getElementById('room-temp-days-left'),panel=document.getElementById('room-temp-countdown-panel'),toggle=document.getElementById('room-temp-toggle'),title=document.getElementById('room-temp-card-title'),daysLabel=document.getElementById('room-temp-days-label'),maxLabel=document.getElementById('room-temp-max-label'),maxValue=document.getElementById('room-temp-max-value'),limitLabel=document.getElementById('room-temp-limit-label'),limitValue=document.getElementById('room-temp-limit-value'),newUnit=document.getElementById('room-temp-restart-btn');
+      if(pr.timerMode!=='none'){
+        if(title)title.innerText=pr.timerMode==='first_use'?uiText('Ventana desde primer uso','First-use window'):uiText('Fuera de la nevera','Out of refrigerator');if(maxLabel)maxLabel.innerText=uiText('Temperatura máxima','Maximum temperature');if(maxValue)maxValue.innerText=`${pr.maxF}°F (${pr.maxC}°C)`;if(limitLabel)limitLabel.innerText=uiText('Límite aplicable','Applicable limit');
+        const pieces=[];if(pr.roomTempDays)pieces.push(`${pr.roomTempDays} ${uiText('días fuera','days out')}`);if(pr.firstUseDays)pieces.push(`${pr.firstUseDays} ${uiText('días desde primer uso','days from first use')}`);if(pr.maxUnitDoses)pieces.push(`${pr.maxUnitDoses} ${uiText('dosis por unidad','doses per unit')}`);if(pr.noReturnToFridge)pieces.push(uiText('no volver a refrigerar','do not return to refrigerator'));if(limitValue)limitValue.innerText=pieces.join(' · ');if(newUnit)newUnit.innerText=uiText('Nueva unidad','New unit');
+        const hasClock=storage.tracker.active||storage.tracker.accumulatedMs>0||storage.tracker.firstUseAt>0;if(panel)panel.classList.toggle('hidden',!hasClock);if(daysLabel)daysLabel.innerText=uiText('Tiempo restante:','Time remaining:');
+        if(storage.doseLimitExpired){if(textEl)textEl.innerText=uiText('4 dosis usadas (Desechar unidad)','4 doses used (Discard unit)');}else if(Number.isFinite(storage.daysLeft)){const d=Math.max(0,Math.ceil(storage.daysLeft));if(textEl)textEl.innerText=storage.expired?uiText('Ventana terminada (Desechar)','Window ended (Discard)'):(isEnglish()?`${d} days`:`${d} días`);}else if(textEl)textEl.innerText='--';
+        if(storage.expired){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';badge.innerText=uiText('Desechar','Discard');}
+        else if(Number.isFinite(storage.daysLeft)&&storage.daysLeft<=4){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';badge.innerText=uiText('Por vencer','Expiring soon');}
+        else if(hasClock){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';badge.innerText=storage.tracker.active?uiText('Activo','Active'):uiText('En curso','Running');}
+        else{badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30';badge.innerText=uiText('Sin iniciar','Not started');}
+        if(toggle){if(pr.timerMode==='first_use'){toggle.innerText=storage.tracker.firstUseAt?uiText('Reloj de primer uso activo','First-use clock active'):uiText('Iniciar reloj de primer uso','Start first-use clock');toggle.disabled=Boolean(storage.tracker.firstUseAt);toggle.className=storage.tracker.firstUseAt?'w-full py-2 bg-slate-700/40 text-slate-400 text-[10px] font-bold rounded-xl border border-slate-600/40':'w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/35 text-cyan-200 text-[10px] font-bold rounded-xl border border-cyan-500/35';}else if(pr.noReturnToFridge&&storage.tracker.active){toggle.disabled=true;toggle.innerText=uiText('Ventana ambiente activa · no pausar','Room-temperature window active · do not pause');toggle.className='w-full py-2 bg-slate-700/40 text-slate-400 text-[10px] font-bold rounded-xl border border-slate-600/40';}else{toggle.disabled=false;toggle.innerText=storage.tracker.active?uiText('Volvió a la nevera · Pausar','Back in refrigerator · Pause'):uiText('Ahora fuera de la nevera · Activar','Now out of refrigerator · Start');toggle.className=storage.tracker.active?'w-full py-2 bg-amber-600/15 hover:bg-amber-600/25 text-amber-300 text-[10px] font-bold rounded-xl border border-amber-500/30':'w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/35 text-cyan-200 text-[10px] font-bold rounded-xl border border-cyan-500/35';}}
       }
 
       const listEl = document.getElementById('hub-injections-list');
@@ -5396,24 +5442,10 @@
     }
 
     function removeInjection(id) {
-      if (!id || id === 'undefined') return;
-      if (!state.deletedRecords) state.deletedRecords = { meals: {}, weights: {}, injections: {}, measurements: {} };
-      if (!state.deletedRecords.injections) state.deletedRecords.injections = {};
-      const removed=state.injections.find(i=>i.id===id);
-      if(!removed)return;
-      const removedCopy=JSON.parse(JSON.stringify(removed));
-      state.deletedRecords.injections[id] = mutationNow();
-      state.injections = state.injections.filter(i => i.id !== id);
-      persistState({ userMutation: true });
-      renderMounjaroView();
-      updateDashboardView();
-      showUndoToast(uiText("Registro de dosis eliminado.", "Dose record deleted."),()=>{
-        removedCopy.updatedAt = mutationNow();
-        state.injections.push(removedCopy);
-        state.injections.sort((a,b)=>(injectionTimestamp(a)||0)-(injectionTimestamp(b)||0));
-        if(state.deletedRecords?.injections)delete state.deletedRecords.injections[id];
-        persistState({ userMutation: true }); renderMounjaroView(); updateDashboardView();
-      });
+      if(!id||id==='undefined')return;if(!state.deletedRecords)state.deletedRecords={meals:{},weights:{},injections:{},measurements:{},bowelMovements:{}};if(!state.deletedRecords.injections)state.deletedRecords.injections={};const removed=state.injections.find(i=>i.id===id);if(!removed)return;const removedCopy=JSON.parse(JSON.stringify(removed));
+      if(removed.inventoryConsumed&&removed.productKey){setInventoryCount(getInventoryCount(removed.productKey)+1,removed.productKey);markSettingsChanged([`inventoryByProduct.${removed.productKey}`]);}
+      state.deletedRecords.injections[id]=mutationNow();state.injections=state.injections.filter(i=>i.id!==id);persistState({userMutation:true});renderMounjaroView();updateDashboardView();
+      showUndoToast(uiText('Registro de dosis eliminado.','Dose record deleted.'),()=>{if(removedCopy.inventoryConsumed&&removedCopy.productKey&&getInventoryCount(removedCopy.productKey)>0){setInventoryCount(getInventoryCount(removedCopy.productKey)-1,removedCopy.productKey);markSettingsChanged([`inventoryByProduct.${removedCopy.productKey}`]);}removedCopy.updatedAt=mutationNow();state.injections.push(removedCopy);state.injections.sort((a,b)=>(injectionTimestamp(a)||0)-(injectionTimestamp(b)||0));if(state.deletedRecords?.injections)delete state.deletedRecords.injections[id];persistState({userMutation:true});renderMounjaroView();updateDashboardView();});
     }
 
     function updateHungerLabel(val) {
@@ -5488,7 +5520,7 @@
        ========================================================================== */
     function getLatestWeight(){const arr=(state.weights||[]).filter(w=>w&&Number.isFinite(Number(w.weight))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));return arr.length?Number(arr.at(-1).weight):null;}
     function getWeightVariation(days=30){const cutoff=getDateOffsetKey(getFormattedDate(new Date()),-(days-1));const vals=(state.weights||[]).filter(w=>w&&String(w.date)>=cutoff&&Number.isFinite(Number(w.weight))).map(w=>Number(w.weight));if(vals.length<2)return null;return Math.max(...vals)-Math.min(...vals);}
-    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const shown=Number(input&&input.value);const range=storageWeight(shown);if(Number.isFinite(range)&&range>=0.5&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;markSettingsChanged();persistState({ userMutation: true });renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
+    function toggleMaintenanceMode(){const input=document.getElementById('maintenance-range-input');const shown=Number(input&&input.value);const range=storageWeight(shown);if(Number.isFinite(range)&&range>=0.5&&range<=15)state.settings.maintenanceRangeLb=range;state.settings.maintenanceEnabled=!state.settings.maintenanceEnabled;markSettingsChanged(['maintenanceRangeLb','maintenanceEnabled']);persistState({ userMutation: true });renderMaintenanceMode();showToast(state.settings.maintenanceEnabled?uiText('Modo mantenimiento activado.','Maintenance mode enabled.'):uiText('Modo mantenimiento desactivado.','Maintenance mode disabled.'));}
     function renderMaintenanceMode(){
       const badge=document.getElementById('maintenance-status-badge'),summary=document.getElementById('maintenance-summary'),rangeEl=document.getElementById('maintenance-range'),curEl=document.getElementById('maintenance-current'),varEl=document.getElementById('maintenance-variation'),btn=document.getElementById('maintenance-toggle-btn'),input=document.getElementById('maintenance-range-input');if(!badge||!summary)return;
       const goal=Number(state.settings.goalWeight||180), margin=Math.max(.5,Number(state.settings.maintenanceRangeLb||3)),cur=getLatestWeight(),variation=getWeightVariation(30),low=goal-margin,high=goal+margin,enabled=!!state.settings.maintenanceEnabled;if(input){input.value=displayWeight(margin).toFixed(1);input.min=isMetric()?'0.5':'1';input.max=isMetric()?'6.8':'15';input.step='.5';}rangeEl.innerText=`${formatWeight(low,1)}–${formatWeight(high,1).replace(' '+weightUnit(),'')} ${weightUnit()}`;curEl.innerText=cur===null?'--':formatWeight(cur,1);varEl.innerText=variation===null?'--':formatWeight(variation,1);
@@ -5771,11 +5803,7 @@
       });
     }
 
-    function openWeightModal() {
-      document.getElementById('weight-input-date').value = state.selectedDate;
-      document.getElementById('modal-weight').classList.remove('hidden');
-      document.getElementById('modal-weight').classList.add('flex');
-    }
+    function openWeightModal(){const input=document.getElementById('weight-input-date');input.max=getFormattedDate(new Date());input.value=state.selectedDate>input.max?input.max:state.selectedDate;document.getElementById('modal-weight').classList.remove('hidden');document.getElementById('modal-weight').classList.add('flex');}
 
     function closeWeightModal() {
       document.getElementById('modal-weight').classList.add('hidden');
@@ -5784,6 +5812,7 @@
 
     function saveWeightEntry() {
       const date = document.getElementById('weight-input-date').value || state.selectedDate;
+      if(!isValidDateKey(date)||date>getFormattedDate(new Date())){showToast(uiText('La fecha del peso no puede estar en el futuro.','Weight date cannot be in the future.'));return;}
       const shownWeight = parseFloat(document.getElementById('weight-input-val').value);
       const weight = storageWeight(shownWeight);
       if (!Number.isFinite(weight) || weight < 50 || weight > 1000) {
@@ -5811,11 +5840,7 @@
       showToast(isEnglish() ? `Weight saved: ${formatWeight(weight,1)}` : `Peso guardado: ${formatWeight(weight,1)}`);
     }
 
-    function openMeasurementModal() {
-      document.getElementById('meas-date').value = state.selectedDate;
-      document.getElementById('modal-measurement').classList.remove('hidden');
-      document.getElementById('modal-measurement').classList.add('flex');
-    }
+    function openMeasurementModal(){const input=document.getElementById('meas-date');input.max=getFormattedDate(new Date());input.value=state.selectedDate>input.max?input.max:state.selectedDate;document.getElementById('modal-measurement').classList.remove('hidden');document.getElementById('modal-measurement').classList.add('flex');}
 
     function closeMeasurementModal() {
       document.getElementById('modal-measurement').classList.add('hidden');
@@ -5824,6 +5849,7 @@
 
     function saveMeasurementEntry() {
       const date = document.getElementById('meas-date').value || state.selectedDate;
+      if(!isValidDateKey(date)||date>getFormattedDate(new Date())){showToast(uiText('La fecha de las medidas no puede estar en el futuro.','Measurement date cannot be in the future.'));return;}
       const raw=[document.getElementById('meas-waist').value,document.getElementById('meas-chest').value,document.getElementById('meas-hips').value,document.getElementById('meas-neck').value].map(v=>String(v).trim());
       const values=raw.map(v=>v===''?0:storageLength(Number(v)));
       if(values.some(v=>!Number.isFinite(v)||v<0||v>100)||values.slice(0,3).some(v=>v>0&&v<5)){showToast(uiText('Revisa las medidas: deben ser valores positivos y razonables.','Check the measurements: values must be positive and within a reasonable range.'));return;}
@@ -5972,7 +5998,7 @@
       if (!state.settings.isFasting) {
         state.settings.isFasting = true;
         state.settings.fastingStart = Date.now();
-        markSettingsChanged();
+        markSettingsChanged(['isFasting','fastingStart']);
         btn.innerText = uiText("Detener ayuno", "Stop fast");
         btn.className = "px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition-all";
         pill.innerText = uiText("Ayuno activo", "Fasting active");
@@ -5983,7 +6009,7 @@
       } else {
         state.settings.isFasting = false;
         state.settings.fastingStart = null;
-        markSettingsChanged();
+        markSettingsChanged(['isFasting','fastingStart']);
         stopFastingTicker();
         btn.innerText = uiText("Iniciar ayuno", "Start fast");
         btn.className = "px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-xl shadow transition-all";
@@ -6376,7 +6402,7 @@
       if(errors.length){showToast(`${uiText('Revisa estos valores','Check these values')}: ${errors.join(', ')}.`);return;}
       state.settings.goalWeight=goalWeight; state.settings.calGoal=calGoal; state.settings.tdee=tdee; state.settings.proteinGoal=proteinGoal; state.settings.waterGoal=waterGoal;
       const maintenanceInput=document.getElementById('maintenance-range-input');if(maintenanceInput){const mr=storageWeight(Number(maintenanceInput.value));if(Number.isFinite(mr)&&mr>=.5&&mr<=15)state.settings.maintenanceRangeLb=mr;}
-      markSettingsChanged();
+      markSettingsChanged(['goalWeight','calGoal','tdee','proteinGoal','waterGoal','maintenanceRangeLb']);
       persistState({ userMutation: true }); updateDashboardView(); renderToolsView(); applyUnitLabels();
       showToast(uiText("Configuración guardada.", "Settings saved."));
     }
@@ -6505,6 +6531,7 @@
 
     async function exportBackupPackage(mode='current') {
       try {
+        if(mode==='local'||mode==='complete')await localBackupInitPromise;
         const current=createCurrentBackupObject(state),stamp=formatBackupFileStamp();
         let output=current,descriptor='current';
         if(mode!=='current') {
@@ -6517,7 +6544,7 @@
           }
           descriptor=mode==='complete'?'complete':mode;
         }
-        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.5.json`);
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.6.json`);
         closeExportBackupOptions();
       } catch(err) {
         console.error('Backup export failed:',err);
@@ -6531,7 +6558,9 @@
       if(raw&&typeof raw==='object'&&!Array.isArray(raw)&&raw.backupPackage){
         const meta=raw.backupPackage;
         if(!meta||meta.appId!=='GLP1-Companion'||!raw.currentData||typeof raw.currentData!=='object')return {data:raw,packageInfo:null};
-        return {data:raw.currentData,packageInfo:{type:String(meta.type||'package'),localCount:Array.isArray(raw.localBackups)?raw.localBackups.length:0,serverCount:Array.isArray(raw.serverBackups)?raw.serverBackups.length:0}};
+        const localBackups=Array.isArray(raw.localBackups)?raw.localBackups.slice(0,LOCAL_SAFETY_BACKUP_SLOTS):[];
+        const serverBackups=Array.isArray(raw.serverBackups)?raw.serverBackups.slice(0,SERVER_SAFETY_BACKUP_SLOTS):[];
+        return {data:raw.currentData,packageInfo:{type:String(meta.type||'package'),localCount:localBackups.length,serverCount:serverBackups.length,localBackups,serverBackups,serverBackupsArchivalOnly:true}};
       }
       return {data:raw,packageInfo:null};
     }
@@ -6544,6 +6573,7 @@
     }
 
     let pendingImportCandidate = null;
+    let pendingImportPackageInfo = null;
 
     function validateBackupStructure(imported) {
       if(!imported||typeof imported!=='object'||Array.isArray(imported))return {ok:false,reason:'root'};
@@ -6568,25 +6598,33 @@
 
     function showImportPreview(imported,validation) {
       pendingImportCandidate=imported;
+      pendingImportPackageInfo=validation.packageInfo||null;
       const modal=document.getElementById('modal-import-preview'),grid=document.getElementById('import-preview-grid'),version=document.getElementById('import-preview-version');
-      if(version){const pkg=validation.packageInfo?` · ${validation.packageInfo.type} (${validation.packageInfo.localCount} local / ${validation.packageInfo.serverCount} server)`:'';version.innerText=isEnglish()?`Detected: ${validation.version}${validation.legacy?' · compatible legacy format':''}${pkg}`:`Detectado: ${validation.version}${validation.legacy?' · formato anterior compatible':''}${pkg}`;}
+      if(version){
+        const pkg=validation.packageInfo?` · ${validation.packageInfo.type} (${validation.packageInfo.localCount} local / ${validation.packageInfo.serverCount} server)`:'';
+        const archival=validation.packageInfo&&validation.packageInfo.serverCount?uiText(' · Server Safety: archivo/referencia',' · Server Safety: archive/reference'):'';
+        version.innerText=isEnglish()?`Detected: ${validation.version}${validation.legacy?' · compatible legacy format':''}${pkg}${archival}`:`Detectado: ${validation.version}${validation.legacy?' · formato anterior compatible':''}${pkg}${archival}`;
+      }
       if(grid){const c=validation.counts;grid.innerHTML=[['scale',uiText('Pesajes','Weights'),c.weights],['pill',uiText('Dosis','Doses'),c.injections],['utensils',uiText('Comidas','Meals'),c.meals],['ruler',uiText('Medidas','Measurements'),c.measurements],['calendar',uiText('Días','Days'),c.days],['user-round',uiText('Health Profile','Health Profile'),c.health?uiText('Sí','Yes'):uiText('No','No')]].map(([icon,label,val])=>`<div class="p-2 rounded-xl bg-[#111a2e] border border-[#223455]"><i data-lucide="${icon}" class="w-3.5 h-3.5 text-cyan-400 mx-auto mb-1"></i><p class="text-sm font-black text-white">${escapeHtml(String(val))}</p><span class="text-[8px] text-slate-500">${escapeHtml(label)}</span></div>`).join('');}
       if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}lucide.createIcons();
     }
 
-    function cancelImportPreview() {pendingImportCandidate=null;const modal=document.getElementById('modal-import-preview');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
+    function cancelImportPreview() {pendingImportCandidate=null;pendingImportPackageInfo=null;const modal=document.getElementById('modal-import-preview');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
 
-    function confirmImportPreview() {
+    async function confirmImportPreview() {
       if(!pendingImportCandidate)return;
-      const imported=pendingImportCandidate; pendingImportCandidate=null;
-      cancelImportPreview();
-      try{applyImportedBackup(imported);}catch(err){console.error('Error applying backup:',err);showToast(uiText('Error: no se pudo aplicar el backup de forma segura.','Error: backup could not be applied safely.'));}
+      const imported=pendingImportCandidate,packageInfo=pendingImportPackageInfo;
+      pendingImportCandidate=null;pendingImportPackageInfo=null;
+      const modal=document.getElementById('modal-import-preview');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}
+      try{await applyImportedBackup(imported,packageInfo);}catch(err){console.error('Error applying backup:',err);showToast(uiText('Error: no se pudo aplicar el backup de forma segura.','Error: backup could not be applied safely.'));
+      }
     }
 
-    function applyImportedBackup(imported) {
-      // Preserve a recoverable copy only after the user confirms the preview.
-      localStorage.setItem(PRE_IMPORT_BACKUP_KEY,JSON.stringify(state));
+    async function applyImportedBackup(imported, packageInfo=null) {
+      // Preserve the current state before an authoritative restore. The rotating
+      // snapshot lives in IndexedDB, so a full localStorage quota cannot block it.
       try{rotateLocalSafetySnapshot();}catch(_){}
+      try{localStorage.setItem(PRE_IMPORT_BACKUP_KEY,JSON.stringify(state));}catch(err){if(!isQuotaExceededError(err))console.warn('Pre-import backup skipped:',err);}
       const localLanguage=state.settings.language==='en'?'en':'es',fallbackUnits=state.settings.units==='metric'?'metric':'imperial';
       const next=createDefaultState({language:localLanguage,units:fallbackUnits});
       if(imported.settings&&typeof imported.settings==='object'&&!Array.isArray(imported.settings)){
@@ -6596,26 +6634,40 @@
       if(!MEDICATION_PROFILES[next.settings.medication])next.settings.medication='mounjaro';
       if(typeof next.settings.maintenanceEnabled!=='boolean')next.settings.maintenanceEnabled=false;
       const importedRange=Number(next.settings.maintenanceRangeLb);next.settings.maintenanceRangeLb=Number.isFinite(importedRange)&&importedRange>=1&&importedRange<=15?importedRange:3;
+      const todayKey=getFormattedDate(new Date());
 
       if(imported.daysData&&typeof imported.daysData==='object'&&!Array.isArray(imported.daysData))Object.keys(imported.daysData).forEach(dateKey=>{
         if(!isValidDateKey(dateKey))return;const raw=imported.daysData[dateKey];if(!raw||typeof raw!=='object'||Array.isArray(raw))return;
         const meals=[];if(Array.isArray(raw.meals))raw.meals.forEach((m,idx)=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const cal=parseFloat(m.calories),pr=parseFloat(m.protein),ca=parseFloat(m.carbs),fa=parseFloat(m.fat);meals.push({id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`,name:String(m.name||uiText('Comida','Meal')),slot:typeof m.slot==='string'?m.slot:'Comida',calories:Number.isFinite(cal)&&cal>=0?cal:0,protein:Number.isFinite(pr)&&pr>=0?pr:0,carbs:Number.isFinite(ca)&&ca>=0?ca:0,fat:Number.isFinite(fa)&&fa>=0?fa:0,tip:typeof m.tip==='string'?m.tip:'',time:typeof m.time==='string'?m.time:'',updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
-        const bm=[];if(Array.isArray(raw.bowelMovements))raw.bowelMovements.forEach(v=>{if(typeof v==='string'&&!isNaN(new Date(v).getTime()))bm.push(v);});const water=parseFloat(raw.water);
-        next.daysData[dateKey]={water:Number.isFinite(water)&&water>=0?water:0,waterUpdatedAt:normalizeImportedTimestamp(raw.waterUpdatedAt),meals,bowelMovements:bm,bowelMovementsUpdatedAt:normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt),symptoms:(raw.symptoms&&typeof raw.symptoms==='object'&&!Array.isArray(raw.symptoms))?raw.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:(Number(raw.symptomsUpdatedAt)>0?normalizeImportedTimestamp(raw.symptomsUpdatedAt):0),electrolytes:(raw.electrolytes&&typeof raw.electrolytes==='object'&&!Array.isArray(raw.electrolytes))?raw.electrolytes:{},electrolytesUpdatedAt:normalizeImportedTimestamp(raw.electrolytesUpdatedAt)};
+        const water=parseFloat(raw.water);
+        const day={water:Number.isFinite(water)&&water>=0?water:0,waterUpdatedAt:normalizeImportedTimestamp(raw.waterUpdatedAt),waterEvents:Array.isArray(raw.waterEvents)?raw.waterEvents.filter(x=>x&&typeof x==='object'&&typeof x.id==='string').map(x=>({id:x.id,delta:Number(x.delta)||0,updatedAt:normalizeImportedTimestamp(x.updatedAt)})):[],meals,bowelMovements:Array.isArray(raw.bowelMovements)?raw.bowelMovements.filter(v=>typeof v==='string'&&!isNaN(new Date(v).getTime())):[],bowelMovementRecords:Array.isArray(raw.bowelMovementRecords)?raw.bowelMovementRecords.filter(x=>x&&typeof x==='object'&&typeof x.id==='string'&&typeof x.at==='string'&&!isNaN(new Date(x.at).getTime())).map(x=>({id:x.id,at:x.at,updatedAt:normalizeImportedTimestamp(x.updatedAt)})):[],bowelMovementsUpdatedAt:normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt),symptoms:(raw.symptoms&&typeof raw.symptoms==='object'&&!Array.isArray(raw.symptoms))?raw.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:(Number(raw.symptomsUpdatedAt)>0?normalizeImportedTimestamp(raw.symptomsUpdatedAt):0),electrolytes:(raw.electrolytes&&typeof raw.electrolytes==='object'&&!Array.isArray(raw.electrolytes))?raw.electrolytes:{},electrolytesUpdatedAt:normalizeImportedTimestamp(raw.electrolytesUpdatedAt)};
+        next.daysData[dateKey]=day;ensureGranularDayData(dateKey,next.daysData[dateKey]);
       });
-      if(Array.isArray(imported.weights))imported.weights.forEach(w=>{if(!w||typeof w!=='object'||Array.isArray(w))return;const date=normalizeDateKey(w.date),num=parseFloat(w.weight);if(date&&Number.isFinite(num)&&num>0)next.weights.push({date,weight:num,updatedAt:normalizeImportedTimestamp(w.updatedAt)});});
-      if(Array.isArray(imported.injections))imported.injections.forEach(i=>{if(!i||typeof i!=='object'||Array.isArray(i))return;const date=normalizeDateKey(i.date);if(!date||typeof i.dose!=='string')return;const med=MEDICATION_PROFILES[i.medication]?i.medication:next.settings.medication;const time=typeof i.time==='string'&&/^([01]\\d|2[0-3]):[0-5]\\d$/.test(i.time)?i.time:'';next.injections.push({id:(typeof i.id==='string'&&i.id.trim())?i.id.trim():`inj_import_${Math.random().toString(36).slice(2,10)}`,date,time,dose:i.dose,medication:med,site:typeof i.site==='string'?i.site:'Abdomen derecho',notes:typeof i.notes==='string'?i.notes:'',updatedAt:normalizeImportedTimestamp(i.updatedAt)});});
-      if(Array.isArray(imported.measurements))imported.measurements.forEach(m=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const date=normalizeDateKey(m.date);if(!date)return;const waist=parseFloat(m.waist),chest=parseFloat(m.chest),hips=parseFloat(m.hips),neck=parseFloat(m.neck);next.measurements.push({date,waist:Number.isFinite(waist)&&waist>=0?waist:0,chest:Number.isFinite(chest)&&chest>=0?chest:0,hips:Number.isFinite(hips)&&hips>=0?hips:0,neck:Number.isFinite(neck)&&neck>=0?neck:0,updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
-      if(imported.deletedRecords&&typeof imported.deletedRecords==='object'&&!Array.isArray(imported.deletedRecords))['meals','weights','injections','measurements'].forEach(type=>{const src=imported.deletedRecords[type];if(!src||typeof src!=='object'||Array.isArray(src))return;Object.keys(src).forEach(id=>{const ts=Number(src[id]);if(Number.isFinite(ts)&&ts>0)next.deletedRecords[type][id]=ts;});});
+      if(Array.isArray(imported.weights))imported.weights.forEach(w=>{if(!w||typeof w!=='object'||Array.isArray(w))return;const date=normalizeDateKey(w.date),num=parseFloat(w.weight);if(date&&date<=todayKey&&Number.isFinite(num)&&num>0)next.weights.push({date,weight:num,updatedAt:normalizeImportedTimestamp(w.updatedAt)});});
+      if(Array.isArray(imported.injections))imported.injections.forEach(i=>{if(!i||typeof i!=='object'||Array.isArray(i))return;const date=normalizeDateKey(i.date);if(!date||typeof i.dose!=='string')return;const med=MEDICATION_PROFILES[i.medication]?i.medication:next.settings.medication;const time=typeof i.time==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(i.time)?i.time:'';next.injections.push({id:(typeof i.id==='string'&&i.id.trim())?i.id.trim():`inj_import_${Math.random().toString(36).slice(2,10)}`,date,time,dose:i.dose,medication:med,presentation:typeof i.presentation==='string'?i.presentation:'',productKey:typeof i.productKey==='string'?i.productKey:'',inventoryConsumed:Boolean(i.inventoryConsumed),site:typeof i.site==='string'?i.site:'Abdomen derecho',notes:typeof i.notes==='string'?i.notes:'',updatedAt:normalizeImportedTimestamp(i.updatedAt)});});
+      if(Array.isArray(imported.measurements))imported.measurements.forEach(m=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const date=normalizeDateKey(m.date);if(!date||date>todayKey)return;const waist=parseFloat(m.waist),chest=parseFloat(m.chest),hips=parseFloat(m.hips),neck=parseFloat(m.neck);next.measurements.push({date,waist:Number.isFinite(waist)&&waist>=0?waist:0,chest:Number.isFinite(chest)&&chest>=0?chest:0,hips:Number.isFinite(hips)&&hips>=0?hips:0,neck:Number.isFinite(neck)&&neck>=0?neck:0,updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
+      // Restore creates a fresh authoritative dataEpoch. Imported records are already
+      // materialized, so old tombstones are intentionally compacted here; carrying
+      // tombstones across generations would only grow the document indefinitely.
+      next.deletedRecords={meals:{},weights:{},injections:{},measurements:{},bowelMovements:{}};
       next.healthProfile=sanitizeHealthProfile(imported.healthProfile);
       next.aiTelemetry=sanitizeAiTelemetry(imported.aiTelemetry);
       const restoreTime=mutationNow();
-      // A restore is a new authoritative generation; make imported profile timestamp current within it.
       if(next.healthProfile.sex||next.healthProfile.dob||next.healthProfile.heightIn||next.healthProfile.activity)next.healthProfile.updatedAt=restoreTime;
-      next.meta={schemaVersion:CLIENT_SCHEMA_VERSION,ownerUid:currentUser?currentUser.uid:(state.meta&&state.meta.ownerUid)||null,dataEpoch:generateDataEpoch('restore'),resetAt:restoreTime,settingsUpdatedAt:restoreTime,clientVersion:APP_VERSION,lastMutationAt:restoreTime};
-      next.selectedDate=getFormattedDate(new Date());state=next;cleanupTombstones();ensureV4State();
-      persistState({userMutation:true,immediateCloud:true});applyMedicationTheme();renderCurrentDay();renderAiStatus();if(activeTab==='tools')renderToolsView();
-      showToast(uiText('Backup restaurado de forma segura. Se creó una copia del estado anterior.','Backup restored safely. A copy of the previous state was created.'),5000);
+      const settingsFieldUpdatedAt={};
+      Object.keys(next.settings||{}).forEach(k=>{if(!['language','units','apiKey','pensInStock','roomTempTrackingEnabled','roomTempPenStart','inventoryByProduct','roomTempTrackers'].includes(k))settingsFieldUpdatedAt[k]=restoreTime;});
+      Object.keys(next.settings.inventoryByProduct||{}).forEach(k=>settingsFieldUpdatedAt[`inventoryByProduct.${k}`]=restoreTime);
+      Object.keys(next.settings.roomTempTrackers||{}).forEach(k=>settingsFieldUpdatedAt[`roomTempTrackers.${k}`]=restoreTime);
+      next.meta={schemaVersion:CLIENT_SCHEMA_VERSION,ownerUid:currentUser?currentUser.uid:(state.meta&&state.meta.ownerUid)||null,dataEpoch:generateDataEpoch('restore'),resetAt:restoreTime,settingsUpdatedAt:restoreTime,settingsFieldUpdatedAt,clientVersion:APP_VERSION,lastMutationAt:restoreTime};
+      next.selectedDate=todayKey;state=next;ensureV4State();
+      persistState({userMutation:true,immediateCloud:true});
+      let localHistoryRestored=false;
+      if(packageInfo&&Array.isArray(packageInfo.localBackups)&&packageInfo.localBackups.length){localHistoryRestored=await replaceLocalSafetyBackups(packageInfo.localBackups);}
+      applyMedicationTheme();renderCurrentDay();renderAiStatus();if(activeTab==='tools')renderToolsView();
+      let msg=uiText('Backup restaurado de forma segura. Se creó una copia del estado anterior.','Backup restored safely. A copy of the previous state was created.');
+      if(localHistoryRestored)msg+=uiText(' También se restauraron los backups locales incluidos.',' Included local backup history was also restored.');
+      if(packageInfo&&packageInfo.serverCount)msg+=uiText(' Los Server Safety incluidos permanecen como archivo de referencia y no reemplazaron los snapshots reales de Firebase.',' Included Server Safety snapshots remain archival/reference and did not overwrite Firebase safety slots.');
+      showToast(msg,8000);
     }
 
     function importDataJSON(e) {
@@ -6808,6 +6860,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       initData();
+      localBackupInitPromise=initLocalSafetyBackups().then(()=>recoverEmergencyStateIfNewer());
       setupFirebaseAuthListener();
       initFastingUI();
       applyMedicationTheme();
