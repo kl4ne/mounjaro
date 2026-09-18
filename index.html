@@ -293,7 +293,8 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.0</p>
+          <p id="print-app-version">Versión: v4.1.1</p>
+          <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
     </div>
@@ -302,6 +303,7 @@
     <div id="appointment-print-sheet" aria-hidden="true">
       <h1 id="appointment-print-title">Resumen para cita GLP-1</h1>
       <div id="appointment-print-content"></div>
+      <div class="mt-8 pt-3 border-t border-slate-300 text-[10px] text-slate-500">GLP-1 Companion • Designed &amp; Developed by Roberto S. Macfie • rmacfie@hotmail.com</div>
     </div>
 
     <!-- Top Sticky Header con Dynamic Island Safe Area -->
@@ -316,7 +318,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.0</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.1</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1240,6 +1242,21 @@
           </button>
         </div>
 
+        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-cyan-300"></i>
+            <h3 class="text-sm font-bold text-white">Acerca de GLP-1 Companion</h3>
+          </div>
+          <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-3">
+            <p class="text-[11px] text-slate-400">Designed &amp; Developed by</p>
+            <p class="text-sm font-black text-cyan-300 mt-0.5">Roberto S. Macfie</p>
+            <a href="mailto:rmacfie@hotmail.com" class="inline-flex items-center gap-1.5 text-[11px] text-slate-300 hover:text-white mt-1">
+              <i data-lucide="mail" class="w-3.5 h-3.5"></i> rmacfie@hotmail.com
+            </a>
+          </div>
+          <p class="text-[9px] text-slate-500">© 2026 Roberto S. Macfie. Todos los derechos reservados.</p>
+        </div>
+
       </section>
 
     </main>
@@ -1786,7 +1803,7 @@
       </div>
     </div>
 
-    <!-- Body Metrics Infographic v4.1.0 -->
+    <!-- Body Metrics Infographic v4.1.1 -->
     <div id="modal-body-infographic" class="fixed inset-0 z-[80] bg-[#090d16]/95 backdrop-blur-md hidden flex-col p-2 sm:p-4">
       <div class="w-full max-w-6xl mx-auto flex items-center justify-between gap-2 pb-2">
         <div><span class="text-[9px] uppercase tracking-wider font-bold text-cyan-300">GLP-1 Companion</span><h3 id="body-infographic-modal-title" class="text-sm font-black text-white">Resumen visual de métricas corporales</h3></div>
@@ -1819,9 +1836,11 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.0";
+    const APP_VERSION = "v4.1.1";
     const CLIENT_SCHEMA_VERSION = 12;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.0";
+    const DEVELOPER_NAME = "Roberto S. Macfie";
+    const DEVELOPER_EMAIL = "rmacfie@hotmail.com";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
     const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_8";
     const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_8";
@@ -2281,7 +2300,9 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.0": "Version: v4.1.0",
+      "Versión: v4.1.1": "Version: v4.1.1",
+      "Acerca de GLP-1 Companion": "About GLP-1 Companion",
+      "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -4190,6 +4211,8 @@
           commands.push(`BT ${font} Tf 0.06 0.09 0.14 rg 1 0 0 1 ${margin} ${row.y} Tm (${pdfEscapeLiteral(row.text)}) Tj ET`);
         });
         const pageLabel=(language==='en'?'Page':'Página')+` ${idx+1}/${pages.length}`;
+        const devCredit=`Designed & Developed by ${DEVELOPER_NAME} · ${DEVELOPER_EMAIL}`;
+        commands.push(`BT /F1 7.5 Tf 0.4 0.45 0.52 rg 1 0 0 1 ${margin} 28 Tm (${pdfEscapeLiteral(devCredit)}) Tj ET`);
         commands.push(`BT /F1 8 Tf 0.4 0.45 0.52 rg 1 0 0 1 ${W-margin-58} 28 Tm (${pdfEscapeLiteral(pageLabel)}) Tj ET`);
         const content=commands.join('\n');
         const contentBytes=cp1252Bytes(content);
@@ -5806,54 +5829,107 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
       const p=Math.max(0,Math.min(1,bmr/tdee));ctx.lineWidth=34;ctx.lineCap='butt';ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#2563eb';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*p);ctx.stroke();ctx.strokeStyle='#22c55e';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2+Math.PI*2*p,-Math.PI/2+Math.PI*2);ctx.stroke();canvasText(ctx,Math.round(tdee).toLocaleString(),cx,cy+6,34,'#12345b','800','center');canvasText(ctx,'kcal/day',cx,cy+34,17,'#64748b','600','center');return {bmrPct:Math.round(p*100),otherPct:100-Math.round(p*100)};
     }
 
+    function infographicIcon(ctx,type,cx,cy,size,color='#1d4ed8'){
+      ctx.save();ctx.translate(cx,cy);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=Math.max(2,size*.08);ctx.lineCap='round';ctx.lineJoin='round';
+      const s=size;
+      if(type==='person'){
+        ctx.beginPath();ctx.arc(0,-s*.25,s*.16,0,Math.PI*2);ctx.fill();roundedCanvasRect(ctx,-s*.18,-s*.02,s*.36,s*.45,s*.12,color);ctx.beginPath();ctx.moveTo(-s*.12,s*.22);ctx.lineTo(-s*.22,s*.48);ctx.moveTo(s*.12,s*.22);ctx.lineTo(s*.22,s*.48);ctx.stroke();
+      }else if(type==='scale'){
+        ctx.beginPath();ctx.roundRect(-s*.36,-s*.28,s*.72,s*.56,s*.12);ctx.stroke();ctx.beginPath();ctx.arc(0,-s*.05,s*.16,Math.PI,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-s*.05);ctx.lineTo(s*.08,-s*.14);ctx.stroke();
+      }else if(type==='target'){
+        [0.34,0.22,0.1].forEach(r=>{ctx.beginPath();ctx.arc(0,0,s*r,0,Math.PI*2);ctx.stroke();});ctx.beginPath();ctx.moveTo(s*.05,-s*.05);ctx.lineTo(s*.42,-s*.42);ctx.moveTo(s*.42,-s*.42);ctx.lineTo(s*.30,-s*.40);ctx.moveTo(s*.42,-s*.42);ctx.lineTo(s*.40,-s*.30);ctx.stroke();
+      }else if(type==='ruler'){
+        ctx.save();ctx.rotate(-Math.PI/4);ctx.strokeRect(-s*.34,-s*.10,s*.68,s*.20);for(let i=-3;i<=3;i++){ctx.beginPath();ctx.moveTo(i*s*.085,-s*.10);ctx.lineTo(i*s*.085,-s*(i%2===0?.02:.05));ctx.stroke();}ctx.restore();
+      }else if(type==='calendar'){
+        ctx.strokeRect(-s*.30,-s*.24,s*.60,s*.50);ctx.beginPath();ctx.moveTo(-s*.30,-s*.08);ctx.lineTo(s*.30,-s*.08);ctx.moveTo(-s*.17,-s*.34);ctx.lineTo(-s*.17,-s*.19);ctx.moveTo(s*.17,-s*.34);ctx.lineTo(s*.17,-s*.19);ctx.stroke();
+      }else if(type==='flame'){
+        ctx.beginPath();ctx.moveTo(0,-s*.44);ctx.bezierCurveTo(s*.36,-s*.10,s*.26,s*.28,0,s*.42);ctx.bezierCurveTo(-s*.28,s*.18,-s*.32,-s*.10,0,-s*.44);ctx.fill();ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.moveTo(0,-s*.10);ctx.bezierCurveTo(s*.13,s*.05,s*.10,s*.22,0,s*.28);ctx.bezierCurveTo(-s*.11,s*.17,-s*.12,s*.04,0,-s*.10);ctx.fill();ctx.globalCompositeOperation='source-over';
+      }else if(type==='runner'){
+        ctx.beginPath();ctx.arc(s*.05,-s*.30,s*.09,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(0,-s*.18);ctx.lineTo(-s*.08,s*.04);ctx.lineTo(s*.16,s*.18);ctx.moveTo(-s*.04,-s*.08);ctx.lineTo(-s*.28,s*.02);ctx.moveTo(-s*.02,s*.03);ctx.lineTo(-s*.24,s*.30);ctx.moveTo(s*.12,s*.16);ctx.lineTo(s*.31,s*.34);ctx.stroke();
+      }else if(type==='drop'){
+        ctx.beginPath();ctx.moveTo(0,-s*.42);ctx.bezierCurveTo(s*.28,-s*.05,s*.32,s*.18,0,s*.42);ctx.bezierCurveTo(-s*.32,s*.18,-s*.28,-s*.05,0,-s*.42);ctx.fill();
+      }else if(type==='body'){
+        ctx.beginPath();ctx.arc(0,-s*.34,s*.09,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-s*.23);ctx.bezierCurveTo(-s*.18,-s*.15,-s*.16,s*.05,-s*.11,s*.12);ctx.lineTo(-s*.18,s*.40);ctx.moveTo(0,-s*.23);ctx.bezierCurveTo(s*.18,-s*.15,s*.16,s*.05,s*.11,s*.12);ctx.lineTo(s*.18,s*.40);ctx.moveTo(-s*.12,-s*.10);ctx.lineTo(-s*.30,s*.12);ctx.moveTo(s*.12,-s*.10);ctx.lineTo(s*.30,s*.12);ctx.stroke();
+      }else if(type==='muscle'){
+        ctx.beginPath();ctx.moveTo(-s*.30,s*.18);ctx.bezierCurveTo(-s*.10,-s*.10,-s*.18,-s*.34,s*.05,-s*.26);ctx.bezierCurveTo(s*.02,-s*.05,s*.22,-s*.13,s*.31,s*.05);ctx.bezierCurveTo(s*.38,s*.26,s*.10,s*.38,-s*.12,s*.33);ctx.closePath();ctx.stroke();
+      }else if(type==='dots'){
+        [[-.22,-.18],[0,-.24],[.22,-.12],[-.15,.04],[.10,.02],[.28,.15],[-.25,.23],[0,.25]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x*s,y*s,s*.055,0,Math.PI*2);ctx.fill();});
+      }else if(type==='tape'){
+        ctx.beginPath();ctx.ellipse(0,0,s*.34,s*.22,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(0,0,s*.20,s*.10,0,0,Math.PI*2);ctx.stroke();for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*s*.10,-s*.18);ctx.lineTo(i*s*.10,-s*.08);ctx.stroke();}
+      }else if(type==='info'){
+        ctx.beginPath();ctx.arc(0,0,s*.35,0,Math.PI*2);ctx.stroke();canvasText(ctx,'i',0,s*.16,s*.48,color,'800','center','Arial');
+      }
+      ctx.restore();
+    }
+
+    function infographicSoftPanel(ctx,x,y,w,h,title,iconType=null,accent='#1d4ed8'){
+      ctx.save();ctx.shadowColor='rgba(15,52,91,0.08)';ctx.shadowBlur=14;ctx.shadowOffsetY=5;roundedCanvasRect(ctx,x,y,w,h,22,'#ffffff','#d9e5f2',2);ctx.restore();
+      roundedCanvasRect(ctx,x+2,y+2,w-4,58,20,'#f3f8fd');ctx.fillStyle=accent;ctx.fillRect(x+2,y+2,7,58);
+      if(iconType){infographicIcon(ctx,iconType,x+34,y+31,32,accent);canvasText(ctx,title,x+61,y+40,27,'#12345b','800');}
+      else canvasText(ctx,title,x+25,y+40,27,'#12345b','800');
+    }
+
+    function infographicInfoLine(ctx,iconType,label,value,x,y,color='#12345b',sub=''){
+      infographicIcon(ctx,iconType,x+22,y+18,35,'#244f78');canvasText(ctx,label,x+55,y+10,16,'#64748b','700');canvasText(ctx,value,x+55,y+39,24,color,'800');if(sub)canvasText(ctx,sub,x+55,y+61,15,'#64748b','500');
+    }
+
+    function infographicCompositionCard(ctx,x,y,w,h,iconType,label,value,color='#2563eb',sub=''){
+      roundedCanvasRect(ctx,x,y,w,h,18,'#f9fbfe','#dce8f4',2);infographicIcon(ctx,iconType,x+48,y+h/2,58,color);canvasText(ctx,label,x+88,y+34,17,'#334155','700');canvasText(ctx,value,x+88,y+72,29,'#12345b','800');if(sub){roundedCanvasRect(ctx,x+88,y+h-34,132,24,12,'#eaf8ef');canvasText(ctx,sub,x+154,y+h-17,14,'#15803d','700','center');}
+    }
+
+    function drawEditorialWeightChart(ctx,data,x,y,w,h){
+      const weights=data.weights;
+      if(!weights.length){canvasText(ctx,data.en?'No weight history yet':'Aún no hay historial de peso',x+w/2,y+h/2,22,'#94a3b8','600','center');return;}
+      const vals=weights.map(v=>Number(v.weight));if(data.goalLb!==null)vals.push(data.goalLb);let min=Math.min(...vals),max=Math.max(...vals);const raw=max-min;const pad=Math.max(4,raw*.25);min=Math.floor((min-pad)/5)*5;max=Math.ceil((max+pad)/5)*5;if(max-min<10)max=min+10;
+      const px=i=>weights.length===1?x+w*.14:x+(w*i/(weights.length-1));const py=v=>y+h-((v-min)/(max-min))*h;
+      ctx.strokeStyle='#e4edf6';ctx.lineWidth=1.5;ctx.fillStyle='#64748b';ctx.font='600 15px Arial';ctx.textAlign='right';for(let i=0;i<=4;i++){const yy=y+h*i/4;ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke();const val=max-(max-min)*i/4;ctx.fillText(`${Math.round(displayWeight(val))}`,x-12,yy+5);}
+      if(data.goalLb!==null){ctx.save();ctx.setLineDash([10,8]);ctx.strokeStyle='#22c55e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,py(data.goalLb));ctx.lineTo(x+w,py(data.goalLb));ctx.stroke();ctx.restore();}
+      const grad=ctx.createLinearGradient(0,y,0,y+h);grad.addColorStop(0,'rgba(37,99,235,.18)');grad.addColorStop(1,'rgba(37,99,235,0)');ctx.beginPath();weights.forEach((v,i)=>{const xx=px(i),yy=py(Number(v.weight));i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});ctx.lineTo(px(weights.length-1),y+h);ctx.lineTo(px(0),y+h);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      ctx.beginPath();weights.forEach((v,i)=>{const xx=px(i),yy=py(Number(v.weight));i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});ctx.strokeStyle='#2563eb';ctx.lineWidth=5;ctx.lineJoin='round';ctx.stroke();weights.forEach((v,i)=>{ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(px(i),py(Number(v.weight)),6,0,Math.PI*2);ctx.fill();});
+      const n=weights.length,indices=n<=7?[...Array(n).keys()]:[0,Math.floor((n-1)*.2),Math.floor((n-1)*.4),Math.floor((n-1)*.6),Math.floor((n-1)*.8),n-1];ctx.textAlign='center';indices.forEach(i=>{const dt=new Date(weights[i].date+'T12:00:00');canvasText(ctx,dt.toLocaleDateString(data.en?'en-US':'es-US',{month:'short'}),px(i),y+h+26,14,'#64748b','600','center');});
+      ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(x+20,y+h+54,6,0,Math.PI*2);ctx.fill();canvasText(ctx,data.en?'Weight':'Peso',x+34,y+h+59,15,'#475569','600');if(data.goalLb!==null){ctx.save();ctx.setLineDash([10,6]);ctx.strokeStyle='#22c55e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+130,y+h+54);ctx.lineTo(x+175,y+h+54);ctx.stroke();ctx.restore();canvasText(ctx,data.en?'Goal':'Meta',x+186,y+h+59,15,'#475569','600');}
+    }
+
+    function drawEditorialEnergyDonut(ctx,data,cx,cy,r){
+      const bmr=Number(data.metrics.bmr),tdee=Number(data.metrics.tdee);if(!Number.isFinite(bmr)||!Number.isFinite(tdee)||tdee<=0){canvasText(ctx,'--',cx,cy+10,38,'#94a3b8','800','center');return null;}const bp=Math.max(0,Math.min(1,bmr/tdee)),other=1-bp;ctx.lineWidth=38;ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#2563eb';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*bp);ctx.stroke();ctx.strokeStyle='#22c55e';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2+Math.PI*2*bp,-Math.PI/2+Math.PI*2);ctx.stroke();canvasText(ctx,Math.round(tdee).toLocaleString(),cx,cy+3,32,'#12345b','800','center');canvasText(ctx,'kcal/day',cx,cy+31,15,'#64748b','600','center');return {bmrPct:Math.round(bp*100),otherPct:Math.round(other*100),bmr:Math.round(bmr),other:Math.max(0,Math.round(tdee-bmr))};
+    }
+
     function renderBodyMetricsInfographicCanvas() {
-      const canvas=document.getElementById('body-infographic-canvas');if(!canvas)return null;const ctx=canvas.getContext('2d');const d=getBodyMetricsInfographicData(), W=canvas.width,H=canvas.height;
+      const canvas=document.getElementById('body-infographic-canvas');if(!canvas)return null;const ctx=canvas.getContext('2d'),d=getBodyMetricsInfographicData(),W=canvas.width,H=canvas.height;
       ctx.clearRect(0,0,W,H);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
-      // Header
-      ctx.fillStyle='#f5faff';ctx.fillRect(0,0,W,165);ctx.fillStyle='#1d4ed8';ctx.fillRect(0,0,16,165);
-      roundedCanvasRect(ctx,42,34,170,92,24,'#eaf4ff','#bfdbfe',2);ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(86,80,24,0,Math.PI*2);ctx.fill();ctx.fillStyle='#22c55e';ctx.beginPath();ctx.moveTo(70,108);ctx.quadraticCurveTo(102,98,128,60);ctx.quadraticCurveTo(116,110,80,120);ctx.closePath();ctx.fill();canvasText(ctx,'GLP-1',132,72,28,'#12345b','800');canvasText(ctx,'COMPANION',132,102,15,'#2563eb','700');
-      canvasText(ctx,d.en?'BODY METRICS SUMMARY':'RESUMEN DE MÉTRICAS CORPORALES',W/2,65,52,'#12345b','800','center');canvasText(ctx,d.en?'Your health journey at a glance':'Tu progreso de salud de un vistazo',W/2,105,26,'#2563eb','600','center');canvasText(ctx,'GLP-1 Companion',W/2,137,20,'#64748b','600','center');
-      roundedCanvasRect(ctx,W-390,28,340,108,20,'#eaf4ff','#dbe7f4',2);canvasText(ctx,d.en?'Report date':'Fecha del reporte',W-365,62,19,'#64748b','700');canvasText(ctx,d.generatedAt.toLocaleDateString(d.en?'en-US':'es-US',{month:'short',day:'numeric',year:'numeric'}),W-365,92,27,'#12345b','800');canvasText(ctx,APP_VERSION,W-365,119,17,'#2563eb','700');
-      // Top row
-      const topY=195, gap=22, p1=500,p2=480,p3=430,p4=650;let x=36;
-      infographicPanel(ctx,x,topY,p1,360,d.en?'PERSONAL INFORMATION':'INFORMACIÓN PERSONAL');
-      canvasText(ctx,d.en?'Account':'Cuenta',x+26,topY+105,18,'#64748b','700');canvasWrap(ctx,d.userName,x+26,topY+135,p1-52,28,25,'#12345b','700',2);
-      canvasText(ctx,d.en?'Age':'Edad',x+26,topY+203,18,'#64748b','700');canvasText(ctx,d.age===null?'--':String(d.age),x+26,topY+236,27,'#12345b','800');canvasText(ctx,d.en?'Sex':'Sexo',x+180,topY+203,18,'#64748b','700');canvasText(ctx,d.sexLabel,x+180,topY+236,27,'#12345b','800');
-      canvasText(ctx,d.en?'Height':'Altura',x+26,topY+286,18,'#64748b','700');canvasText(ctx,d.h.heightIn?formatLength(d.h.heightIn,1):'--',x+26,topY+319,27,'#12345b','800');canvasText(ctx,d.en?'Current weight':'Peso actual',x+250,topY+286,18,'#64748b','700');canvasText(ctx,d.currentLb!==null?formatWeight(d.currentLb,1):'--',x+250,topY+319,27,'#12345b','800');
-      x+=p1+gap;infographicPanel(ctx,x,topY,p2,360,d.en?'WHAT IS BMI?':'¿QUÉ ES EL IMC?');
-      canvasWrap(ctx,d.en?'BMI relates your weight to your height. It is useful as a screening and tracking tool, but it does not directly measure body fat or distinguish muscle from fat.':'El IMC relaciona tu peso con tu altura. Es útil como herramienta de orientación y seguimiento, pero no mide directamente la grasa corporal ni distingue músculo de grasa.',x+26,topY+105,p2-52,31,21,'#475569','400',5);
-      roundedCanvasRect(ctx,x+30,topY+246,p2-60,82,16,'#f2f7fc','#dbe7f4',2);canvasText(ctx,'BMI =',x+55,topY+298,27,'#12345b','800');canvasText(ctx,d.en?'Weight (kg) ÷ Height (m)²':'Peso (kg) ÷ Altura (m)²',x+165,topY+298,23,'#2563eb','700');
-      x+=p2+gap;infographicPanel(ctx,x,topY,p3,360,d.en?'YOUR BMI RESULT':'TU RESULTADO IMC');
-      const bmiText=d.metrics.bmi!==null?d.metrics.bmi.toFixed(1):'--';canvasText(ctx,bmiText,x+p3/2,topY+190,100,d.classification.color,'800','center');roundedCanvasRect(ctx,x+45,topY+225,p3-90,88,18,d.classification.color+'18',d.classification.color+'55',2);canvasText(ctx,d.classification.label,x+p3/2,topY+278,28,d.classification.color,'800','center');
-      x+=p3+gap;infographicPanel(ctx,x,topY,p4,360,d.en?'BMI CLASSIFICATION':'CLASIFICACIÓN DEL IMC');
-      const ranges=[['< 18.5',d.en?'Underweight':'Bajo peso','#dbeafe'],['18.5–24.9',d.en?'Healthy range':'Rango saludable','#dcfce7'],['25.0–29.9',d.en?'Overweight':'Sobrepeso','#fef9c3'],['30.0–34.9',d.en?'Obesity class I':'Obesidad grado I','#ffedd5'],['35.0–39.9',d.en?'Obesity class II':'Obesidad grado II','#fee2e2'],['≥ 40.0',d.en?'Obesity class III':'Obesidad grado III','#fecaca']];
-      ranges.forEach((r,i)=>{const yy=topY+78+i*43;roundedCanvasRect(ctx,x+20,yy,p4-40,36,8,r[2],d.classification.label===r[1]?d.classification.color:null,d.classification.label===r[1]?3:1);canvasText(ctx,r[1],x+38,yy+25,18,'#334155',d.classification.label===r[1]?'800':'600');canvasText(ctx,r[0],x+p4-42,yy+25,18,'#334155','700','right');});
-      // Middle row chart + metrics + composition
-      const midY=580;infographicPanel(ctx,36,midY,900,510,d.en?'WEIGHT PROGRESS':'PROGRESO DE PESO');drawBodyWeightChart(ctx,d,90,midY+110,790,285);
-      if(d.startLb!==null&&d.currentLb!==null){const lost=d.startLb-d.currentLb;roundedCanvasRect(ctx,690,midY+78,210,88,18,'#dcfce7','#bbf7d0',2);canvasText(ctx,`${lost>=0?'':'+'}${Math.abs(displayWeight(lost)).toFixed(1)} ${weightUnit()}`,795,midY+115,28,lost>=0?'#15803d':'#b45309','800','center');canvasText(ctx,lost>=0?(d.en?'lost':'perdidos'):(d.en?'change':'cambio'),795,midY+145,17,'#64748b','600','center');}
-      infographicPanel(ctx,958,midY,590,510,d.en?'KEY METRICS':'MÉTRICAS CLAVE');
-      infographicMetric(ctx,984,midY+82,d.en?'BMR':'TMB / BMR',d.metrics.bmr!==null?`${Math.round(d.metrics.bmr)} kcal`:'--','#f97316',d.en?'Resting energy':'Energía en reposo');
-      infographicMetric(ctx,1236,midY+82,'TDEE',d.metrics.tdee!==null?`${Math.round(d.metrics.tdee)} kcal`:'--','#22c55e',d.en?'Estimated daily use':'Gasto diario estimado');
-      infographicMetric(ctx,984,midY+220,d.en?'Hydration goal':'Hidratación',d.metrics.hydrationOz!==null?`${Math.round(displayWater(d.metrics.hydrationOz))} ${waterUnit()}`:'--','#0ea5e9',d.en?'per day':'por día');
-      infographicMetric(ctx,1236,midY+220,d.en?'Waist / height':'Cintura / altura',d.metrics.whtr!==null?d.metrics.whtr.toFixed(2):'--','#eab308',d.metrics.whtr===null?'':(d.metrics.whtr<.5?(d.en?'Below 0.50':'Menor de 0.50'):(d.en?'0.50 or above':'0.50 o más')));
-      roundedCanvasRect(ctx,984,midY+358,490,110,18,'#f8fbff','#dbe7f4',2);canvasText(ctx,d.en?'Goal weight':'Peso meta',1002,midY+392,18,'#64748b','700');canvasText(ctx,d.goalLb!==null?formatWeight(d.goalLb,1):'--',1002,midY+435,33,'#2563eb','800');if(d.progress!==null){canvasText(ctx,`${Math.round(d.progress*100)}%`,1448,midY+421,30,'#22c55e','800','right');}
-      infographicPanel(ctx,1570,midY,594,510,d.en?'BODY COMPOSITION (ESTIMATED)':'COMPOSICIÓN CORPORAL (ESTIMADA)');
-      infographicMetric(ctx,1596,midY+82,d.en?'Body fat %':'Grasa corporal %',d.metrics.bodyFat!==null?`${d.metrics.bodyFat.toFixed(1)}%`:'--','#e11d48','US Navy');
-      infographicMetric(ctx,1848,midY+82,d.en?'Lean mass':'Masa magra',d.metrics.leanMassLb!==null?formatWeight(d.metrics.leanMassLb,1):'--','#16a34a','');
-      infographicMetric(ctx,1596,midY+220,d.en?'Fat mass':'Masa grasa',d.metrics.fatMassLb!==null?formatWeight(d.metrics.fatMassLb,1):'--','#f97316','');
-      infographicMetric(ctx,1848,midY+220,d.en?'Waist':'Cintura',d.latestM&&Number(d.latestM.waist)>0?formatLength(Number(d.latestM.waist),1):'--','#2563eb','');
-      roundedCanvasRect(ctx,1596,midY+358,490,110,18,'#fff7ed','#fed7aa',2);canvasText(ctx,d.en?'Estimated values':'Valores estimados',1614,midY+392,18,'#9a3412','700');canvasWrap(ctx,d.en?'Body-composition values depend on available measurements and are not direct clinical measurements.':'Los valores de composición dependen de las medidas disponibles y no son mediciones clínicas directas.',1614,midY+421,455,24,17,'#7c2d12','400',2);
-      // Bottom row progress / energy / notes
-      const botY=1115;infographicPanel(ctx,36,botY,800,485,d.en?'PROGRESS TOWARD GOAL':'PROGRESO HACIA LA META');
-      const prog=d.progress===null?0:d.progress;roundedCanvasRect(ctx,92,botY+105,680,38,19,'#e2e8f0');roundedCanvasRect(ctx,92,botY+105,680*prog,38,19,'#22c55e');canvasText(ctx,d.progress===null?'--':`${Math.round(prog*100)}%`,432,botY+180,42,'#12345b','800','center');
-      const cols=[['Start','Inicio',d.startLb],['Current','Actual',d.currentLb],['Goal','Meta',d.goalLb]];cols.forEach((c,i)=>{const cx=128+i*230;canvasText(ctx,d.en?c[0]:c[1],cx,botY+250,18,'#64748b','700','center');canvasText(ctx,c[2]!==null?formatWeight(c[2],1):'--',cx,botY+292,28,'#12345b','800','center');});
-      canvasWrap(ctx,d.en?'Progress is calculated from your first logged weight toward your configured goal.':'El progreso se calcula desde tu primer peso registrado hacia la meta configurada.',92,botY+365,680,28,18,'#64748b','400',3);
-      infographicPanel(ctx,858,botY,670,485,d.en?'ESTIMATED DAILY ENERGY USE':'GASTO ENERGÉTICO DIARIO ESTIMADO');const energy=drawEnergyDonut(ctx,d,1045,botY+290,105);if(energy){ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1195,botY+188,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.bmrPct}% ${d.en?'BMR':'TMB'}`,1216,botY+195,20,'#12345b','700');ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(1195,botY+228,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.otherPct}% ${d.en?'activity + other':'actividad + otros'}`,1216,botY+235,20,'#12345b','700');}canvasWrap(ctx,d.en?'BMR is the estimated resting component. The remaining TDEE reflects activity and other daily energy costs; this is not a measured calorie burn.':'La TMB es el componente estimado en reposo. El resto del TDEE refleja actividad y otros gastos diarios; no es una medición directa de calorías quemadas.',1180,botY+300,300,28,18,'#475569','400',6);
-      infographicPanel(ctx,1550,botY,614,485,d.en?'IMPORTANT NOTES':'NOTAS IMPORTANTES');
-      const notes=d.en?["BMI is a screening tool and does not distinguish muscle from fat.","Body composition is estimated from your recorded measurements.","BMR, TDEE and hydration are formula-based estimates.","This report is informational and does not replace professional medical guidance."]:["El IMC es una herramienta de orientación y no distingue músculo de grasa.","La composición corporal se estima con tus medidas registradas.","TMB, TDEE e hidratación son estimaciones basadas en fórmulas.","Este reporte es informativo y no reemplaza orientación médica profesional."];
-      let ny=botY+110;notes.forEach(n=>{ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1582,ny-7,5,0,Math.PI*2);ctx.fill();ny+=canvasWrap(ctx,n,1600,ny,520,27,18,'#334155','400',3)+14;});canvasText(ctx,d.en?'Your data. Your progress.':'Tus datos. Tu progreso.',1855,botY+438,24,'#2563eb','700','center');
-      // Footer
-      canvasText(ctx,'GLP-1 Companion',46,H-35,18,'#12345b','800');canvasText(ctx,d.en?'Generated from your recorded data':'Generado con tus datos registrados',W/2,H-35,16,'#64748b','500','center');canvasText(ctx,APP_VERSION,W-48,H-35,16,'#64748b','700','right');
+      // Header inspired by the approved editorial concept.
+      ctx.fillStyle='#f7fbff';ctx.fillRect(0,0,W,175);ctx.fillStyle='#1d4ed8';ctx.fillRect(0,0,10,175);
+      // Brand mark: person + leaf, intentionally distinct from the app icon while matching the approved report style.
+      ctx.save();ctx.translate(92,78);ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(0,-28,13,0,Math.PI*2);ctx.fill();ctx.lineWidth=12;ctx.strokeStyle='#2563eb';ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(0,38);ctx.moveTo(0,3);ctx.lineTo(-34,-12);ctx.moveTo(0,3);ctx.lineTo(34,-12);ctx.stroke();ctx.fillStyle='#22c55e';ctx.beginPath();ctx.moveTo(-33,42);ctx.bezierCurveTo(-62,12,-54,-21,-17,-40);ctx.bezierCurveTo(-23,-6,-10,18,0,39);ctx.bezierCurveTo(-9,54,-21,60,-33,42);ctx.fill();ctx.restore();
+      canvasText(ctx,'GLP-1',150,67,42,'#12345b','900');canvasText(ctx,'COMPANION',150,104,22,'#1d4ed8','800');canvasText(ctx,d.en?'TRACK TODAY. A HEALTHIER TOMORROW.':'REGISTRA HOY. UN MAÑANA MÁS SALUDABLE.',150,132,12,'#42698e','700');
+      canvasText(ctx,d.en?'BODY METRICS SUMMARY':'RESUMEN DE MÉTRICAS CORPORALES',W/2,58,52,'#12345b','900','center');canvasText(ctx,d.en?'Your Health Journey at a Glance':'Tu progreso de salud de un vistazo',W/2,96,27,'#1d4ed8','600','center');canvasText(ctx,d.en?'“Small steps. Big results.”':'“Pequeños pasos. Grandes resultados.”',W/2,137,27,'#315c87','400','center','Georgia');
+      roundedCanvasRect(ctx,W-410,24,360,122,18,'#eef6fd','#d7e6f4',2);canvasText(ctx,d.en?'Report Date':'Fecha del reporte',W-382,55,18,'#475569','700');canvasText(ctx,d.generatedAt.toLocaleDateString(d.en?'en-US':'es-US',{month:'short',day:'numeric',year:'numeric'}),W-382,84,25,'#12345b','800');const lastDate=d.weights.length?d.weights[d.weights.length-1].date:null;if(lastDate){canvasText(ctx,d.en?'Data through':'Datos hasta',W-382,111,16,'#64748b','600');canvasText(ctx,new Date(lastDate+'T12:00:00').toLocaleDateString(d.en?'en-US':'es-US',{month:'short',day:'numeric',year:'numeric'}),W-270,111,16,'#12345b','700');}canvasText(ctx,APP_VERSION,W-382,136,14,'#1d4ed8','700');
+
+      const topY=195,gap=18;let x=24;const p1=600,p2=500,p3=380,p4=654;
+      infographicSoftPanel(ctx,x,topY,p1,365,d.en?'PERSONAL INFORMATION':'INFORMACIÓN PERSONAL',null,'#1d4ed8');
+      infographicInfoLine(ctx,'person',d.en?'Name':'Nombre',d.userName,x+18,topY+92);infographicInfoLine(ctx,'calendar',d.en?'Age':'Edad',d.age===null?'--':`${d.age} ${d.en?'years':'años'}`,x+18,topY+190);infographicInfoLine(ctx,'ruler',d.en?'Height':'Altura',d.h.heightIn?`${(d.h.heightIn*2.54/100).toFixed(2)} m · ${d.h.heightIn.toFixed(1)} in`:'--',x+18,topY+286);
+      infographicInfoLine(ctx,'scale',d.en?'Current Weight':'Peso actual',d.currentLb!==null?`${(d.currentLb*LB_TO_KG).toFixed(1)} kg · ${d.currentLb.toFixed(1)} lb`:'--',x+310,topY+92);infographicInfoLine(ctx,'target',d.en?'Goal Weight':'Peso meta',d.goalLb!==null?`${(d.goalLb*LB_TO_KG).toFixed(1)} kg · ${d.goalLb.toFixed(1)} lb`:'--',x+310,topY+190);infographicInfoLine(ctx,'person',d.en?'Sex':'Sexo',d.sexLabel,x+310,topY+286);
+
+      x+=p1+gap;infographicSoftPanel(ctx,x,topY,p2,365,d.en?'WHAT IS BMI?':'¿QUÉ ES EL IMC?',null,'#1d4ed8');canvasWrap(ctx,d.en?'BMI (Body Mass Index) is a screening tool that relates your weight to your height. It can help identify weight ranges, but it does not directly measure body fat or distinguish muscle from fat.':'El IMC (Índice de Masa Corporal) es una herramienta de orientación que relaciona tu peso con tu estatura. Ayuda a identificar rangos de peso, pero no mide directamente la grasa corporal ni distingue músculo de grasa.',x+26,topY+98,p2-52,29,20,'#334155','400',6);roundedCanvasRect(ctx,x+26,topY+255,p2-52,84,16,'#eef5fb','#d6e4f2',2);canvasText(ctx,'BMI =',x+62,topY+308,30,'#12345b','800');canvasText(ctx,d.en?'Weight (kg)':'Peso (kg)',x+200,topY+287,20,'#1d4ed8','700','center');ctx.strokeStyle='#12345b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+130,topY+300);ctx.lineTo(x+355,topY+300);ctx.stroke();canvasText(ctx,d.en?'Height (m)²':'Estatura (m)²',x+200,topY+326,20,'#12345b','700','center');
+
+      x+=p2+gap;infographicSoftPanel(ctx,x,topY,p3,365,d.en?'YOUR BMI RESULT':'TU RESULTADO IMC',null,d.classification.color);canvasText(ctx,d.metrics.bmi!==null?d.metrics.bmi.toFixed(1):'--',x+p3/2,topY+188,84,d.classification.color,'900','center');roundedCanvasRect(ctx,x+45,topY+225,p3-90,92,18,d.classification.key==='normal'?'#dcfce7':d.classification.key==='over'?'#fff7d6':'#fff0e8');canvasText(ctx,d.classification.label,x+p3/2,topY+268,28,d.classification.color,'800','center');canvasWrap(ctx,d.en?(d.classification.key==='normal'?'Your BMI falls in the healthy screening range.':'This is your current BMI screening category.'):(d.classification.key==='normal'?'Tu IMC cae en el rango saludable de orientación.':'Esta es tu categoría actual de orientación por IMC.'),x+64,topY+295,p3-128,24,16,'#475569','500',2);
+
+      x+=p3+gap;infographicSoftPanel(ctx,x,topY,p4,365,d.en?'BMI CLASSIFICATION':'CLASIFICACIÓN DEL IMC',null,'#1d4ed8');const rows=d.en?[['Underweight','< 18.5','Below range'],['Healthy range','18.5–24.9','Healthy'],['Overweight','25.0–29.9','Above range'],['Obesity class I','30.0–34.9','Elevated'],['Obesity class II','35.0–39.9','High'],['Obesity class III','≥ 40.0','Very high']]:[['Bajo peso','< 18.5','Bajo rango'],['Rango saludable','18.5–24.9','Saludable'],['Sobrepeso','25.0–29.9','Sobre rango'],['Obesidad grado I','30.0–34.9','Elevado'],['Obesidad grado II','35.0–39.9','Alto'],['Obesidad grado III','≥ 40.0','Muy alto']];const keys=['under','normal','over','ob1','ob2','ob3'],fills=['#e8f2ff','#e4f8ea','#fff6cf','#ffead8','#ffe0d9','#ffd8dc'];const ry=topY+86;ctx.fillStyle='#376b98';ctx.fillRect(x+14,ry-25,p4-28,31);canvasText(ctx,d.en?'Category':'Categoría',x+28,ry-4,16,'#ffffff','700');canvasText(ctx,d.en?'BMI Range':'Rango IMC',x+400,ry-4,16,'#ffffff','700','center');canvasText(ctx,d.en?'Screening':'Orientación',x+575,ry-4,16,'#ffffff','700','center');rows.forEach((r,i)=>{const yy=ry+10+i*40;roundedCanvasRect(ctx,x+14,yy,p4-28,35,4,fills[i],d.classification.key===keys[i]?d.classification.color:'#e6edf5',d.classification.key===keys[i]?3:1);canvasText(ctx,r[0],x+28,yy+24,16,d.classification.key===keys[i]?'#12345b':'#334155',d.classification.key===keys[i]?'800':'600');canvasText(ctx,r[1],x+400,yy+24,16,'#334155',d.classification.key===keys[i]?'800':'600','center');canvasText(ctx,r[2],x+575,yy+24,15,'#334155','600','center');});
+
+      const midY=585;infographicSoftPanel(ctx,24,midY,770,500,d.en?'WEIGHT PROGRESS':'PROGRESO DE PESO',null,'#1d4ed8');drawEditorialWeightChart(ctx,d,92,midY+105,560,265);const lost=(d.startLb!==null&&d.currentLb!==null)?d.startLb-d.currentLb:null;roundedCanvasRect(ctx,625,midY+82,135,105,18,'#dff7e7','#c8edd5',1);canvasText(ctx,lost===null?'--':`${Math.abs(displayWeight(lost)).toFixed(1)} ${weightUnit()}`,692,midY+124,28,'#166534','800','center');canvasText(ctx,lost!==null&&lost>=0?(d.en?'Lost':'Perdidos'):(d.en?'Change':'Cambio'),692,midY+152,16,'#166534','700','center');
+
+      infographicSoftPanel(ctx,814,midY,650,500,d.en?'KEY METRICS':'MÉTRICAS CLAVE',null,'#1d4ed8');const kx=844,ky=midY+100;infographicIcon(ctx,'flame',kx+30,ky+18,48,'#f97316');canvasText(ctx,d.en?'BMR (Basal Metabolic Rate)':'TMB / BMR (Metabolismo basal)',kx+74,ky+4,17,'#334155','700');canvasText(ctx,d.metrics.bmr!==null?`${Math.round(d.metrics.bmr).toLocaleString()} kcal/day`:'--',kx+74,ky+38,29,'#12345b','800');canvasText(ctx,d.en?'Estimated calories your body uses at rest.':'Calorías estimadas que tu cuerpo usa en reposo.',kx+74,ky+63,16,'#64748b','500');ctx.strokeStyle='#e1eaf3';ctx.beginPath();ctx.moveTo(kx,ky+90);ctx.lineTo(kx+580,ky+90);ctx.stroke();infographicIcon(ctx,'runner',kx+30,ky+138,48,'#244f78');canvasText(ctx,'TDEE',kx+74,ky+122,17,'#334155','700');canvasText(ctx,d.metrics.tdee!==null?`${Math.round(d.metrics.tdee).toLocaleString()} kcal/day`:'--',kx+74,ky+156,29,'#12345b','800');canvasText(ctx,d.en?'Estimated daily maintenance energy.':'Energía diaria estimada de mantenimiento.',kx+74,ky+181,16,'#64748b','500');ctx.beginPath();ctx.moveTo(kx,ky+208);ctx.lineTo(kx+580,ky+208);ctx.stroke();infographicIcon(ctx,'drop',kx+30,ky+258,48,'#0ea5e9');canvasText(ctx,d.en?'Hydration Goal':'Meta de hidratación',kx+74,ky+242,17,'#334155','700');canvasText(ctx,d.metrics.hydrationOz!==null?`${Math.round(displayWater(d.metrics.hydrationOz))} ${waterUnit()}/day`:'--',kx+74,ky+276,29,'#12345b','800');canvasText(ctx,d.en?'Suggested daily water intake.':'Ingesta diaria sugerida de agua.',kx+74,ky+301,16,'#64748b','500');
+
+      infographicSoftPanel(ctx,1484,midY,692,500,d.en?'BODY COMPOSITION (Estimated)':'COMPOSICIÓN CORPORAL (Estimada)',null,'#1d4ed8');infographicCompositionCard(ctx,1510,midY+88,315,145,'body',d.en?'Body Fat %':'Grasa corporal %',d.metrics.bodyFat!==null?`${d.metrics.bodyFat.toFixed(1)}%`:'--','#2563eb',d.metrics.bodyFat!==null?(d.en?'Estimated':'Estimado'):'');infographicCompositionCard(ctx,1838,midY+88,315,145,'muscle',d.en?'Lean Mass':'Masa magra',d.metrics.leanMassLb!==null?formatWeight(d.metrics.leanMassLb,1):'--','#244f78','');infographicCompositionCard(ctx,1510,midY+250,315,145,'dots',d.en?'Fat Mass':'Masa grasa',d.metrics.fatMassLb!==null?formatWeight(d.metrics.fatMassLb,1):'--','#1d4ed8','');infographicCompositionCard(ctx,1838,midY+250,315,145,'tape',d.en?'Waist-to-Height':'Cintura/altura',d.metrics.whtr!==null?d.metrics.whtr.toFixed(2):'--','#244f78',d.metrics.whtr!==null&&d.metrics.whtr<.5?(d.en?'Below 0.50':'Menor de 0.50'):'');
+
+      const botY=1110;infographicSoftPanel(ctx,24,botY,740,480,d.en?'PROGRESS TOWARD GOAL':'PROGRESO HACIA LA META',null,'#1d4ed8');infographicIcon(ctx,'target',70,botY+105,58,'#244f78');const prog=d.progress===null?0:d.progress;roundedCanvasRect(ctx,120,botY+84,530,38,19,'#dfe7ef');roundedCanvasRect(ctx,120,botY+84,530*prog,38,19,'#22c55e');canvasText(ctx,d.progress===null?'--':`${Math.round(prog*100)}%`,680,botY+114,30,'#12345b','800','right');const cdata=[['Start','Inicio',d.startLb],['Current','Actual',d.currentLb],['Goal','Meta',d.goalLb]];cdata.forEach((c,i)=>{const cx=145+i*230;canvasText(ctx,d.en?c[0]:c[1],cx,botY+215,16,'#64748b','700','center');canvasText(ctx,c[2]!==null?formatWeight(c[2],1):'--',cx,botY+255,27,'#12345b','800','center');});canvasWrap(ctx,d.en?'Progress is calculated from your first logged weight toward your configured goal.':'El progreso se calcula desde tu primer peso registrado hacia la meta configurada.',86,botY+340,600,26,17,'#64748b','400',3);
+
+      infographicSoftPanel(ctx,784,botY,680,480,d.en?'HOW YOUR DAILY CALORIES ARE USED':'CÓMO SE USA TU ENERGÍA DIARIA',null,'#1d4ed8');const energy=drawEditorialEnergyDonut(ctx,d,980,botY+280,105);if(energy){ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1135,botY+150,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.bmrPct}% BMR`,1155,botY+157,19,'#12345b','700');canvasText(ctx,`${energy.bmr.toLocaleString()} kcal`,1308,botY+157,17,'#475569','600');ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(1135,botY+202,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.otherPct}% ${d.en?'Activity + other':'Actividad + otros'}`,1155,botY+209,19,'#12345b','700');canvasText(ctx,`${energy.other.toLocaleString()} kcal`,1340,botY+235,17,'#475569','600','right');}canvasWrap(ctx,d.en?'BMR is the estimated resting component. The remainder reflects activity and other daily energy needs; this is not a measured calorie burn.':'La TMB es el componente estimado en reposo. El resto refleja actividad y otras necesidades diarias; no es una medición directa de calorías quemadas.',1130,botY+300,285,26,16,'#64748b','400',6);
+
+      infographicSoftPanel(ctx,1484,botY,692,480,d.en?'IMPORTANT NOTES':'NOTAS IMPORTANTES','info','#1d4ed8');const notes=d.en?['BMI is a screening tool and does not distinguish muscle from fat.','Body composition is estimated from your recorded measurements.','BMR, TDEE and hydration are formula-based estimates.','This report is informational and does not replace professional medical guidance.']:['El IMC es una herramienta de orientación y no distingue músculo de grasa.','La composición corporal se estima con tus medidas registradas.','TMB, TDEE e hidratación son estimaciones basadas en fórmulas.','Este reporte es informativo y no reemplaza orientación médica profesional.'];let ny=botY+110;notes.forEach(n=>{ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1520,ny-6,5,0,Math.PI*2);ctx.fill();ny+=canvasWrap(ctx,n,1540,ny,585,25,16,'#334155','400',3)+14;});canvasText(ctx,d.en?'Health today. A brighter tomorrow.':'Salud hoy. Un mañana más brillante.',1830,botY+418,23,'#315c87','400','center','Georgia');
+
+      // Footer + authorship credit.
+      ctx.strokeStyle='#dce8f3';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(24,H-72);ctx.lineTo(W-24,H-72);ctx.stroke();canvasText(ctx,'GLP-1 Companion',34,H-38,17,'#12345b','800');canvasText(ctx,`Designed & Developed by ${DEVELOPER_NAME} · ${DEVELOPER_EMAIL}`,W/2,H-38,15,'#64748b','600','center');canvasText(ctx,APP_VERSION,W-34,H-38,15,'#64748b','700','right');
       return d;
     }
 
@@ -6803,7 +6879,7 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
           }
           descriptor=mode==='complete'?'complete':mode;
         }
-        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.1.0.json`);
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_${APP_VERSION}.json`);
         closeExportBackupOptions();
       } catch(err) {
         console.error('Backup export failed:',err);
