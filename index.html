@@ -214,8 +214,24 @@
       .print-header {
         display: block !important;
       }
+      body.appointment-print-mode #app-container > *:not(#appointment-print-sheet) {
+        display: none !important;
+      }
+      body.appointment-print-mode #appointment-print-sheet {
+        display: block !important;
+        padding: 24px !important;
+        color: #0f172a !important;
+        background: #ffffff !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 12px !important;
+        line-height: 1.45 !important;
+      }
+      body.appointment-print-mode #appointment-print-sheet h1 {
+        font-size: 20px !important;
+        margin: 0 0 16px 0 !important;
+      }
     }
-    .print-header {
+    .print-header, #appointment-print-sheet {
       display: none;
     }
   </style>
@@ -233,9 +249,15 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.0.1</p>
+          <p id="print-app-version">Versión: v4.0.2</p>
         </div>
       </div>
+    </div>
+
+    <!-- Same-document print sheet for iPhone/iPad-safe visit summary printing -->
+    <div id="appointment-print-sheet" aria-hidden="true">
+      <h1 id="appointment-print-title">Resumen para cita GLP-1</h1>
+      <div id="appointment-print-content"></div>
     </div>
 
     <!-- Top Sticky Header con Dynamic Island Safe Area -->
@@ -250,7 +272,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.1</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.2</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -610,7 +632,7 @@
           </div>
         </div>
 
-        <!-- v4.0.1 Pharmacokinetic estimate -->
+        <!-- v4.0.2 Pharmacokinetic estimate -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2"><div><span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Nivel estimado de medicamento (PK)</span><h3 id="pk-medication-name" class="text-sm font-bold text-white">--</h3></div><span id="pk-phase" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Sin datos</span></div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
@@ -629,26 +651,23 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div id="room-temp-card" class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="thermometer-sun" class="w-4 h-4 text-cyan-400"></i>
-                <h4 class="text-xs font-bold text-white">Pluma en uso</h4>
+                <h4 id="room-temp-card-title" class="text-xs font-bold text-white">Pluma en uso</h4>
               </div>
-              <span id="room-temp-status-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                21 días máx.
-              </span>
+              <span id="room-temp-status-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30">Desactivado</span>
             </div>
             <p id="room-temp-expl-text" class="text-[10px] text-slate-400 leading-tight">
-              Mounjaro puede permanecer hasta 21 días a temperatura ambiente (&lt;86°F/30°C).
+              Actívalo solamente cuando la pluma esté fuera de la nevera, por ejemplo durante un viaje.
             </p>
-            <div class="p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-xs flex items-center justify-between">
+            <button id="room-temp-toggle" onclick="toggleRoomTempTracking()" class="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/35 text-cyan-200 text-[10px] font-bold rounded-xl border border-cyan-500/35">Activar seguimiento fuera de la nevera</button>
+            <div id="room-temp-countdown-panel" class="hidden p-2 bg-[#111a2e] rounded-xl border border-[#223455] text-xs flex items-center justify-between gap-2">
               <div>
-                <span class="text-[10px] text-slate-400 block">Días restantes:</span>
-                <strong id="room-temp-days-left" class="text-sm text-cyan-300 font-black">21 días</strong>
+                <span id="room-temp-days-label" class="text-[10px] text-slate-400 block">Días restantes:</span>
+                <strong id="room-temp-days-left" class="text-sm text-cyan-300 font-black">--</strong>
               </div>
-              <button onclick="startRoomTempCountdown()" class="px-2 py-1 bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 text-[10px] font-bold rounded-lg border border-cyan-500/40">
-                Iniciar hoy
-              </button>
+              <button id="room-temp-restart-btn" onclick="startRoomTempCountdown()" class="px-2 py-1 bg-slate-700/50 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded-lg border border-slate-600/50">Reiniciar hoy</button>
             </div>
           </div>
 
@@ -916,7 +935,7 @@
           <div id="measurements-history-list" class="space-y-1.5 text-xs"></div>
         </div>
 
-        <!-- v4.0.1 Health Profile -->
+        <!-- v4.0.2 Health Profile -->
         <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div><span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Health Profile</span><h3 class="text-sm font-bold text-white">Perfil para métricas corporales</h3></div>
@@ -932,18 +951,18 @@
           <p class="text-[9px] text-slate-500">La app no inventa sexo, edad, altura ni medidas faltantes. Las métricas dependientes muestran “--” hasta tener los datos necesarios.</p>
         </div>
 
-        <!-- v4.0.1 Smart Body Metrics -->
+        <!-- v4.0.2 Smart Body Metrics -->
         <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div><span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Smart Body Metrics</span><h3 class="text-sm font-bold text-white">Métricas calculadas con tus registros</h3></div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">IMC / BMI</span><p id="metric-bmi" class="text-sm font-black text-cyan-300">--</p><p id="metric-bmi-class" class="text-[8px] text-slate-500">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">TMB / BMR</span><p id="metric-bmr" class="text-sm font-black text-violet-300">--</p><p class="text-[8px] text-slate-500">kcal/día</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">TDEE sugerido</span><p id="metric-tdee" class="text-sm font-black text-emerald-300">--</p><button id="metric-tdee-use" onclick="applySuggestedTdee()" class="hidden mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] text-emerald-300 font-bold">Usar sugerencia</button></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">Cintura/altura</span><p id="metric-whtr" class="text-sm font-black text-amber-300">--</p><p id="metric-whtr-class" class="text-[8px] text-slate-500">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">Grasa estimada</span><p id="metric-bodyfat" class="text-sm font-black text-rose-300">--</p><p class="text-[8px] text-slate-500">US Navy</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[9px] text-slate-500">Masa grasa / magra</span><p id="metric-fatmass" class="text-xs font-black text-rose-300">--</p><p id="metric-leanmass" class="text-[9px] font-bold text-emerald-300">--</p></div>
+            <div onclick="openMetricInfo('bmi')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-cyan-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">IMC / BMI · ⓘ</span><p id="metric-bmi" class="text-sm font-black text-cyan-300">--</p><p id="metric-bmi-class" class="text-[8px] text-slate-500">--</p></div>
+            <div onclick="openMetricInfo('bmr')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-violet-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TMB / BMR · ⓘ</span><p id="metric-bmr" class="text-sm font-black text-violet-300">--</p><p class="text-[8px] text-slate-500">kcal/día</p></div>
+            <div onclick="openMetricInfo('tdee')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TDEE sugerido · ⓘ</span><p id="metric-tdee" class="text-sm font-black text-emerald-300">--</p><button id="metric-tdee-use" onclick="event.stopPropagation();applySuggestedTdee()" class="hidden mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] text-emerald-300 font-bold">Usar sugerencia</button></div>
+            <div onclick="openMetricInfo('whtr')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-amber-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Cintura/altura · ⓘ</span><p id="metric-whtr" class="text-sm font-black text-amber-300">--</p><p id="metric-whtr-class" class="text-[8px] text-slate-500">--</p></div>
+            <div onclick="openMetricInfo('bodyfat')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-rose-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Grasa estimada · ⓘ</span><p id="metric-bodyfat" class="text-sm font-black text-rose-300">--</p><p class="text-[8px] text-slate-500">US Navy</p></div>
+            <div onclick="openMetricInfo('composition')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Masa grasa / magra · ⓘ</span><p id="metric-fatmass" class="text-xs font-black text-rose-300">--</p><p id="metric-leanmass" class="text-[9px] font-bold text-emerald-300">--</p></div>
           </div>
-          <div class="flex items-center justify-between gap-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-2.5"><div><span class="text-[9px] text-slate-500">Hidratación sugerida</span><p id="metric-hydration" class="text-xs font-black text-cyan-300">--</p></div><button id="metric-hydration-use" onclick="applySmartHydrationGoal()" class="hidden px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9px] font-bold">Usar sugerencia</button></div>
+          <div onclick="openMetricInfo('hydration')" class="flex items-center justify-between gap-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-2.5 cursor-pointer hover:border-cyan-500/40 active:scale-[0.995] transition-all" role="button" tabindex="0"><div><span class="text-[9px] text-slate-500">Hidratación sugerida · ⓘ</span><p id="metric-hydration" class="text-xs font-black text-cyan-300">--</p></div><button id="metric-hydration-use" onclick="event.stopPropagation();applySmartHydrationGoal()" class="hidden px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9px] font-bold">Usar sugerencia</button></div>
           <p class="text-[9px] text-slate-500">Estimaciones orientativas basadas en fórmulas poblacionales y tus datos registrados; no sustituyen mediciones clínicas.</p>
         </div>
 
@@ -1084,13 +1103,6 @@
             <div class="col-span-2 space-y-2">
               <label id="setting-water-goal-label" class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
               <input id="setting-water-goal" type="number" min="8" max="300" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-              <div id="water-goal-suggestion-box" class="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-2.5 flex items-center justify-between gap-3">
-                <div class="min-w-0">
-                  <p id="water-goal-suggestion-text" class="text-[11px] font-bold text-cyan-300">Meta sugerida: --</p>
-                  <p id="water-goal-suggestion-note" class="text-[9px] text-slate-500 mt-0.5">Basada en 30 mL/kg usando tu peso más reciente. Es una guía ajustable, no una indicación médica.</p>
-                </div>
-                <button type="button" onclick="applySuggestedWaterGoal()" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[10px] font-bold hover:bg-cyan-500/20">Usar sugerencia</button>
-              </div>
             </div>
           </div>
           <button onclick="saveNutritionalSettings()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
@@ -1635,7 +1647,7 @@
       </div>
     </div>
 
-    <!-- Modal Import Preview v4.0.1 -->
+    <!-- Modal Import Preview v4.0.2 -->
     <div id="modal-import-preview" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><span class="text-[10px] text-cyan-300 font-bold uppercase">Vista previa</span><h3 class="text-sm font-bold text-white">Importar backup</h3></div><button onclick="cancelImportPreview()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1669,21 +1681,21 @@
       </div>
     </div>
 
-    <!-- Export Backup Options v4.0.1 -->
+    <!-- Export Backup Options v4.0.2 -->
     <div id="modal-export-backup" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Export Backup</h3><p class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+        <div class="flex items-center justify-between"><div><h3 id="export-backup-modal-title" class="text-sm font-black text-white">Export Backup</h3><p id="export-backup-modal-subtitle" class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <div class="space-y-2">
-          <button onclick="exportBackupPackage('current')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-emerald-500/40"><p class="text-xs font-bold text-white">Current Data</p><p class="text-[9px] text-slate-500">Solo el estado actual</p></button>
-          <button onclick="exportBackupPackage('local')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-cyan-500/40"><p class="text-xs font-bold text-white">Current + Local Backups</p><p class="text-[9px] text-slate-500">Incluye hasta 3 snapshots locales rotativos</p></button>
-          <button onclick="exportBackupPackage('server')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-violet-500/40"><p class="text-xs font-bold text-white">Current + Server Backups</p><p class="text-[9px] text-slate-500">Incluye las copias Server Safety disponibles</p></button>
-          <button onclick="exportBackupPackage('complete')" class="w-full text-left p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15"><p class="text-xs font-black text-emerald-300">Complete Backup — Recommended</p><p class="text-[9px] text-slate-400">Current + local + server backups</p></button>
+          <button onclick="exportBackupPackage('current')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-emerald-500/40"><p id="export-current-title" class="text-xs font-bold text-white">Current Data</p><p id="export-current-desc" class="text-[9px] text-slate-500">Solo el estado actual</p></button>
+          <button onclick="exportBackupPackage('local')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-cyan-500/40"><p id="export-local-title" class="text-xs font-bold text-white">Current + Local Backups</p><p id="export-local-desc" class="text-[9px] text-slate-500">Incluye hasta 3 snapshots locales rotativos</p></button>
+          <button onclick="exportBackupPackage('server')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-violet-500/40"><p id="export-server-title" class="text-xs font-bold text-white">Current + Server Backups</p><p id="export-server-desc" class="text-[9px] text-slate-500">Incluye las copias Server Safety disponibles</p></button>
+          <button onclick="exportBackupPackage('complete')" class="w-full text-left p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15"><p id="export-complete-title" class="text-xs font-black text-emerald-300">Complete Backup — Recommended</p><p id="export-complete-desc" class="text-[9px] text-slate-400">Current + local + server backups</p></button>
         </div>
-        <p class="text-[9px] text-slate-500">iPhone/iPad: selecciona <b>Save to Files</b> y guarda preferiblemente en <b>iCloud Drive → GLP-1 Companion</b>.</p>
+        <p id="export-backup-ios-instructions" class="text-[9px] text-slate-500"></p>
       </div>
     </div>
 
-    <!-- Server Safety Backups v4.0.1 -->
+    <!-- Server Safety Backups v4.0.2 -->
     <div id="modal-server-backups" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Server Safety Backups</h3><p class="text-[10px] text-slate-400">Las 3 copias rotativas conservadas por Firebase</p></div><button onclick="closeServerSafetyBackups()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1691,11 +1703,23 @@
       </div>
     </div>
 
-    <!-- Backup View v4.0.1 -->
+    <!-- Backup View v4.0.2 -->
     <div id="modal-backup-view" class="fixed inset-0 z-[60] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><h3 class="text-sm font-black text-white">Backup Summary</h3><button onclick="closeBackupView()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <div id="backup-view-content" class="text-xs text-slate-300 space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- Smart Body Metrics explanation modal v4.0.2 -->
+    <div id="modal-metric-info" onclick="if(event.target===this)closeMetricInfo()" class="fixed inset-0 z-[70] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
+      <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex items-start justify-between gap-3">
+          <div><span class="text-[9px] font-bold uppercase tracking-wide text-cyan-300">Smart Body Metrics</span><h3 id="metric-info-title" class="text-base font-black text-white mt-1">--</h3></div>
+          <button onclick="closeMetricInfo()" class="text-slate-400 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div id="metric-info-body" class="text-xs text-slate-300 leading-relaxed space-y-2"></div>
+        <button id="metric-info-close-btn" onclick="closeMetricInfo()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl">Cerrar</button>
       </div>
     </div>
 
@@ -1712,9 +1736,9 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0.1";
-    const CLIENT_SCHEMA_VERSION = 9;
-    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.1";
+    const APP_VERSION = "v4.0.2";
+    const CLIENT_SCHEMA_VERSION = 10;
+    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.2";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
     const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_8";
     const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_8";
@@ -2169,7 +2193,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.0.1": "Version: v4.0.1",
+      "Versión: v4.0.2": "Version: v4.0.2",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -2207,6 +2231,13 @@
       "La app no inventa sexo, edad, altura ni medidas faltantes. Las métricas dependientes muestran “--” hasta tener los datos necesarios.": "The app does not invent sex, age, height, or missing measurements. Dependent metrics show “--” until the required data is available.",
       "Métricas calculadas con tus registros": "Metrics calculated from your records",
       "TDEE sugerido": "Suggested TDEE",
+      "IMC / BMI · ⓘ": "BMI · ⓘ",
+      "TMB / BMR · ⓘ": "BMR · ⓘ",
+      "TDEE sugerido · ⓘ": "Suggested TDEE · ⓘ",
+      "Cintura/altura · ⓘ": "Waist/height · ⓘ",
+      "Grasa estimada · ⓘ": "Estimated body fat · ⓘ",
+      "Masa grasa / magra · ⓘ": "Fat mass / lean mass · ⓘ",
+      "Hidratación sugerida · ⓘ": "Suggested hydration · ⓘ",
       "Cintura/altura": "Waist/height",
       "Grasa estimada": "Estimated body fat",
       "Masa grasa / magra": "Fat / lean mass",
@@ -2469,8 +2500,6 @@
       ['meas-waist','meas-chest','meas-hips','meas-neck'].forEach(id=>{const el=document.getElementById(id);if(el){el.min=metric?'13':'5';el.max=metric?'254':'100';el.step='0.1';}});
       const goal=document.getElementById('setting-goal-weight');if(goal){goal.min=metric?'22':'50';goal.max=metric?'454':'1000';goal.step='0.1';}
       const water=document.getElementById('setting-water-goal');if(water){water.min=metric?'250':'8';water.max=metric?'9000':'300';water.step=metric?'50':'1';}
-      const suggestionBtn=document.querySelector('#water-goal-suggestion-box button');if(suggestionBtn)suggestionBtn.innerText=uiText('Usar sugerencia','Use suggestion');
-      updateWaterGoalSuggestion();
     }
 
 
@@ -2479,48 +2508,6 @@
         .filter(w => w && Number.isFinite(Number(w.weight)) && Number(w.weight) > 0 && w.date)
         .sort((a, b) => String(b.date).localeCompare(String(a.date)));
       return valid.length ? Number(valid[0].weight) : null;
-    }
-
-    function getSuggestedWaterGoalOz() {
-      const latestWeightLb = getLatestLoggedWeightLb();
-      const basisLb = latestWeightLb || Number(state?.settings?.goalWeight || 0);
-      if (!Number.isFinite(basisLb) || basisLb <= 0) return null;
-      const kg = basisLb / 2.2046226218;
-      const ml = kg * 30;
-      return ml / 29.5735295625;
-    }
-
-    function updateWaterGoalSuggestion() {
-      const textEl = document.getElementById('water-goal-suggestion-text');
-      const noteEl = document.getElementById('water-goal-suggestion-note');
-      if (!textEl || !noteEl || typeof state === 'undefined') return;
-      const suggestedOz = getSuggestedWaterGoalOz();
-      const latestWeightLb = getLatestLoggedWeightLb();
-      if (!Number.isFinite(suggestedOz)) {
-        textEl.innerText = uiText('Meta sugerida: registra tu peso primero', 'Suggested goal: log your weight first');
-        noteEl.innerText = uiText('La sugerencia usa 30 mL/kg y siempre puede ajustarse manualmente.', 'The suggestion uses 30 mL/kg and can always be adjusted manually.');
-        return;
-      }
-      const shownGoal = Math.round(displayWater(suggestedOz));
-      const basis = latestWeightLb || Number(state.settings.goalWeight || 0);
-      const basisText = formatWeight(basis, 1);
-      textEl.innerText = isEnglish()
-        ? `Suggested goal: ${shownGoal} ${waterUnit()}/day`
-        : `Meta sugerida: ${shownGoal} ${waterUnit()}/día`;
-      noteEl.innerText = isEnglish()
-        ? `Based on 30 mL/kg using ${latestWeightLb ? 'your latest logged weight' : 'your goal weight'} (${basisText}). Adjustable guide, not medical advice.`
-        : `Basada en 30 mL/kg usando ${latestWeightLb ? 'tu peso más reciente' : 'tu peso objetivo'} (${basisText}). Guía ajustable, no una indicación médica.`;
-    }
-
-    function applySuggestedWaterGoal() {
-      const suggestedOz = getSuggestedWaterGoalOz();
-      const input = document.getElementById('setting-water-goal');
-      if (!input || !Number.isFinite(suggestedOz)) {
-        showToast(uiText('Registra un peso válido para calcular la meta sugerida.', 'Log a valid weight to calculate the suggested goal.'));
-        return;
-      }
-      input.value = Math.round(displayWater(suggestedOz));
-      showToast(uiText('Meta sugerida colocada. Pulsa Guardar configuración para aplicarla.', 'Suggested goal filled in. Tap Save settings to apply it.'));
     }
 
     /* ==========================================================================
@@ -2539,6 +2526,7 @@
           proteinGoal: 110,
           waterGoal: 96,
           pensInStock: 4,
+          roomTempTrackingEnabled: false,
           roomTempPenStart: null,
           fastingStart: null,
           isFasting: false,
@@ -2653,6 +2641,12 @@
     function ensureV4State() {
       state.healthProfile = sanitizeHealthProfile(state.healthProfile);
       state.aiTelemetry = sanitizeAiTelemetry(state.aiTelemetry);
+      if (!state.settings || typeof state.settings !== 'object') state.settings = createDefaultState().settings;
+      if (typeof state.settings.roomTempTrackingEnabled !== 'boolean') {
+        // Migration: an existing countdown from v4.0.1 means tracking was intentionally active.
+        state.settings.roomTempTrackingEnabled = Boolean(state.settings.roomTempPenStart);
+      }
+      if (!state.settings.roomTempTrackingEnabled && !state.settings.roomTempPenStart) state.settings.roomTempPenStart = null;
       ensureInjectionIds();
     }
 
@@ -3269,7 +3263,7 @@
       state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
       state.meta.clientVersion = APP_VERSION;
 
-      // v4.0.1 Health Profile: last-write-wins by explicit updatedAt.
+      // v4.0.2 Health Profile: last-write-wins by explicit updatedAt.
       const localHealth = sanitizeHealthProfile(state.healthProfile);
       const cloudHealth = sanitizeHealthProfile(cloud.healthProfile);
       if (cloudHealth.updatedAt > localHealth.updatedAt || (cloudHealth.updatedAt === localHealth.updatedAt && options.preferCloudOnTie !== false && cloudHealth.updatedAt > 0)) {
@@ -3278,7 +3272,7 @@
         state.healthProfile = localHealth;
       }
 
-      // v4.0.1 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
+      // v4.0.2 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
       state.aiTelemetry = mergeAiTelemetry(state.aiTelemetry, cloud.aiTelemetry);
 
       // Fusión de registros eliminados (tombstones)
@@ -3735,7 +3729,8 @@
       if (!MEDICATION_PROFILES[selectedMed]) selectedMed = 'mounjaro';
       state.settings.medication = selectedMed;
       markSettingsChanged();
-      // Room-temperature countdown is product-specific; reset when medication changes.
+      // Room-temperature tracking is product-specific; reset when medication changes.
+      state.settings.roomTempTrackingEnabled = false;
       state.settings.roomTempPenStart = null;
       persistState({ userMutation: true });
       applyMedicationTheme();
@@ -3789,8 +3784,8 @@
       if (p.roomTempDays) {
         if (roomBadge) roomBadge.innerText = isEnglish() ? `${p.roomTempDays} days max.` : `${p.roomTempDays} días máx.`;
         if (roomExpl) roomExpl.innerText = isEnglish()
-          ? `${p.name}: room-temperature tracking window set to ${p.roomTempDays} days. Follow the product label for storage temperature and handling.`
-          : `${p.name}: ventana de seguimiento a temperatura ambiente configurada en ${p.roomTempDays} días. Sigue la etiqueta del producto para temperatura y manejo.`;
+          ? `Optional travel/out-of-refrigerator tracker. Activate it only when needed. ${p.name}: up to ${p.roomTempDays} days in this tracker; always follow the product label for storage.`
+          : `Seguimiento opcional para viajes o cuando esté fuera de la nevera. Actívalo solo cuando lo necesites. ${p.name}: hasta ${p.roomTempDays} días en este seguimiento; sigue siempre la etiqueta del producto.`;
       }
 
       const invTitle = document.getElementById('inventory-card-title');
@@ -3859,7 +3854,10 @@
       const p=getMedicationProfile(); const printDateEl=document.getElementById('print-date'); const printPatientEl=document.getElementById('print-patient-info');
       if(printDateEl) printDateEl.innerText=isEnglish()?`Date: ${new Date().toLocaleDateString('en-US')}`:`Fecha: ${new Date().toLocaleDateString('es-US')}`;
       if(printPatientEl){const who=currentUser?currentUser.email:uiText('Usuario activo','Active user'); printPatientEl.textContent=`${uiText('Paciente','Patient')}: ${who} · ${uiText('Medicamento','Medication')}: ${getMedicationLabel(p,true)}`;}
-      switchTab('tools'); setTimeout(()=>window.print(),300);
+      document.body.classList.remove('appointment-print-mode');
+      // Keep print() directly inside the user's tap/click call stack. iOS/iPadOS may ignore delayed print calls.
+      if (typeof window.print === 'function') window.print();
+      else showToast(uiText('La impresión no está disponible en este navegador.','Printing is not available in this browser.'));
     }
 
     function checkFoodSymptomCorrelation() {
@@ -4768,16 +4766,40 @@
     }
 
     function startRoomTempCountdown() {
-      if (state.settings.roomTempPenStart) {
-        if (!confirm(uiText("Ya existe un conteo activo de temperatura ambiente. ¿Deseas reiniciarlo desde hoy?", "A room-temperature countdown is already active. Do you want to restart it from today?"))) {
-          return;
-        }
+      const p=getMedicationProfile();
+      if (!p.roomTempDays) {
+        showToast(uiText('Este medicamento no usa este seguimiento de temperatura ambiente.','This medication does not use this room-temperature tracker.'));
+        return;
+      }
+      if (!state.settings.roomTempTrackingEnabled) {
+        if (!confirm(uiText('Activa este seguimiento solamente cuando la pluma esté fuera de la nevera, por ejemplo durante un viaje. ¿Activarlo ahora?','Use this tracker only when the pen is out of the refrigerator, for example while traveling. Activate it now?'))) return;
+        state.settings.roomTempTrackingEnabled = true;
+      } else if (state.settings.roomTempPenStart) {
+        if (!confirm(uiText('Ya existe un conteo activo. ¿Deseas reiniciarlo desde hoy?','A countdown is already active. Restart it from today?'))) return;
       }
       state.settings.roomTempPenStart = Date.now();
       markSettingsChanged();
       persistState({ userMutation: true });
       renderMounjaroView();
-      showToast(uiText("Conteo de temperatura ambiente iniciado para el medicamento en uso.", "Room-temperature countdown started for the medication in use."));
+      showToast(uiText('Seguimiento fuera de la nevera activado desde hoy.','Out-of-refrigerator tracking started today.'));
+    }
+
+    function toggleRoomTempTracking() {
+      const active=Boolean(state.settings.roomTempTrackingEnabled && state.settings.roomTempPenStart);
+      if (!active) {
+        startRoomTempCountdown();
+        return;
+      }
+      const first=confirm(uiText('¿Seguro que deseas apagar el seguimiento de la pluma fuera de la nevera? Hazlo solamente si ya volvió a refrigeración o si terminaste este seguimiento.','Are you sure you want to turn off out-of-refrigerator pen tracking? Do this only if the pen is back under refrigeration or you are done tracking it.'));
+      if (!first) return;
+      const second=confirm(uiText('Segunda confirmación: se borrará el conteo actual de temperatura ambiente. ¿Apagarlo definitivamente?','Second confirmation: the current room-temperature countdown will be cleared. Turn it off?'));
+      if (!second) return;
+      state.settings.roomTempTrackingEnabled=false;
+      state.settings.roomTempPenStart=null;
+      markSettingsChanged();
+      persistState({userMutation:true});
+      renderMounjaroView();
+      showToast(uiText('Seguimiento fuera de la nevera desactivado.','Out-of-refrigerator tracking turned off.'));
     }
 
     function getDateOffsetKey(dateKey, offsetDays) {
@@ -5057,28 +5079,36 @@
 
       document.getElementById('pen-stock-val').innerText = `${state.settings.pensInStock || 0} ${isEnglish() ? medProfile.inventoryUnitEn : medProfile.inventoryUnitEs}`;
       const warningEl = document.getElementById('dash-pen-warning');
-      if (state.settings.pensInStock <= 2) {
+      if (state.settings.pensInStock <= 1) {
         warningEl.classList.remove('hidden');
       } else {
         warningEl.classList.add('hidden');
       }
 
-      if (maxDays > 0 && state.settings.roomTempPenStart) {
-        const elapsedDays = (Date.now() - state.settings.roomTempPenStart) / (1000 * 60 * 60 * 24);
-        const daysLeft = Math.max(0, Math.ceil(maxDays - elapsedDays));
-        const badge = document.getElementById('room-temp-status-badge');
-        const textEl = document.getElementById('room-temp-days-left');
-
-        textEl.innerText = daysLeft <= 0 ? uiText("Ventana terminada (Desechar)", "Window ended (Discard)") : (isEnglish() ? `${daysLeft} days` : `${daysLeft} días`);
-        if (daysLeft <= 0) {
-          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
-          badge.innerText = uiText("Desechar", "Discard");
-        } else if (daysLeft <= 4) {
-          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
-          badge.innerText = uiText("Por vencer", "Expiring soon");
-        } else {
-          badge.className = "text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-          badge.innerText = uiText("Vigente", "Within window");
+      if (maxDays > 0) {
+        const active=Boolean(state.settings.roomTempTrackingEnabled && state.settings.roomTempPenStart);
+        const badge=document.getElementById('room-temp-status-badge');
+        const textEl=document.getElementById('room-temp-days-left');
+        const panel=document.getElementById('room-temp-countdown-panel');
+        const toggle=document.getElementById('room-temp-toggle');
+        const title=document.getElementById('room-temp-card-title');
+        const daysLabel=document.getElementById('room-temp-days-label');
+        if(title)title.innerText=uiText('Pluma fuera de la nevera','Pen out of refrigerator');
+        if(daysLabel)daysLabel.innerText=uiText('Días restantes:','Days remaining:');
+        if(active){
+          if(panel)panel.classList.remove('hidden');
+          if(toggle){toggle.innerText=uiText('Apagar seguimiento','Turn tracking off');toggle.className='w-full py-2 bg-rose-600/15 hover:bg-rose-600/25 text-rose-300 text-[10px] font-bold rounded-xl border border-rose-500/30';}
+          const elapsedDays=(Date.now()-Number(state.settings.roomTempPenStart))/(1000*60*60*24);
+          const daysLeft=Math.max(0,Math.ceil(maxDays-elapsedDays));
+          if(textEl)textEl.innerText=daysLeft<=0?uiText('Ventana terminada (Desechar)','Window ended (Discard)'):(isEnglish()?`${daysLeft} days`:`${daysLeft} días`);
+          if(daysLeft<=0){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';badge.innerText=uiText('Desechar','Discard');}
+          else if(daysLeft<=4){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';badge.innerText=uiText('Por vencer','Expiring soon');}
+          else{badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';badge.innerText=uiText('Activo','Active');}
+        }else{
+          if(panel)panel.classList.add('hidden');
+          if(textEl)textEl.innerText='--';
+          if(toggle){toggle.innerText=uiText('Activar seguimiento fuera de la nevera','Activate out-of-refrigerator tracking');toggle.className='w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/35 text-cyan-200 text-[10px] font-bold rounded-xl border border-cyan-500/35';}
+          if(badge){badge.className='text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30';badge.innerText=uiText('Desactivado','Off');}
         }
       }
 
@@ -5305,6 +5335,22 @@
     function applySuggestedTdee() {const x=calculateSmartBodyMetrics(),el=document.getElementById('setting-tdee');if(!el||x.tdee===null){showToast(uiText('Completa sexo, fecha de nacimiento, altura, actividad y peso.','Complete sex, date of birth, height, activity, and weight.'));return;}el.value=Math.round(x.tdee);showToast(uiText('TDEE sugerido colocado. Pulsa Guardar configuración para aplicarlo.','Suggested TDEE filled in. Tap Save settings to apply it.'));}
     function applySmartHydrationGoal() {const x=calculateSmartBodyMetrics(),el=document.getElementById('setting-water-goal');if(!el||x.hydrationOz===null){showToast(uiText('Registra un peso válido primero.','Log a valid weight first.'));return;}el.value=Math.round(displayWater(x.hydrationOz));showToast(uiText('Meta de hidratación sugerida colocada. Pulsa Guardar configuración para aplicarla.','Suggested hydration goal filled in. Tap Save settings to apply it.'));}
 
+    function openMetricInfo(key) {
+      const modal=document.getElementById('modal-metric-info'),title=document.getElementById('metric-info-title'),body=document.getElementById('metric-info-body'),closeBtn=document.getElementById('metric-info-close-btn');
+      if(!modal||!title||!body)return;
+      const content={
+        bmi:{es:['IMC / BMI','El Índice de Masa Corporal relaciona tu peso con tu altura (kg/m²). Sirve como herramienta de orientación poblacional y de seguimiento, pero no distingue grasa de músculo ni diagnostica por sí solo.'],en:['BMI','Body Mass Index relates weight to height (kg/m²). It is a population screening and tracking tool, but it does not distinguish fat from muscle and is not diagnostic by itself.']},
+        bmr:{es:['TMB / BMR','La Tasa Metabólica Basal estima cuántas calorías usaría tu cuerpo en reposo para mantener funciones vitales. La app usa Mifflin–St Jeor con tu peso, altura, edad y sexo registrados.'],en:['BMR','Basal Metabolic Rate estimates the calories your body would use at rest to maintain vital functions. The app uses Mifflin–St Jeor with your logged weight, height, age, and sex.']},
+        tdee:{es:['TDEE sugerido','El Gasto Energético Total Diario estima cuántas calorías utilizas en un día completo. Se calcula a partir de tu TMB multiplicada por el nivel de actividad que registraste. Es una estimación ajustable, no una prescripción.'],en:['Suggested TDEE','Total Daily Energy Expenditure estimates how many calories you use in a full day. It is calculated from BMR multiplied by your selected activity level. It is an adjustable estimate, not a prescription.']},
+        whtr:{es:['Relación cintura/altura','Compara la circunferencia de tu cintura con tu altura. Se usa como indicador sencillo de adiposidad central y riesgo cardiometabólico. La app utiliza tu medida de cintura más reciente y tu altura registrada.'],en:['Waist-to-height ratio','Compares waist circumference with height. It is a simple screening indicator of central adiposity and cardiometabolic risk. The app uses your latest waist measurement and logged height.']},
+        bodyfat:{es:['Grasa corporal estimada','Estimación mediante la fórmula de la Marina de EE. UU. usando sexo, altura, cuello, cintura y, cuando corresponde, cadera. No es una medición BIA, DEXA ni un porcentaje de grasa medido directamente.'],en:['Estimated body fat','Estimated with the U.S. Navy formula using sex, height, neck, waist, and when applicable hips. It is not a BIA or DEXA measurement and is not directly measured body fat.']},
+        composition:{es:['Masa grasa / masa magra','La masa grasa se estima multiplicando tu peso por el porcentaje de grasa estimado. La masa magra es el peso restante. Ambas dependen de la estimación de grasa corporal y no equivalen a una medición clínica de músculo o composición corporal.'],en:['Fat mass / lean mass','Fat mass is estimated by multiplying weight by the estimated body-fat percentage. Lean mass is the remaining weight. Both depend on the body-fat estimate and are not equivalent to a clinical muscle or body-composition measurement.']},
+        hydration:{es:['Hidratación sugerida','La app usa una guía simple de aproximadamente 30 mL por kg de peso al día. Es una referencia ajustable; necesidades reales pueden cambiar por clima, ejercicio, enfermedad, riñón, corazón o indicaciones médicas.'],en:['Suggested hydration','The app uses a simple guide of about 30 mL per kg of body weight per day. It is an adjustable reference; actual needs can change with climate, exercise, illness, kidney or heart conditions, or medical guidance.']}
+      };
+      const item=content[key];if(!item)return;const pair=isEnglish()?item.en:item.es;title.textContent=pair[0];body.innerHTML=`<p>${escapeHtml(pair[1])}</p><p class="text-[10px] text-slate-500 mt-3">${uiText('Toca fuera o usa Cerrar para volver a tus métricas.','Tap outside or use Close to return to your metrics.')}</p>`;if(closeBtn)closeBtn.textContent=uiText('Cerrar','Close');modal.classList.remove('hidden');modal.classList.add('flex');lucide.createIcons();
+    }
+    function closeMetricInfo(){const modal=document.getElementById('modal-metric-info');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
+
     function renderToolsView() {
       renderMaintenanceMode();
       renderHealthProfile();
@@ -5402,7 +5448,6 @@
       }
 
       renderChartJs();
-      updateWaterGoalSuggestion();
       applyStaticTranslations();
       applyUnitLabels();
       lucide.createIcons();
@@ -5972,6 +6017,7 @@
       const modal = document.getElementById('modal-appointment-prep');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      document.body.classList.remove('appointment-print-mode');
     }
 
     async function copyAppointmentSummary() {
@@ -5988,20 +6034,19 @@
     }
 
     function printAppointmentSummary() {
-      const textEl = document.getElementById('appointment-summary-text');
-      if (!textEl) return;
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        showToast(uiText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
-        return;
-      }
-      const safe = escapeHtml(textEl.value).replace(/\n/g, '<br>');
-      const reportLangEl = document.getElementById('appointment-language');
-      const reportEnglish = reportLangEl ? reportLangEl.value === 'en' : isEnglish();
-      printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${reportEnglish ? 'GLP-1 Visit Summary' : 'Resumen para cita GLP-1'}</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.45;font-size:12px}h1{font-size:18px;margin-bottom:16px}</style></head><body><h1>${reportEnglish ? 'GLP-1 Visit Summary' : 'Resumen para cita GLP-1'}</h1><div>${safe}</div></body></html>`);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 250);
+      const textEl=document.getElementById('appointment-summary-text');
+      const sheet=document.getElementById('appointment-print-sheet');
+      const title=document.getElementById('appointment-print-title');
+      const content=document.getElementById('appointment-print-content');
+      if(!textEl||!sheet||!title||!content)return;
+      const reportLangEl=document.getElementById('appointment-language');
+      const reportEnglish=reportLangEl?reportLangEl.value==='en':isEnglish();
+      title.textContent=reportEnglish?'GLP-1 Visit Summary':'Resumen para cita GLP-1';
+      content.innerHTML=escapeHtml(textEl.value).replace(/\n/g,'<br>');
+      document.body.classList.add('appointment-print-mode');
+      // Same-document print keeps the PWA open and provides a Back path after the iOS print sheet closes.
+      if(typeof window.print==='function') window.print();
+      else showToast(uiText('La impresión no está disponible en este navegador.','Printing is not available in this browser.'));
     }
 
     function openAppleHealthModal() {
@@ -6139,7 +6184,18 @@
       return deliverJsonBackup(exportObject,`glp1_backup_${formatBackupFileStamp()}${suffix}.json`);
     }
 
+    function renderExportBackupModalLanguage(){
+      const set=(id,es,en)=>{const el=document.getElementById(id);if(el)el.textContent=uiText(es,en);};
+      set('export-backup-modal-title','Exportar Backup','Export Backup');
+      set('export-backup-modal-subtitle','Selecciona qué deseas guardar','Choose what you want to save');
+      set('export-current-title','Datos actuales','Current Data');set('export-current-desc','Solo el estado actual','Current data only');
+      set('export-local-title','Actual + Backups locales','Current + Local Backups');set('export-local-desc','Incluye hasta 3 snapshots locales rotativos','Includes up to 3 rotating local snapshots');
+      set('export-server-title','Actual + Backups del servidor','Current + Server Backups');set('export-server-desc','Incluye las copias Server Safety disponibles','Includes available Server Safety backups');
+      set('export-complete-title','Backup completo — Recomendado','Complete Backup — Recommended');set('export-complete-desc','Datos actuales + backups locales + backups del servidor','Current data + local backups + server backups');
+      const ios=document.getElementById('export-backup-ios-instructions');if(ios)ios.innerHTML=isEnglish()?'iPhone/iPad: choose <b>Save to Files</b> and preferably save to <b>iCloud Drive → GLP-1 Companion</b>.':'iPhone/iPad: selecciona <b>Save to Files</b> y guarda preferiblemente en <b>iCloud Drive → GLP-1 Companion</b>.';
+    }
     function openExportBackupOptions() {
+      renderExportBackupModalLanguage();
       const modal=document.getElementById('modal-export-backup');if(modal){modal.classList.remove('hidden');modal.classList.add('flex');lucide.createIcons();}
     }
     function closeExportBackupOptions() {const modal=document.getElementById('modal-export-backup');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
@@ -6221,7 +6277,7 @@
           }
           descriptor=mode==='complete'?'complete':mode;
         }
-        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.1.json`);
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.2.json`);
         closeExportBackupOptions();
       } catch(err) {
         console.error('Backup export failed:',err);
