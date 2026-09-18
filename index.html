@@ -249,7 +249,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.0.2</p>
+          <p id="print-app-version">Versión: v4.0.3</p>
         </div>
       </div>
     </div>
@@ -272,7 +272,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.2</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.3</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -632,7 +632,7 @@
           </div>
         </div>
 
-        <!-- v4.0.2 Pharmacokinetic estimate -->
+        <!-- v4.0.3 Pharmacokinetic estimate -->
         <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2"><div><span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Nivel estimado de medicamento (PK)</span><h3 id="pk-medication-name" class="text-sm font-bold text-white">--</h3></div><span id="pk-phase" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Sin datos</span></div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
@@ -935,7 +935,7 @@
           <div id="measurements-history-list" class="space-y-1.5 text-xs"></div>
         </div>
 
-        <!-- v4.0.2 Health Profile -->
+        <!-- v4.0.3 Health Profile -->
         <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div><span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Health Profile</span><h3 class="text-sm font-bold text-white">Perfil para métricas corporales</h3></div>
@@ -951,7 +951,7 @@
           <p class="text-[9px] text-slate-500">La app no inventa sexo, edad, altura ni medidas faltantes. Las métricas dependientes muestran “--” hasta tener los datos necesarios.</p>
         </div>
 
-        <!-- v4.0.2 Smart Body Metrics -->
+        <!-- v4.0.3 Smart Body Metrics -->
         <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div><span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Smart Body Metrics</span><h3 class="text-sm font-bold text-white">Métricas calculadas con tus registros</h3></div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
@@ -1647,7 +1647,7 @@
       </div>
     </div>
 
-    <!-- Modal Import Preview v4.0.2 -->
+    <!-- Modal Import Preview v4.0.3 -->
     <div id="modal-import-preview" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><span class="text-[10px] text-cyan-300 font-bold uppercase">Vista previa</span><h3 class="text-sm font-bold text-white">Importar backup</h3></div><button onclick="cancelImportPreview()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1681,7 +1681,7 @@
       </div>
     </div>
 
-    <!-- Export Backup Options v4.0.2 -->
+    <!-- Export Backup Options v4.0.3 -->
     <div id="modal-export-backup" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><h3 id="export-backup-modal-title" class="text-sm font-black text-white">Export Backup</h3><p id="export-backup-modal-subtitle" class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1695,7 +1695,7 @@
       </div>
     </div>
 
-    <!-- Server Safety Backups v4.0.2 -->
+    <!-- Server Safety Backups v4.0.3 -->
     <div id="modal-server-backups" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Server Safety Backups</h3><p class="text-[10px] text-slate-400">Las 3 copias rotativas conservadas por Firebase</p></div><button onclick="closeServerSafetyBackups()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1703,7 +1703,7 @@
       </div>
     </div>
 
-    <!-- Backup View v4.0.2 -->
+    <!-- Backup View v4.0.3 -->
     <div id="modal-backup-view" class="fixed inset-0 z-[60] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><h3 class="text-sm font-black text-white">Backup Summary</h3><button onclick="closeBackupView()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
@@ -1711,7 +1711,7 @@
       </div>
     </div>
 
-    <!-- Smart Body Metrics explanation modal v4.0.2 -->
+    <!-- Smart Body Metrics explanation modal v4.0.3 -->
     <div id="modal-metric-info" onclick="if(event.target===this)closeMetricInfo()" class="fixed inset-0 z-[70] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
       <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-start justify-between gap-3">
@@ -1736,7 +1736,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0.2";
+    const APP_VERSION = "v4.0.3";
     const CLIENT_SCHEMA_VERSION = 10;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.2";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
@@ -2193,7 +2193,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.0.2": "Version: v4.0.2",
+      "Versión: v4.0.3": "Version: v4.0.3",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -3263,7 +3263,7 @@
       state.meta.schemaVersion = CLIENT_SCHEMA_VERSION;
       state.meta.clientVersion = APP_VERSION;
 
-      // v4.0.2 Health Profile: last-write-wins by explicit updatedAt.
+      // v4.0.3 Health Profile: last-write-wins by explicit updatedAt.
       const localHealth = sanitizeHealthProfile(state.healthProfile);
       const cloudHealth = sanitizeHealthProfile(cloud.healthProfile);
       if (cloudHealth.updatedAt > localHealth.updatedAt || (cloudHealth.updatedAt === localHealth.updatedAt && options.preferCloudOnTie !== false && cloudHealth.updatedAt > 0)) {
@@ -3272,7 +3272,7 @@
         state.healthProfile = localHealth;
       }
 
-      // v4.0.2 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
+      // v4.0.3 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
       state.aiTelemetry = mergeAiTelemetry(state.aiTelemetry, cloud.aiTelemetry);
 
       // Fusión de registros eliminados (tombstones)
@@ -3850,12 +3850,189 @@
       showToast(uiText('Archivo de calendario generado con la hora registrada de tu dosis.','Calendar file created using your recorded dose time.'));
     }
 
+    // v4.0.3 — iOS/iPadOS standalone PWAs can silently ignore window.print().
+    // For Apple mobile devices we generate a real PDF locally and present it through
+    // the native Share Sheet. Desktop keeps the existing browser print workflow.
+    function isIOSLikeDevice() {
+      const ua = navigator.userAgent || '';
+      const platform = navigator.platform || '';
+      return /iPad|iPhone|iPod/i.test(ua) || (platform === 'MacIntel' && Number(navigator.maxTouchPoints || 0) > 1);
+    }
+
+    function normalizePdfText(value) {
+      return String(value == null ? '' : value)
+        .replace(/\r/g, '')
+        .replace(/[–—]/g, '-')
+        .replace(/→/g, '->')
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/…/g, '...')
+        .replace(/≥/g, '>=')
+        .replace(/≤/g, '<=')
+        .replace(/\u00a0/g, ' ');
+    }
+
+    function cp1252Bytes(value) {
+      const special = new Map([
+        [0x20AC,0x80],[0x201A,0x82],[0x0192,0x83],[0x201E,0x84],[0x2026,0x85],[0x2020,0x86],[0x2021,0x87],
+        [0x02C6,0x88],[0x2030,0x89],[0x0160,0x8A],[0x2039,0x8B],[0x0152,0x8C],[0x017D,0x8E],[0x2018,0x91],
+        [0x2019,0x92],[0x201C,0x93],[0x201D,0x94],[0x2022,0x95],[0x2013,0x96],[0x2014,0x97],[0x02DC,0x98],
+        [0x2122,0x99],[0x0161,0x9A],[0x203A,0x9B],[0x0153,0x9C],[0x017E,0x9E],[0x0178,0x9F]
+      ]);
+      const out=[];
+      for (const ch of String(value)) {
+        const cp=ch.codePointAt(0);
+        if (cp <= 0xFF) out.push(cp);
+        else if (special.has(cp)) out.push(special.get(cp));
+        else out.push(0x3F);
+      }
+      return new Uint8Array(out);
+    }
+
+    function pdfEscapeLiteral(value) {
+      return normalizePdfText(value).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+    }
+
+    function wrapPdfLine(line, maxChars=88) {
+      const clean=normalizePdfText(line);
+      if (!clean) return [''];
+      const prefix=clean.startsWith('• ') ? '• ' : '';
+      const continuation=prefix ? '  ' : '';
+      const body=prefix ? clean.slice(2) : clean;
+      const words=body.split(/\s+/).filter(Boolean);
+      if (!words.length) return [prefix.trimEnd()];
+      const rows=[];
+      let current=prefix;
+      for (const word of words) {
+        const candidate=(current.trim().length ? current+' ' : current)+word;
+        if (candidate.length > maxChars && current.trim().length) {
+          rows.push(current);
+          current=continuation+word;
+        } else current=candidate;
+      }
+      if (current.length) rows.push(current);
+      return rows;
+    }
+
+    function buildTextPdfBytes(title, bodyText, language) {
+      const W=612, H=792, margin=48, topY=738, bottomY=48;
+      const wrapped=[];
+      normalizePdfText(bodyText).split('\n').forEach(raw => {
+        const trimmed=raw.trim();
+        const isHeading=trimmed && trimmed.length <= 70 && trimmed === trimmed.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(trimmed);
+        wrapPdfLine(raw, isHeading ? 74 : 88).forEach((line,idx)=>wrapped.push({text:line,heading:isHeading && idx===0}));
+      });
+      const pages=[];
+      let page=[], y=topY-58;
+      for (const row of wrapped) {
+        const step=row.heading ? 18 : 13;
+        if (y-step < bottomY) { pages.push(page); page=[]; y=topY-58; }
+        page.push({text:row.text,heading:row.heading,y});
+        y-=step;
+      }
+      if (page.length || !pages.length) pages.push(page);
+
+      const objects=[];
+      const pageIds=[];
+      const contentIds=[];
+      const regularFontId=3, boldFontId=4;
+      for(let i=0;i<pages.length;i++){pageIds.push(5+i*2);contentIds.push(6+i*2);}
+      objects[1]='<< /Type /Catalog /Pages 2 0 R >>';
+      objects[2]=`<< /Type /Pages /Kids [${pageIds.map(id=>id+' 0 R').join(' ')}] /Count ${pages.length} >>`;
+      objects[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+      objects[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+      const generated=(language==='en'?'Generated':'Generado')+`: ${new Date().toLocaleString(language==='en'?'en-US':'es-US')} · GLP-1 Companion ${APP_VERSION}`;
+      pages.forEach((rows,idx)=>{
+        const pid=pageIds[idx], cid=contentIds[idx];
+        const commands=[];
+        commands.push(`BT /F2 17 Tf 1 0 0 1 ${margin} ${topY} Tm (${pdfEscapeLiteral(title)}) Tj ET`);
+        commands.push(`BT /F1 8 Tf 0.35 0.4 0.48 rg 1 0 0 1 ${margin} ${topY-18} Tm (${pdfEscapeLiteral(generated)}) Tj ET`);
+        commands.push(`0.85 0.88 0.92 RG 0.8 w ${margin} ${topY-29} m ${W-margin} ${topY-29} l S`);
+        rows.forEach(row=>{
+          const font=row.heading?'/F2 11':'/F1 9.5';
+          commands.push(`BT ${font} Tf 0.06 0.09 0.14 rg 1 0 0 1 ${margin} ${row.y} Tm (${pdfEscapeLiteral(row.text)}) Tj ET`);
+        });
+        const pageLabel=(language==='en'?'Page':'Página')+` ${idx+1}/${pages.length}`;
+        commands.push(`BT /F1 8 Tf 0.4 0.45 0.52 rg 1 0 0 1 ${W-margin-58} 28 Tm (${pdfEscapeLiteral(pageLabel)}) Tj ET`);
+        const content=commands.join('\n');
+        const contentBytes=cp1252Bytes(content);
+        objects[pid]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 ${regularFontId} 0 R /F2 ${boldFontId} 0 R >> >> /Contents ${cid} 0 R >>`;
+        objects[cid]={stream:content, length:contentBytes.length};
+      });
+
+      const byteParts=[];
+      const pushBytes=(b)=>byteParts.push(b instanceof Uint8Array ? b : cp1252Bytes(b));
+      pushBytes('%PDF-1.4\n%GLP1\n');
+      const offsets=[0];
+      let length=byteParts.reduce((n,b)=>n+b.length,0);
+      const maxObj=objects.length-1;
+      for(let id=1; id<=maxObj; id++){
+        offsets[id]=length;
+        let head=`${id} 0 obj\n`;
+        let part;
+        if (objects[id] && typeof objects[id]==='object' && Object.prototype.hasOwnProperty.call(objects[id],'stream')) {
+          part=cp1252Bytes(`${head}<< /Length ${objects[id].length} >>\nstream\n${objects[id].stream}\nendstream\nendobj\n`);
+        } else part=cp1252Bytes(`${head}${objects[id]}\nendobj\n`);
+        byteParts.push(part); length+=part.length;
+      }
+      const xrefOffset=length;
+      let xref=`xref\n0 ${maxObj+1}\n0000000000 65535 f \n`;
+      for(let id=1;id<=maxObj;id++) xref+=String(offsets[id]).padStart(10,'0')+' 00000 n \n';
+      xref+=`trailer\n<< /Size ${maxObj+1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+      pushBytes(xref);
+      const total=byteParts.reduce((n,b)=>n+b.length,0);
+      const result=new Uint8Array(total); let pos=0;
+      byteParts.forEach(b=>{result.set(b,pos);pos+=b.length;});
+      return result;
+    }
+
+    async function presentPdfOnApple(title, bodyText, language, filenameBase) {
+      try {
+        const bytes=buildTextPdfBytes(title,bodyText,language);
+        const blob=new Blob([bytes],{type:'application/pdf'});
+        const stamp=new Date().toISOString().replace(/[:T]/g,'-').slice(0,16);
+        const filename=`${filenameBase}_${stamp}.pdf`;
+        let file=null;
+        try { file=new File([blob],filename,{type:'application/pdf',lastModified:Date.now()}); } catch (_) {}
+        if (file && navigator.share) {
+          const shareData={files:[file]}; // File only: most reliable WebKit path.
+          const canShare=!navigator.canShare || navigator.canShare(shareData);
+          if (canShare) {
+            try {
+              await navigator.share(shareData);
+              return true;
+            } catch (err) {
+              if (err && err.name==='AbortError') return true;
+              console.warn('PDF share failed; falling back to file download.',err);
+            }
+          }
+        }
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url; a.download=filename; a.rel='noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),30000);
+        showToast(uiText('PDF creado. Ábrelo desde Archivos/Descargas para imprimir o compartir.','PDF created. Open it from Files/Downloads to print or share.'),6500);
+        return true;
+      } catch (err) {
+        console.error('PDF generation failed',err);
+        showToast(uiText('No se pudo crear el PDF. Intenta nuevamente.','The PDF could not be created. Please try again.'),6500);
+        return false;
+      }
+    }
+
     function triggerPrintReport() {
       const p=getMedicationProfile(); const printDateEl=document.getElementById('print-date'); const printPatientEl=document.getElementById('print-patient-info');
       if(printDateEl) printDateEl.innerText=isEnglish()?`Date: ${new Date().toLocaleDateString('en-US')}`:`Fecha: ${new Date().toLocaleDateString('es-US')}`;
       if(printPatientEl){const who=currentUser?currentUser.email:uiText('Usuario activo','Active user'); printPatientEl.textContent=`${uiText('Paciente','Patient')}: ${who} · ${uiText('Medicamento','Medication')}: ${getMedicationLabel(p,true)}`;}
       document.body.classList.remove('appointment-print-mode');
-      // Keep print() directly inside the user's tap/click call stack. iOS/iPadOS may ignore delayed print calls.
+      if (isIOSLikeDevice()) {
+        const lang=state.settings.language || 'es';
+        const title=lang==='en'?'GLP-1 Clinical Progress Report':'Reporte clínico de evolución GLP-1';
+        const report=buildAppointmentSummary('all',lang);
+        presentPdfOnApple(title,report,lang,'GLP1_Clinical_Report');
+        return;
+      }
       if (typeof window.print === 'function') window.print();
       else showToast(uiText('La impresión no está disponible en este navegador.','Printing is not available in this browser.'));
     }
@@ -6041,10 +6218,16 @@
       if(!textEl||!sheet||!title||!content)return;
       const reportLangEl=document.getElementById('appointment-language');
       const reportEnglish=reportLangEl?reportLangEl.value==='en':isEnglish();
-      title.textContent=reportEnglish?'GLP-1 Visit Summary':'Resumen para cita GLP-1';
+      const lang=reportEnglish?'en':'es';
+      const reportTitle=reportEnglish?'GLP-1 Visit Summary':'Resumen para cita GLP-1';
+      title.textContent=reportTitle;
       content.innerHTML=escapeHtml(textEl.value).replace(/\n/g,'<br>');
+      document.body.classList.remove('appointment-print-mode');
+      if (isIOSLikeDevice()) {
+        presentPdfOnApple(reportTitle,textEl.value,lang,'GLP1_Visit_Summary');
+        return;
+      }
       document.body.classList.add('appointment-print-mode');
-      // Same-document print keeps the PWA open and provides a Back path after the iOS print sheet closes.
       if(typeof window.print==='function') window.print();
       else showToast(uiText('La impresión no está disponible en este navegador.','Printing is not available in this browser.'));
     }
@@ -6277,7 +6460,7 @@
           }
           descriptor=mode==='complete'?'complete':mode;
         }
-        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.2.json`);
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.3.json`);
         closeExportBackupOptions();
       } catch(err) {
         console.error('Backup export failed:',err);
