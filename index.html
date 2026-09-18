@@ -62,14 +62,16 @@
         const responseSchema = {
           type: "object",
           properties: {
-            foodName: { type: "string", nullable: false },
+            foodNameEs: { type: "string", nullable: false },
+            foodNameEn: { type: "string", nullable: false },
             calories: { type: "number", nullable: false },
             protein: { type: "number", nullable: false },
             carbs: { type: "number", nullable: false },
             fat: { type: "number", nullable: false },
-            mounjaroTip: { type: "string", nullable: false }
+            tipEs: { type: "string", nullable: false },
+            tipEn: { type: "string", nullable: false }
           },
-          required: ["foodName", "calories", "protein", "carbs", "fat", "mounjaroTip"],
+          required: ["foodNameEs", "foodNameEn", "calories", "protein", "carbs", "fat", "tipEs", "tipEn"],
           nullable: false
         };
         const model = getGenerativeModel(aiService, {
@@ -82,6 +84,30 @@
         const result = await model.generateContent(parts);
         const text = result?.response?.text?.();
         if (!text) throw new Error("Empty Firebase AI Logic response");
+        return JSON.parse(text);
+      };
+
+      window.firebaseAiTranslateMeal = async ({ foodName, tip, modelName }) => {
+        const selectedModel = modelName === AI_MODELS.fallback ? AI_MODELS.fallback : AI_MODELS.primary;
+        const responseSchema = {
+          type: "object",
+          properties: {
+            foodNameEs: { type: "string", nullable: false },
+            foodNameEn: { type: "string", nullable: false },
+            tipEs: { type: "string", nullable: false },
+            tipEn: { type: "string", nullable: false }
+          },
+          required: ["foodNameEs", "foodNameEn", "tipEs", "tipEn"],
+          nullable: false
+        };
+        const model = getGenerativeModel(aiService, {
+          model: selectedModel,
+          systemInstruction: `You normalize a previously saved GLP-1 meal-log analysis into a bilingual record. Detect the source language automatically. Return a natural Spanish meal name and tolerance note plus a natural English meal name and tolerance note. Translate faithfully and concisely. Do not add nutrition facts, medical claims, diagnoses, or medication advice.`,
+          generationConfig: { responseMimeType: "application/json", responseSchema }
+        });
+        const result = await model.generateContent([`Saved meal name: ${String(foodName || '')}\nSaved tolerance note: ${String(tip || '')}`]);
+        const text = result?.response?.text?.();
+        if (!text) throw new Error("Empty Firebase AI Logic translation response");
         return JSON.parse(text);
       };
       window.firebaseAiLogicReady = true;
@@ -230,8 +256,26 @@
         font-size: 20px !important;
         margin: 0 0 16px 0 !important;
       }
+      @page { size: letter landscape; margin: 0; }
+      body.body-infographic-print-mode #app-container > *:not(#body-infographic-print-sheet) {
+        display: none !important;
+      }
+      body.body-infographic-print-mode #body-infographic-print-sheet {
+        display: block !important;
+        width: 11in !important;
+        height: 8.5in !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
+      body.body-infographic-print-mode #body-infographic-print-sheet img {
+        width: 11in !important;
+        height: 8.5in !important;
+        display: block !important;
+        object-fit: contain !important;
+      }
     }
-    .print-header, #appointment-print-sheet {
+    .print-header, #appointment-print-sheet, #body-infographic-print-sheet {
       display: none;
     }
   </style>
@@ -249,7 +293,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.0.6</p>
+          <p id="print-app-version">Versión: v4.1.0</p>
         </div>
       </div>
     </div>
@@ -272,7 +316,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.0.6</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.0</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -973,6 +1017,9 @@
             <div onclick="openMetricInfo('composition')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Masa grasa / magra · ⓘ</span><p id="metric-fatmass" class="text-xs font-black text-rose-300">--</p><p id="metric-leanmass" class="text-[9px] font-bold text-emerald-300">--</p></div>
           </div>
           <div onclick="openMetricInfo('hydration')" class="flex items-center justify-between gap-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-2.5 cursor-pointer hover:border-cyan-500/40 active:scale-[0.995] transition-all" role="button" tabindex="0"><div><span class="text-[9px] text-slate-500">Hidratación sugerida · ⓘ</span><p id="metric-hydration" class="text-xs font-black text-cyan-300">--</p></div><button id="metric-hydration-use" onclick="event.stopPropagation();applySmartHydrationGoal()" class="hidden px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9px] font-bold">Usar sugerencia</button></div>
+          <button onclick="openBodyMetricsInfographic()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-blue-950/30 border border-blue-400/25">
+            <i data-lucide="file-chart-column" class="w-4 h-4"></i><span>Ver infografía de métricas</span>
+          </button>
           <p class="text-[9px] text-slate-500">Estimaciones orientativas basadas en fórmulas poblacionales y tus datos registrados; no sustituyen mediciones clínicas.</p>
         </div>
 
@@ -1135,7 +1182,7 @@
                 <p id="ai-status-month" class="text-[9px] text-slate-500">Estadísticas del mes actual</p>
               </div>
             </div>
-            <span id="ai-failover-total" class="text-[9px] px-2 py-1 rounded-lg bg-violet-500/10 border border-violet-500/25 text-violet-300 font-bold">0 failovers</span>
+            <div class="flex items-center gap-1.5"><span id="ai-translation-total" class="text-[9px] px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 font-bold">0 translations</span><span id="ai-failover-total" class="text-[9px] px-2 py-1 rounded-lg bg-violet-500/10 border border-violet-500/25 text-violet-300 font-bold">0 failovers</span></div>
           </div>
           <div class="grid grid-cols-1 gap-2">
             <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-3 space-y-1.5">
@@ -1739,6 +1786,26 @@
       </div>
     </div>
 
+    <!-- Body Metrics Infographic v4.1.0 -->
+    <div id="modal-body-infographic" class="fixed inset-0 z-[80] bg-[#090d16]/95 backdrop-blur-md hidden flex-col p-2 sm:p-4">
+      <div class="w-full max-w-6xl mx-auto flex items-center justify-between gap-2 pb-2">
+        <div><span class="text-[9px] uppercase tracking-wider font-bold text-cyan-300">GLP-1 Companion</span><h3 id="body-infographic-modal-title" class="text-sm font-black text-white">Resumen visual de métricas corporales</h3></div>
+        <div class="flex items-center gap-2">
+          <button onclick="printBodyMetricsInfographic()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5"><i data-lucide="printer" class="w-3.5 h-3.5"></i><span>Print / PDF</span></button>
+          <button onclick="closeBodyMetricsInfographic()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold"><span>Cerrar</span></button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto rounded-2xl bg-slate-950/60 border border-[#223455] p-2 sm:p-4">
+        <div class="mx-auto max-w-[1100px] bg-white shadow-2xl rounded-lg overflow-hidden">
+          <canvas id="body-infographic-canvas" width="2200" height="1700" class="block w-full h-auto bg-white"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="body-infographic-print-sheet" class="hidden">
+      <img id="body-infographic-print-img" alt="Body Metrics Infographic" />
+    </div>
+
     <!-- Toast Notification Banner -->
     <div id="toast" class="fixed bottom-20 z-50 max-w-sm px-4 py-2.5 rounded-2xl bg-[#162238] text-white text-xs font-bold shadow-2xl border border-[#223455] transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2">
       <i id="toast-icon" data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
@@ -1752,9 +1819,9 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.0.6";
-    const CLIENT_SCHEMA_VERSION = 11;
-    const MIN_SUPPORTED_CLIENT_VERSION = "v4.0.6";
+    const APP_VERSION = "v4.1.0";
+    const CLIENT_SCHEMA_VERSION = 12;
+    const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.0";
     const LAST_SYNC_KEY = "glp1_last_sync_at_v3_8";
     const PRE_IMPORT_BACKUP_KEY = "glp1_pre_import_safety_backup_v3_8";
     const CLOUD_SIZE_BACKUP_KEY = "glp1_cloud_size_safety_backup_v3_8";
@@ -2123,6 +2190,8 @@
       "Idioma de la aplicación:": "App language:",
       "La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.": "Use the app in Spanish or English. Visit reports can use a separate language.",
       "Medicamento activo:": "Active medication:",
+      "Presentación:": "Presentation:",
+      "La presentación determina las reglas correctas de almacenamiento e inventario.": "Presentation determines the correct storage and inventory rules.",
       "Peso objetivo / Meta (lbs):": "Goal weight (lbs):",
       "Meta calorías (kcal):": "Calorie goal (kcal):",
       "Gasto total (TDEE):": "Total expenditure (TDEE):",
@@ -2212,7 +2281,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.0.6": "Version: v4.0.6",
+      "Versión: v4.1.0": "Version: v4.1.0",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
       "Gemini 3.5 Flash se conecta mediante Firebase AI Logic y App Check. No necesitas guardar una API key de Gemini en este dispositivo.": "Gemini 3.5 Flash connects through Firebase AI Logic and App Check. You do not need to store a Gemini API key on this device.",
       "AI Status · Firebase AI Logic": "AI Status · Firebase AI Logic",
@@ -2246,6 +2315,9 @@
       "Activa": "Active",
       "Muy activa": "Very active",
       "Guardar Health Profile": "Save Health Profile",
+      "Ver infografía de métricas": "View body metrics infographic",
+      "Resumen visual de métricas corporales": "Body Metrics Visual Summary",
+      "Cerrar": "Close",
       "Incompleto": "Incomplete",
       "La app no inventa sexo, edad, altura ni medidas faltantes. Las métricas dependientes muestran “--” hasta tener los datos necesarios.": "The app does not invent sex, age, height, or missing measurements. Dependent metrics show “--” until the required data is available.",
       "Métricas calculadas con tus registros": "Metrics calculated from your records",
@@ -2654,6 +2726,7 @@
             primary: sanitizeAiModelStats(d.primary, AI_PRIMARY_MODEL),
             fallback: sanitizeAiModelStats(d.fallback, AI_FALLBACK_MODEL),
             failovers: Math.max(0, Math.floor(Number(d.failovers)||0)),
+            translations: Math.max(0, Math.floor(Number(d.translations)||0)),
             updatedAt: Math.max(0, Math.floor(Number(d.updatedAt)||0))
           };
         });
@@ -2709,6 +2782,7 @@
             primary:mergeAiModelStats(ld.primary,cd.primary,AI_PRIMARY_MODEL),
             fallback:mergeAiModelStats(ld.fallback,cd.fallback,AI_FALLBACK_MODEL),
             failovers:Math.max(Number(ld.failovers)||0,Number(cd.failovers)||0),
+            translations:Math.max(Number(ld.translations)||0,Number(cd.translations)||0),
             updatedAt:Math.max(Number(ld.updatedAt)||0,Number(cd.updatedAt)||0)
           };
         });
@@ -2721,7 +2795,8 @@
       ensureV4State();
       const month=currentMonthKey(), deviceId=getAiDeviceId();
       if(!state.aiTelemetry[month]) state.aiTelemetry[month]={devices:{},updatedAt:0};
-      if(!state.aiTelemetry[month].devices[deviceId]) state.aiTelemetry[month].devices[deviceId]={primary:blankAiModelStats(AI_PRIMARY_MODEL),fallback:blankAiModelStats(AI_FALLBACK_MODEL),failovers:0,updatedAt:0};
+      if(!state.aiTelemetry[month].devices[deviceId]) state.aiTelemetry[month].devices[deviceId]={primary:blankAiModelStats(AI_PRIMARY_MODEL),fallback:blankAiModelStats(AI_FALLBACK_MODEL),failovers:0,translations:0,updatedAt:0};
+      if(!Number.isFinite(Number(state.aiTelemetry[month].devices[deviceId].translations))) state.aiTelemetry[month].devices[deviceId].translations=0;
       return { month, deviceId, bucket:state.aiTelemetry[month].devices[deviceId] };
     }
 
@@ -2741,9 +2816,14 @@
       const now=mutationNow(); bucket.failovers+=1; bucket.updatedAt=now; state.aiTelemetry[month].updatedAt=now;
     }
 
+    function recordAiTranslation() {
+      const {month,bucket}=ensureCurrentAiDeviceBucket();
+      const now=mutationNow(); bucket.translations=(Number(bucket.translations)||0)+1; bucket.updatedAt=now; state.aiTelemetry[month].updatedAt=now;
+    }
+
     function aggregateAiMonth(month=currentMonthKey()) {
       const t=sanitizeAiTelemetry(state.aiTelemetry), bucket=t[month]||{devices:{}};
-      const result={primary:blankAiModelStats(AI_PRIMARY_MODEL),fallback:blankAiModelStats(AI_FALLBACK_MODEL),failovers:0};
+      const result={primary:blankAiModelStats(AI_PRIMARY_MODEL),fallback:blankAiModelStats(AI_FALLBACK_MODEL),failovers:0,translations:0};
       ['primary','fallback'].forEach(role=>{
         let latest={lastEventAt:0,lastResult:'',consecutiveFailures:0,lastLatencyMs:0};
         Object.values(bucket.devices||{}).forEach(d=>{
@@ -2754,7 +2834,7 @@
         });
         result[role].lastEventAt=latest.lastEventAt; result[role].lastResult=latest.lastResult; result[role].consecutiveFailures=latest.consecutiveFailures; result[role].lastLatencyMs=latest.lastLatencyMs;
       });
-      Object.values(bucket.devices||{}).forEach(d=>{result.failovers+=Math.max(0,Number(d.failovers)||0);});
+      Object.values(bucket.devices||{}).forEach(d=>{result.failovers+=Math.max(0,Number(d.failovers)||0);result.translations+=Math.max(0,Number(d.translations)||0);});
       return result;
     }
 
@@ -2767,7 +2847,7 @@
       const agg=aggregateAiMonth();
       const monthLabel=new Date(`${currentMonthKey()}-01T12:00:00`).toLocaleDateString(isEnglish()?'en-US':'es-US',{month:'long',year:'numeric'});
       const m=document.getElementById('ai-status-month'); if(m)m.innerText=isEnglish()?`Current month · ${monthLabel}`:`Mes actual · ${monthLabel}`;
-      const f=document.getElementById('ai-failover-total'); if(f)f.innerText=`${agg.failovers} ${agg.failovers===1?'failover':'failovers'}`;
+      const f=document.getElementById('ai-failover-total'); if(f)f.innerText=`${agg.failovers} ${agg.failovers===1?'failover':'failovers'}`; const tr=document.getElementById('ai-translation-total'); if(tr)tr.innerText=isEnglish()?`${agg.translations} ${agg.translations===1?'translation':'translations'}`:`${agg.translations} ${agg.translations===1?'traducción':'traducciones'}`;
       const renderRole=(role,st)=>{
         const attempts=document.getElementById(`ai-${role}-attempts`), suc=document.getElementById(`ai-${role}-success`), fail=document.getElementById(`ai-${role}-fail`), rate=document.getElementById(`ai-${role}-rate`), last=document.getElementById(`ai-${role}-last`), status=document.getElementById(`ai-${role}-status`), light=document.getElementById(`ai-${role}-light`);
         if(attempts)attempts.innerText=st.attempts; if(suc)suc.innerText=st.successes; if(fail)fail.innerText=st.failures; if(rate)rate.innerText=st.attempts?`${((st.successes/st.attempts)*100).toFixed(1)}%`:'--'; if(last)last.innerText=(isEnglish()?'Last use: ':'Último uso: ')+formatAiLast(st.lastEventAt);
@@ -2821,6 +2901,7 @@
     let symptomTrendChartInstance = null;
     let pkCurveChartInstance = null;
     let selectedImageBase64 = null;
+    let pendingAiBilingualResult = null;
     let pacingTimerInterval = null;
     let pacingSecondsLeft = 20 * 60;
 
@@ -3877,7 +3958,7 @@
     }
 
     function renderPresentationSelector(){
-      const select=document.getElementById('setting-presentation'),wrap=document.getElementById('setting-presentation-wrap'),help=document.getElementById('setting-presentation-help');if(!select)return;
+      const select=document.getElementById('setting-presentation'),wrap=document.getElementById('setting-presentation-wrap'),help=document.getElementById('setting-presentation-help'),label=document.getElementById('setting-presentation-label');if(!select)return;if(label)label.innerText=uiText('Presentación:','Presentation:');
       const opts=getPresentationOptions();if(!opts.some(x=>x.key===state.settings.presentation))state.settings.presentation=opts[0].key;
       select.innerHTML=opts.map(x=>`<option value="${escapeHtml(x.key)}">${escapeHtml(isEnglish()?x.en:x.es)}</option>`).join('');select.value=state.settings.presentation;
       if(wrap)wrap.classList.toggle('hidden',opts.length===1&&getMedicationProfile().route==='oral');
@@ -4218,7 +4299,7 @@
         const f = Number(m.fat || 0);
         totalFatToday += f;
         if (f >= 14) {
-          highFatMeals.push(`${m.name} (${f}g grasa)`);
+          highFatMeals.push(`${mealLocalizedName(m)} (${f}g ${uiText('grasa','fat')})`);
         }
       });
 
@@ -4632,6 +4713,21 @@
       const pair=map[String(slot||'Comida')];return pair?uiText(pair[0],pair[1]):String(slot||uiText('Comida','Meal'));
     }
 
+    function mealLocalizedName(meal, lang=isEnglish()?'en':'es') {
+      if(!meal||typeof meal!=='object')return uiText('Comida','Meal');
+      if(lang==='en')return String(meal.nameEn||meal.name||meal.nameEs||'Meal');
+      return String(meal.nameEs||meal.name||meal.nameEn||'Comida');
+    }
+    function mealLocalizedTip(meal, lang=isEnglish()?'en':'es') {
+      if(!meal||typeof meal!=='object')return '';
+      if(lang==='en')return String(meal.tipEn||meal.tip||meal.tipEs||'');
+      return String(meal.tipEs||meal.tip||meal.tipEn||'');
+    }
+    function mealNeedsCurrentLanguageTranslation(meal) {
+      if(!meal||!meal.tip)return false;
+      return !(meal.nameEs&&meal.nameEn&&meal.tipEs&&meal.tipEn);
+    }
+
     function renderMealsList() {
       const day = getSelectedDay();
       const container = document.getElementById('daily-meals-container');
@@ -4652,6 +4748,9 @@
 
       day.meals.forEach((meal, idx) => {
         const card = document.createElement('div');
+        const mealName=mealLocalizedName(meal);
+        const mealTip=mealLocalizedTip(meal);
+        const needsTranslation=mealNeedsCurrentLanguageTranslation(meal);
         card.className = "bg-[#111a2e] rounded-2xl p-3 border border-[#223455] space-y-2";
         card.innerHTML = `
           <div class="flex items-start justify-between">
@@ -4660,7 +4759,7 @@
                 <span class="px-2 py-0.5 text-[9px] font-bold rounded-md bg-slate-800 text-slate-300 uppercase">${escapeHtml(translateMealSlot(meal.slot))}</span>
                 <span class="text-[10px] text-slate-500">${escapeHtml(meal.time || '')}</span>
               </div>
-              <h4 class="text-xs font-bold text-white mt-0.5">${escapeHtml(meal.name)}</h4>
+              <h4 class="text-xs font-bold text-white mt-0.5">${escapeHtml(mealName)}</h4>
             </div>
             <button data-delete-meal="${idx}" class="text-slate-500 hover:text-rose-400 p-1 transition-colors">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -4686,12 +4785,13 @@
             </div>
           </div>
 
-          ${meal.tip ? `
+          ${mealTip ? `
             <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-2 text-[10px] text-emerald-300 flex items-start gap-1.5">
               <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-              <span>${escapeHtml(meal.tip)}</span>
+              <span>${escapeHtml(mealTip)}</span>
             </div>
           ` : ''}
+          ${needsTranslation ? `<button data-translate-meal="${idx}" class="w-full py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9px] font-bold hover:bg-cyan-500/20">${uiText('Crear versión bilingüe','Create bilingual version')}</button>` : ''}
         `;
         container.appendChild(card);
       });
@@ -4752,6 +4852,7 @@
        ========================================================================== */
     function resetScannerState() {
       selectedImageBase64 = null;
+      pendingAiBilingualResult = null;
       const fileInput = document.getElementById('scanner-file-input');
       const previewImg = document.getElementById('scanner-preview-img');
       const placeholder = document.getElementById('scanner-placeholder-content');
@@ -4856,12 +4957,12 @@
       const btnText = document.getElementById('btn-run-analysis-text');
       btn.disabled = true;
       btnText.innerText = uiText("Analizando con IA principal...", "Analyzing with primary AI...");
-      const systemPrompt = isEnglish()
-        ? `You are a nutrition-analysis assistant for a GLP-1 tracking app. Respond in English only.\nMedication logged: ${medLabel}.\nAnalyze only the food shown in the image and/or described by the user. Estimate calories and macronutrients from the actual meal details. Do not reuse fixed example values. Return a concise, neutral tolerance note based on the food; do not diagnose or recommend medication changes. If portion size is uncertain, make a reasonable small-to-medium homemade portion estimate and reflect that uncertainty in the tolerance note.`
-        : `Eres un asistente de análisis nutricional para una app de seguimiento GLP-1. Responde únicamente en español.\nMedicamento registrado: ${medLabel}.\nAnaliza únicamente el alimento mostrado en la imagen y/o descrito por el usuario. Estima calorías y macronutrientes según los detalles reales del plato. No reutilices valores fijos de ejemplo. Devuelve una nota breve y neutral de tolerancia basada en el alimento; no diagnostiques ni recomiendes cambios de medicamento. Si el tamaño de la porción es incierto, usa una estimación razonable de porción casera pequeña a mediana y refleja esa incertidumbre en la nota.`;
+      const systemPrompt = `You are a nutrition-analysis assistant for a GLP-1 tracking app.
+Medication logged: ${medLabel}.
+Analyze only the food shown in the image and/or described by the user. Estimate calories and macronutrients from the actual meal details; never reuse fixed example values. Return the meal name naturally in BOTH Spanish (foodNameEs) and English (foodNameEn), plus a concise neutral GLP-1 tolerance-tracking note in BOTH Spanish (tipEs) and English (tipEn). The numeric calories/protein/carbs/fat values are shared across languages. Do not diagnose, do not recommend medication changes, and do not invent unsupported ingredients. If portion size is uncertain, use a reasonable small-to-medium homemade portion estimate and mention that uncertainty briefly in both tolerance notes.`;
       const prompt = textQuery
-        ? (isEnglish() ? `User meal details: ${textQuery}` : `Detalles del plato del usuario: ${textQuery}`)
-        : (isEnglish() ? `Analyze the foods visible in this image. Estimate the meal name, calories, protein, carbohydrates, fat, and a brief GLP-1 tolerance-tracking note for ${medLabel}.` : `Analiza los alimentos visibles en esta imagen. Estima el nombre del plato, calorías, proteína, carbohidratos, grasa y una nota breve de seguimiento de tolerancia GLP-1 para ${medLabel}.`);
+        ? `User meal details (may be written in Spanish or English): ${textQuery}. Analyze the same meal and return both language text fields.`
+        : `Analyze the foods visible in this image for ${medLabel}. Return both Spanish and English meal names/tolerance notes plus one shared set of nutrition estimates.`;
       let imageData=null,mimeType=null;
       if(selectedImageBase64){const pieces=selectedImageBase64.split(',');imageData=pieces[1]||null;mimeType=(pieces[0]||'').split(';')[0].replace('data:','')||'image/jpeg';}
 
@@ -4895,7 +4996,7 @@
         try {
           const parsed=await window.firebaseAiAnalyzeMeal({systemPrompt,prompt,imageBase64:imageData,mimeType,modelName:AI_FALLBACK_MODEL});
           recordAiAttempt('fallback',true,performance.now()-t1); telemetryChanged=true;
-          populateAiResults(parsed,"Firebase AI Logic • Gemini 3.5 Flash Lite (respaldo)");
+          populateAiResults(parsed,uiText("Firebase AI Logic • Gemini 3.5 Flash Lite (respaldo)","Firebase AI Logic • Gemini 3.5 Flash Lite (fallback)"));
           persistState({userMutation:true}); renderAiStatus();
           showToast(uiText('La IA principal falló; el respaldo completó el análisis.','Primary AI failed; fallback completed the analysis.'));
           return;
@@ -4919,44 +5020,53 @@
         const n = Number(value);
         return Number.isFinite(n) && n >= 0 ? Math.round(n * 10) / 10 : '';
       };
-      document.getElementById('res-food-name').value = String(data?.foodName || uiText("Plato analizado", "Analyzed meal"));
+      const foodNameEs=String(data?.foodNameEs || data?.foodName || 'Plato analizado').trim();
+      const foodNameEn=String(data?.foodNameEn || data?.foodName || 'Analyzed meal').trim();
+      const tipEs=String(data?.tipEs || data?.mounjaroTip || 'Estimación de IA disponible para revisión manual.').trim();
+      const tipEn=String(data?.tipEn || data?.mounjaroTip || 'AI estimate available for manual review.').trim();
+      pendingAiBilingualResult={foodNameEs,foodNameEn,tipEs,tipEn,sourceLabel:String(sourceLabel||'')};
+      document.getElementById('res-food-name').value = isEnglish()?foodNameEn:foodNameEs;
       document.getElementById('res-cal').value = safeNumber(data?.calories);
       document.getElementById('res-protein').value = safeNumber(data?.protein);
       document.getElementById('res-carbs').value = safeNumber(data?.carbs);
       document.getElementById('res-fat').value = safeNumber(data?.fat);
-      document.getElementById('res-glp1-tip').innerText = String(data?.mounjaroTip || uiText("Estimación de IA disponible para revisión manual.", "AI estimate available for manual review."));
+      document.getElementById('res-glp1-tip').innerText = isEnglish()?tipEn:tipEs;
 
       const badgeText = document.getElementById('ai-source-text');
-      if (badgeText) {
-        badgeText.innerText = sourceLabel || uiText("Análisis listo (Ajustable)", "Analysis ready (Editable)");
-      }
-
+      if (badgeText) badgeText.innerText = sourceLabel || uiText('Análisis listo (Ajustable)', 'Analysis ready (Editable)');
       document.getElementById('ai-results-container').classList.remove('hidden');
       lucide.createIcons();
     }
 
     function commitScannedMeal() {
-      const name = document.getElementById('res-food-name').value.trim() || uiText("Plato escaneado", "Scanned meal");
+      const visibleName = document.getElementById('res-food-name').value.trim() || uiText('Plato escaneado', 'Scanned meal');
       const calories = Math.max(0, Number(document.getElementById('res-cal').value) || 0);
       const protein = Math.max(0, Number(document.getElementById('res-protein').value) || 0);
       const carbs = Math.max(0, Number(document.getElementById('res-carbs').value) || 0);
       const fat = Math.max(0, Number(document.getElementById('res-fat').value) || 0);
-      const tip = document.getElementById('res-glp1-tip').innerText;
+      const visibleTip = document.getElementById('res-glp1-tip').innerText.trim();
       const slot = document.getElementById('scanner-meal-slot').value;
+      const pair=pendingAiBilingualResult||{foodNameEs:visibleName,foodNameEn:visibleName,tipEs:visibleTip,tipEn:visibleTip,sourceLabel:''};
+      if(isEnglish()) pair.foodNameEn=visibleName; else pair.foodNameEs=visibleName;
+      if(isEnglish()) pair.tipEn=visibleTip; else pair.tipEs=visibleTip;
+      const name=isEnglish()?pair.foodNameEn:pair.foodNameEs;
+      const tip=isEnglish()?pair.tipEn:pair.tipEs;
 
       const day = getSelectedDay();
-      const mealId = "meal_" + Date.now();
-      if (state.deletedRecords && state.deletedRecords.meals) {
-        delete state.deletedRecords.meals[mealId];
-      }
+      const mealId = 'meal_' + Date.now();
+      if (state.deletedRecords && state.deletedRecords.meals) delete state.deletedRecords.meals[mealId];
       day.meals.push({
         id: mealId,
         name,
-        calories,
-        protein,
-        carbs,
-        fat,
+        nameEs: pair.foodNameEs || name,
+        nameEn: pair.foodNameEn || name,
+        calories, protein, carbs, fat,
         tip,
+        tipEs: pair.tipEs || tip,
+        tipEn: pair.tipEn || tip,
+        aiGenerated:true,
+        analysisLanguage:'bilingual',
+        analysisSource:pair.sourceLabel||'',
         slot,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         updatedAt: mutationNow()
@@ -4966,7 +5076,26 @@
       closeScannerModal();
       updateDashboardView();
       checkFoodSymptomCorrelation();
-      showToast(uiText("¡Comida guardada en el diario!", "Meal saved to your daily log!"));
+      showToast(uiText('¡Comida guardada en español e inglés!', 'Meal saved in English and Spanish!'));
+    }
+
+    async function translateSavedMeal(idx) {
+      const day=getSelectedDay(), meal=Array.isArray(day.meals)?day.meals[Number(idx)]:null;if(!meal)return;
+      if(meal.nameEs&&meal.nameEn&&meal.tipEs&&meal.tipEn){renderMealsList();return;}
+      if(typeof navigator!=='undefined'&&navigator.onLine===false){showToast(uiText('Conéctate a internet para crear la versión bilingüe una sola vez.','Connect to the internet to create the bilingual version once.'));return;}
+      if(typeof window.firebaseAiTranslateMeal!=='function'||window.firebaseAiLogicReady===false){showToast(uiText('Firebase AI Logic no está disponible para traducir ahora.','Firebase AI Logic is not available for translation right now.'));return;}
+      const sourceName=String(meal.name||meal.nameEs||meal.nameEn||uiText('Comida','Meal'));
+      const sourceTip=String(meal.tip||meal.tipEs||meal.tipEn||'');
+      if(!sourceTip){showToast(uiText('Este registro no tiene análisis de IA para convertir.','This record has no AI analysis to convert.'));return;}
+      showToast(uiText('Creando versión bilingüe del análisis…','Creating bilingual version of the analysis…'),5000);
+      let translated=null;
+      const run=async(model,role)=>{const t0=performance.now();try{const out=await window.firebaseAiTranslateMeal({foodName:sourceName,tip:sourceTip,modelName:model});recordAiAttempt(role,true,performance.now()-t0);return out;}catch(err){const c=classifyAiFailure(err);if(c.recoverable)recordAiAttempt(role,false,performance.now()-t0);throw Object.assign(err,{_classification:c});}};
+      try{
+        try{translated=await run(AI_PRIMARY_MODEL,'primary');}
+        catch(err){const c=err._classification||classifyAiFailure(err);if(!c.recoverable)throw err;recordAiFailover();translated=await run(AI_FALLBACK_MODEL,'fallback');}
+        meal.nameEs=String(translated?.foodNameEs||sourceName).trim();meal.nameEn=String(translated?.foodNameEn||sourceName).trim();meal.tipEs=String(translated?.tipEs||sourceTip).trim();meal.tipEn=String(translated?.tipEn||sourceTip).trim();
+        meal.aiGenerated=true;meal.analysisLanguage='bilingual';meal.updatedAt=mutationNow();recordAiTranslation();persistState({userMutation:true});renderMealsList();renderAiStatus();showToast(uiText('Versión bilingüe guardada. No será necesario volver a generarla.','Bilingual version saved. It will not need to be generated again.'));
+      }catch(err){console.warn('Saved meal bilingual conversion failed',err);persistState({userMutation:true});renderAiStatus();showToast(uiText('No se pudo crear la versión bilingüe ahora.','The bilingual version could not be created right now.'),5000);}
     }
 
     function openManualMealModal() {
@@ -5616,6 +5745,136 @@
       const item=content[key];if(!item)return;const pair=isEnglish()?item.en:item.es;title.textContent=pair[0];body.innerHTML=`<p>${escapeHtml(pair[1])}</p><p class="text-[10px] text-slate-500 mt-3">${uiText('Toca fuera o usa Cerrar para volver a tus métricas.','Tap outside or use Close to return to your metrics.')}</p>`;if(closeBtn)closeBtn.textContent=uiText('Cerrar','Close');modal.classList.remove('hidden');modal.classList.add('flex');lucide.createIcons();
     }
     function closeMetricInfo(){const modal=document.getElementById('modal-metric-info');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}}
+
+    function bodyMetricBmiClassification(bmi, lang=isEnglish()?'en':'es') {
+      if (!Number.isFinite(Number(bmi))) return {key:'none', label:'--', color:'#94a3b8'};
+      const b=Number(bmi), en=lang==='en';
+      if(b<18.5)return {key:'under',label:en?'Underweight':'Bajo peso',color:'#3b82f6'};
+      if(b<25)return {key:'normal',label:en?'Healthy range':'Rango saludable',color:'#22c55e'};
+      if(b<30)return {key:'over',label:en?'Overweight':'Sobrepeso',color:'#eab308'};
+      if(b<35)return {key:'ob1',label:en?'Obesity class I':'Obesidad grado I',color:'#f97316'};
+      if(b<40)return {key:'ob2',label:en?'Obesity class II':'Obesidad grado II',color:'#ef4444'};
+      return {key:'ob3',label:en?'Obesity class III':'Obesidad grado III',color:'#b91c1c'};
+    }
+
+    function getBodyMetricsInfographicData() {
+      const lang=isEnglish()?'en':'es', en=lang==='en', metrics=calculateSmartBodyMetrics(), h=sanitizeHealthProfile(state.healthProfile);
+      const weights=(Array.isArray(state.weights)?state.weights:[]).filter(w=>w&&Number.isFinite(Number(w.weight))&&isValidDateKey(String(w.date||''))).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      const startLb=weights.length?Number(weights[0].weight):null, currentLb=weights.length?Number(weights[weights.length-1].weight):null;
+      const goalLb=Number.isFinite(Number(state.settings?.goalWeight))?Number(state.settings.goalWeight):null;
+      const age=calculateAgeFromDob(h.dob), latestM=latestMeasurement();
+      let progress=null;
+      if(startLb!==null&&currentLb!==null&&goalLb!==null&&Math.abs(startLb-goalLb)>.01){
+        progress=startLb>goalLb?(startLb-currentLb)/(startLb-goalLb):(currentLb-startLb)/(goalLb-startLb);
+        progress=Math.max(0,Math.min(1,progress));
+      }
+      const userName=(currentUser&&((currentUser.displayName&&String(currentUser.displayName).trim())||currentUser.email))|| (en?'Active user':'Usuario activo');
+      const sexLabel=h.sex==='male'?(en?'Male':'Masculino'):h.sex==='female'?(en?'Female':'Femenino'):'--';
+      const cls=bodyMetricBmiClassification(metrics.bmi,lang);
+      return {lang,en,metrics,h,weights,startLb,currentLb,goalLb,age,latestM,progress,userName,sexLabel,classification:cls,generatedAt:new Date()};
+    }
+
+    function roundedCanvasRect(ctx,x,y,w,h,r,fill,stroke=null,lineWidth=1){
+      const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();
+      if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lineWidth;ctx.stroke();}
+    }
+    function canvasText(ctx,text,x,y,size=28,color='#0f172a',weight='400',align='left',font='Arial'){ctx.font=`${weight} ${size}px ${font}`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillText(String(text??''),x,y);}
+    function canvasWrap(ctx,text,x,y,maxWidth,lineHeight,size=24,color='#475569',weight='400',maxLines=5){
+      ctx.font=`${weight} ${size}px Arial`;ctx.fillStyle=color;ctx.textAlign='left';ctx.textBaseline='alphabetic';const words=String(text||'').split(/\s+/);let line='',lines=[];
+      for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;}if(line)lines.push(line);if(lines.length>maxLines){lines=lines.slice(0,maxLines);let last=lines[maxLines-1];while(ctx.measureText(last+'…').width>maxWidth&&last.length>1)last=last.slice(0,-1);lines[maxLines-1]=last+'…';}
+      lines.forEach((ln,i)=>ctx.fillText(ln,x,y+i*lineHeight));return lines.length*lineHeight;
+    }
+    function infographicPanel(ctx,x,y,w,h,title,accent='#1d4ed8'){
+      roundedCanvasRect(ctx,x,y,w,h,22,'#ffffff','#dbe7f4',2);ctx.fillStyle='#f2f7fc';ctx.fillRect(x+2,y+2,w-4,58);ctx.fillStyle=accent;ctx.fillRect(x+2,y+2,8,58);canvasText(ctx,title,x+26,y+40,28,'#12345b','700');
+    }
+    function infographicMetric(ctx,x,y,label,value,accent='#2563eb',sub=''){
+      roundedCanvasRect(ctx,x,y,238,120,18,'#f8fbff','#dbe7f4',2);canvasText(ctx,label,x+18,y+30,20,'#64748b','700');canvasText(ctx,value,x+18,y+72,34,accent,'800');if(sub)canvasText(ctx,sub,x+18,y+101,18,'#64748b','400');
+    }
+    function drawBodyWeightChart(ctx,data,x,y,w,h){
+      const weights=data.weights;if(!weights.length){canvasText(ctx,data.en?'No weight history yet':'Aún no hay historial de peso',x+w/2,y+h/2,24,'#94a3b8','600','center');return;}
+      const vals=weights.map(v=>Number(v.weight));if(data.goalLb!==null)vals.push(data.goalLb);let min=Math.min(...vals),max=Math.max(...vals);const pad=Math.max(2,(max-min)*.18);min-=pad;max+=pad;if(max-min<1){min-=1;max+=1;}
+      ctx.strokeStyle='#dbe7f4';ctx.lineWidth=2;for(let i=0;i<=4;i++){const yy=y+(h*i/4);ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke();}
+      const px=(i)=>weights.length===1?x+w/2:x+(w*i/(weights.length-1));const py=(v)=>y+h-((v-min)/(max-min))*h;
+      if(data.goalLb!==null){ctx.save();ctx.strokeStyle='#22c55e';ctx.lineWidth=3;ctx.setLineDash([12,9]);ctx.beginPath();ctx.moveTo(x,py(data.goalLb));ctx.lineTo(x+w,py(data.goalLb));ctx.stroke();ctx.restore();}
+      ctx.strokeStyle='#2563eb';ctx.lineWidth=6;ctx.lineJoin='round';ctx.beginPath();weights.forEach((v,i)=>{const xx=px(i),yy=py(Number(v.weight));i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);});ctx.stroke();
+      weights.forEach((v,i)=>{ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(px(i),py(Number(v.weight)),7,0,Math.PI*2);ctx.fill();});
+      const n=weights.length;const indices=n<=6?[...Array(n).keys()]:[0,Math.floor((n-1)*.25),Math.floor((n-1)*.5),Math.floor((n-1)*.75),n-1];
+      indices.forEach(i=>{const d=new Date(weights[i].date+'T12:00:00');const lab=d.toLocaleDateString(data.en?'en-US':'es-US',{month:'short',year:n>12?'2-digit':undefined});canvasText(ctx,lab,px(i),y+h+28,17,'#64748b','500','center');});
+    }
+    function drawEnergyDonut(ctx,data,cx,cy,r){
+      const bmr=Number(data.metrics.bmr),tdee=Number(data.metrics.tdee);if(!Number.isFinite(bmr)||!Number.isFinite(tdee)||tdee<=0){canvasText(ctx,'--',cx,cy+10,42,'#94a3b8','800','center');return null;}
+      const p=Math.max(0,Math.min(1,bmr/tdee));ctx.lineWidth=34;ctx.lineCap='butt';ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#2563eb';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*p);ctx.stroke();ctx.strokeStyle='#22c55e';ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2+Math.PI*2*p,-Math.PI/2+Math.PI*2);ctx.stroke();canvasText(ctx,Math.round(tdee).toLocaleString(),cx,cy+6,34,'#12345b','800','center');canvasText(ctx,'kcal/day',cx,cy+34,17,'#64748b','600','center');return {bmrPct:Math.round(p*100),otherPct:100-Math.round(p*100)};
+    }
+
+    function renderBodyMetricsInfographicCanvas() {
+      const canvas=document.getElementById('body-infographic-canvas');if(!canvas)return null;const ctx=canvas.getContext('2d');const d=getBodyMetricsInfographicData(), W=canvas.width,H=canvas.height;
+      ctx.clearRect(0,0,W,H);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+      // Header
+      ctx.fillStyle='#f5faff';ctx.fillRect(0,0,W,165);ctx.fillStyle='#1d4ed8';ctx.fillRect(0,0,16,165);
+      roundedCanvasRect(ctx,42,34,170,92,24,'#eaf4ff','#bfdbfe',2);ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(86,80,24,0,Math.PI*2);ctx.fill();ctx.fillStyle='#22c55e';ctx.beginPath();ctx.moveTo(70,108);ctx.quadraticCurveTo(102,98,128,60);ctx.quadraticCurveTo(116,110,80,120);ctx.closePath();ctx.fill();canvasText(ctx,'GLP-1',132,72,28,'#12345b','800');canvasText(ctx,'COMPANION',132,102,15,'#2563eb','700');
+      canvasText(ctx,d.en?'BODY METRICS SUMMARY':'RESUMEN DE MÉTRICAS CORPORALES',W/2,65,52,'#12345b','800','center');canvasText(ctx,d.en?'Your health journey at a glance':'Tu progreso de salud de un vistazo',W/2,105,26,'#2563eb','600','center');canvasText(ctx,'GLP-1 Companion',W/2,137,20,'#64748b','600','center');
+      roundedCanvasRect(ctx,W-390,28,340,108,20,'#eaf4ff','#dbe7f4',2);canvasText(ctx,d.en?'Report date':'Fecha del reporte',W-365,62,19,'#64748b','700');canvasText(ctx,d.generatedAt.toLocaleDateString(d.en?'en-US':'es-US',{month:'short',day:'numeric',year:'numeric'}),W-365,92,27,'#12345b','800');canvasText(ctx,APP_VERSION,W-365,119,17,'#2563eb','700');
+      // Top row
+      const topY=195, gap=22, p1=500,p2=480,p3=430,p4=650;let x=36;
+      infographicPanel(ctx,x,topY,p1,360,d.en?'PERSONAL INFORMATION':'INFORMACIÓN PERSONAL');
+      canvasText(ctx,d.en?'Account':'Cuenta',x+26,topY+105,18,'#64748b','700');canvasWrap(ctx,d.userName,x+26,topY+135,p1-52,28,25,'#12345b','700',2);
+      canvasText(ctx,d.en?'Age':'Edad',x+26,topY+203,18,'#64748b','700');canvasText(ctx,d.age===null?'--':String(d.age),x+26,topY+236,27,'#12345b','800');canvasText(ctx,d.en?'Sex':'Sexo',x+180,topY+203,18,'#64748b','700');canvasText(ctx,d.sexLabel,x+180,topY+236,27,'#12345b','800');
+      canvasText(ctx,d.en?'Height':'Altura',x+26,topY+286,18,'#64748b','700');canvasText(ctx,d.h.heightIn?formatLength(d.h.heightIn,1):'--',x+26,topY+319,27,'#12345b','800');canvasText(ctx,d.en?'Current weight':'Peso actual',x+250,topY+286,18,'#64748b','700');canvasText(ctx,d.currentLb!==null?formatWeight(d.currentLb,1):'--',x+250,topY+319,27,'#12345b','800');
+      x+=p1+gap;infographicPanel(ctx,x,topY,p2,360,d.en?'WHAT IS BMI?':'¿QUÉ ES EL IMC?');
+      canvasWrap(ctx,d.en?'BMI relates your weight to your height. It is useful as a screening and tracking tool, but it does not directly measure body fat or distinguish muscle from fat.':'El IMC relaciona tu peso con tu altura. Es útil como herramienta de orientación y seguimiento, pero no mide directamente la grasa corporal ni distingue músculo de grasa.',x+26,topY+105,p2-52,31,21,'#475569','400',5);
+      roundedCanvasRect(ctx,x+30,topY+246,p2-60,82,16,'#f2f7fc','#dbe7f4',2);canvasText(ctx,'BMI =',x+55,topY+298,27,'#12345b','800');canvasText(ctx,d.en?'Weight (kg) ÷ Height (m)²':'Peso (kg) ÷ Altura (m)²',x+165,topY+298,23,'#2563eb','700');
+      x+=p2+gap;infographicPanel(ctx,x,topY,p3,360,d.en?'YOUR BMI RESULT':'TU RESULTADO IMC');
+      const bmiText=d.metrics.bmi!==null?d.metrics.bmi.toFixed(1):'--';canvasText(ctx,bmiText,x+p3/2,topY+190,100,d.classification.color,'800','center');roundedCanvasRect(ctx,x+45,topY+225,p3-90,88,18,d.classification.color+'18',d.classification.color+'55',2);canvasText(ctx,d.classification.label,x+p3/2,topY+278,28,d.classification.color,'800','center');
+      x+=p3+gap;infographicPanel(ctx,x,topY,p4,360,d.en?'BMI CLASSIFICATION':'CLASIFICACIÓN DEL IMC');
+      const ranges=[['< 18.5',d.en?'Underweight':'Bajo peso','#dbeafe'],['18.5–24.9',d.en?'Healthy range':'Rango saludable','#dcfce7'],['25.0–29.9',d.en?'Overweight':'Sobrepeso','#fef9c3'],['30.0–34.9',d.en?'Obesity class I':'Obesidad grado I','#ffedd5'],['35.0–39.9',d.en?'Obesity class II':'Obesidad grado II','#fee2e2'],['≥ 40.0',d.en?'Obesity class III':'Obesidad grado III','#fecaca']];
+      ranges.forEach((r,i)=>{const yy=topY+78+i*43;roundedCanvasRect(ctx,x+20,yy,p4-40,36,8,r[2],d.classification.label===r[1]?d.classification.color:null,d.classification.label===r[1]?3:1);canvasText(ctx,r[1],x+38,yy+25,18,'#334155',d.classification.label===r[1]?'800':'600');canvasText(ctx,r[0],x+p4-42,yy+25,18,'#334155','700','right');});
+      // Middle row chart + metrics + composition
+      const midY=580;infographicPanel(ctx,36,midY,900,510,d.en?'WEIGHT PROGRESS':'PROGRESO DE PESO');drawBodyWeightChart(ctx,d,90,midY+110,790,285);
+      if(d.startLb!==null&&d.currentLb!==null){const lost=d.startLb-d.currentLb;roundedCanvasRect(ctx,690,midY+78,210,88,18,'#dcfce7','#bbf7d0',2);canvasText(ctx,`${lost>=0?'':'+'}${Math.abs(displayWeight(lost)).toFixed(1)} ${weightUnit()}`,795,midY+115,28,lost>=0?'#15803d':'#b45309','800','center');canvasText(ctx,lost>=0?(d.en?'lost':'perdidos'):(d.en?'change':'cambio'),795,midY+145,17,'#64748b','600','center');}
+      infographicPanel(ctx,958,midY,590,510,d.en?'KEY METRICS':'MÉTRICAS CLAVE');
+      infographicMetric(ctx,984,midY+82,d.en?'BMR':'TMB / BMR',d.metrics.bmr!==null?`${Math.round(d.metrics.bmr)} kcal`:'--','#f97316',d.en?'Resting energy':'Energía en reposo');
+      infographicMetric(ctx,1236,midY+82,'TDEE',d.metrics.tdee!==null?`${Math.round(d.metrics.tdee)} kcal`:'--','#22c55e',d.en?'Estimated daily use':'Gasto diario estimado');
+      infographicMetric(ctx,984,midY+220,d.en?'Hydration goal':'Hidratación',d.metrics.hydrationOz!==null?`${Math.round(displayWater(d.metrics.hydrationOz))} ${waterUnit()}`:'--','#0ea5e9',d.en?'per day':'por día');
+      infographicMetric(ctx,1236,midY+220,d.en?'Waist / height':'Cintura / altura',d.metrics.whtr!==null?d.metrics.whtr.toFixed(2):'--','#eab308',d.metrics.whtr===null?'':(d.metrics.whtr<.5?(d.en?'Below 0.50':'Menor de 0.50'):(d.en?'0.50 or above':'0.50 o más')));
+      roundedCanvasRect(ctx,984,midY+358,490,110,18,'#f8fbff','#dbe7f4',2);canvasText(ctx,d.en?'Goal weight':'Peso meta',1002,midY+392,18,'#64748b','700');canvasText(ctx,d.goalLb!==null?formatWeight(d.goalLb,1):'--',1002,midY+435,33,'#2563eb','800');if(d.progress!==null){canvasText(ctx,`${Math.round(d.progress*100)}%`,1448,midY+421,30,'#22c55e','800','right');}
+      infographicPanel(ctx,1570,midY,594,510,d.en?'BODY COMPOSITION (ESTIMATED)':'COMPOSICIÓN CORPORAL (ESTIMADA)');
+      infographicMetric(ctx,1596,midY+82,d.en?'Body fat %':'Grasa corporal %',d.metrics.bodyFat!==null?`${d.metrics.bodyFat.toFixed(1)}%`:'--','#e11d48','US Navy');
+      infographicMetric(ctx,1848,midY+82,d.en?'Lean mass':'Masa magra',d.metrics.leanMassLb!==null?formatWeight(d.metrics.leanMassLb,1):'--','#16a34a','');
+      infographicMetric(ctx,1596,midY+220,d.en?'Fat mass':'Masa grasa',d.metrics.fatMassLb!==null?formatWeight(d.metrics.fatMassLb,1):'--','#f97316','');
+      infographicMetric(ctx,1848,midY+220,d.en?'Waist':'Cintura',d.latestM&&Number(d.latestM.waist)>0?formatLength(Number(d.latestM.waist),1):'--','#2563eb','');
+      roundedCanvasRect(ctx,1596,midY+358,490,110,18,'#fff7ed','#fed7aa',2);canvasText(ctx,d.en?'Estimated values':'Valores estimados',1614,midY+392,18,'#9a3412','700');canvasWrap(ctx,d.en?'Body-composition values depend on available measurements and are not direct clinical measurements.':'Los valores de composición dependen de las medidas disponibles y no son mediciones clínicas directas.',1614,midY+421,455,24,17,'#7c2d12','400',2);
+      // Bottom row progress / energy / notes
+      const botY=1115;infographicPanel(ctx,36,botY,800,485,d.en?'PROGRESS TOWARD GOAL':'PROGRESO HACIA LA META');
+      const prog=d.progress===null?0:d.progress;roundedCanvasRect(ctx,92,botY+105,680,38,19,'#e2e8f0');roundedCanvasRect(ctx,92,botY+105,680*prog,38,19,'#22c55e');canvasText(ctx,d.progress===null?'--':`${Math.round(prog*100)}%`,432,botY+180,42,'#12345b','800','center');
+      const cols=[['Start','Inicio',d.startLb],['Current','Actual',d.currentLb],['Goal','Meta',d.goalLb]];cols.forEach((c,i)=>{const cx=128+i*230;canvasText(ctx,d.en?c[0]:c[1],cx,botY+250,18,'#64748b','700','center');canvasText(ctx,c[2]!==null?formatWeight(c[2],1):'--',cx,botY+292,28,'#12345b','800','center');});
+      canvasWrap(ctx,d.en?'Progress is calculated from your first logged weight toward your configured goal.':'El progreso se calcula desde tu primer peso registrado hacia la meta configurada.',92,botY+365,680,28,18,'#64748b','400',3);
+      infographicPanel(ctx,858,botY,670,485,d.en?'ESTIMATED DAILY ENERGY USE':'GASTO ENERGÉTICO DIARIO ESTIMADO');const energy=drawEnergyDonut(ctx,d,1045,botY+290,105);if(energy){ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1195,botY+188,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.bmrPct}% ${d.en?'BMR':'TMB'}`,1216,botY+195,20,'#12345b','700');ctx.fillStyle='#22c55e';ctx.beginPath();ctx.arc(1195,botY+228,8,0,Math.PI*2);ctx.fill();canvasText(ctx,`${energy.otherPct}% ${d.en?'activity + other':'actividad + otros'}`,1216,botY+235,20,'#12345b','700');}canvasWrap(ctx,d.en?'BMR is the estimated resting component. The remaining TDEE reflects activity and other daily energy costs; this is not a measured calorie burn.':'La TMB es el componente estimado en reposo. El resto del TDEE refleja actividad y otros gastos diarios; no es una medición directa de calorías quemadas.',1180,botY+300,300,28,18,'#475569','400',6);
+      infographicPanel(ctx,1550,botY,614,485,d.en?'IMPORTANT NOTES':'NOTAS IMPORTANTES');
+      const notes=d.en?["BMI is a screening tool and does not distinguish muscle from fat.","Body composition is estimated from your recorded measurements.","BMR, TDEE and hydration are formula-based estimates.","This report is informational and does not replace professional medical guidance."]:["El IMC es una herramienta de orientación y no distingue músculo de grasa.","La composición corporal se estima con tus medidas registradas.","TMB, TDEE e hidratación son estimaciones basadas en fórmulas.","Este reporte es informativo y no reemplaza orientación médica profesional."];
+      let ny=botY+110;notes.forEach(n=>{ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(1582,ny-7,5,0,Math.PI*2);ctx.fill();ny+=canvasWrap(ctx,n,1600,ny,520,27,18,'#334155','400',3)+14;});canvasText(ctx,d.en?'Your data. Your progress.':'Tus datos. Tu progreso.',1855,botY+438,24,'#2563eb','700','center');
+      // Footer
+      canvasText(ctx,'GLP-1 Companion',46,H-35,18,'#12345b','800');canvasText(ctx,d.en?'Generated from your recorded data':'Generado con tus datos registrados',W/2,H-35,16,'#64748b','500','center');canvasText(ctx,APP_VERSION,W-48,H-35,16,'#64748b','700','right');
+      return d;
+    }
+
+    function openBodyMetricsInfographic(){
+      renderBodyMetricsInfographicCanvas();const modal=document.getElementById('modal-body-infographic');if(!modal)return;const title=document.getElementById('body-infographic-modal-title');if(title)title.textContent=uiText('Resumen visual de métricas corporales','Body Metrics Visual Summary');modal.classList.remove('hidden');modal.classList.add('flex');lucide.createIcons();
+    }
+    function closeBodyMetricsInfographic(){const modal=document.getElementById('modal-body-infographic');if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}document.body.classList.remove('body-infographic-print-mode');}
+    function dataUrlToBytes(dataUrl){const base64=String(dataUrl).split(',')[1]||'';const bin=atob(base64),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+    function buildJpegImagePdfBytes(jpegBytes,imgW,imgH){
+      const pageW=792,pageH=612,objects=[];objects[1]='<< /Type /Catalog /Pages 2 0 R >>';objects[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';objects[3]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 792 612] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>';
+      objects[4]={dict:`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>`,bytes:jpegBytes};const content='q\n792 0 0 612 0 0 cm\n/Im0 Do\nQ\n';objects[5]={dict:`<< /Length ${cp1252Bytes(content).length} >>`,bytes:cp1252Bytes(content)};
+      const parts=[],offsets=[0];const push=b=>parts.push(b instanceof Uint8Array?b:cp1252Bytes(b));push('%PDF-1.4\n%GLP1\n');let length=parts.reduce((n,b)=>n+b.length,0);for(let id=1;id<=5;id++){offsets[id]=length;push(`${id} 0 obj\n`);length=parts.reduce((n,b)=>n+b.length,0);const o=objects[id];if(typeof o==='string'){push(o+'\nendobj\n');}else{push(o.dict+'\nstream\n');push(o.bytes);push('\nendstream\nendobj\n');}length=parts.reduce((n,b)=>n+b.length,0);}const xrefOffset=length;let xref='xref\n0 6\n0000000000 65535 f \n';for(let id=1;id<=5;id++)xref+=String(offsets[id]).padStart(10,'0')+' 00000 n \n';xref+=`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;push(xref);const total=parts.reduce((n,b)=>n+b.length,0),out=new Uint8Array(total);let pos=0;parts.forEach(b=>{out.set(b,pos);pos+=b.length;});return out;
+    }
+    async function shareBodyMetricsInfographicPdf(){
+      const canvas=document.getElementById('body-infographic-canvas');if(!canvas)return false;renderBodyMetricsInfographicCanvas();const jpeg=dataUrlToBytes(canvas.toDataURL('image/jpeg',0.94));const pdf=buildJpegImagePdfBytes(jpeg,canvas.width,canvas.height);const blob=new Blob([pdf],{type:'application/pdf'}),stamp=new Date().toISOString().replace(/[:T]/g,'-').slice(0,16),filename=`GLP1_Body_Metrics_${stamp}.pdf`;let file=null;try{file=new File([blob],filename,{type:'application/pdf',lastModified:Date.now()});}catch(_){ }
+      if(file&&navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){try{await navigator.share({files:[file]});return true;}catch(err){if(err&&err.name==='AbortError')return true;console.warn('Infographic share failed',err);}}
+      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);showToast(uiText('PDF creado. Ábrelo desde Archivos/Descargas.','PDF created. Open it from Files/Downloads.'));return true;
+    }
+    function printBodyMetricsInfographic(){
+      const canvas=document.getElementById('body-infographic-canvas');if(!canvas)return;renderBodyMetricsInfographicCanvas();if(isIOSLikeDevice()){shareBodyMetricsInfographicPdf();return;}const img=document.getElementById('body-infographic-print-img');if(img)img.src=canvas.toDataURL('image/png');document.body.classList.add('body-infographic-print-mode');if(typeof window.print==='function'){window.print();setTimeout(()=>document.body.classList.remove('body-infographic-print-mode'),1000);}else{document.body.classList.remove('body-infographic-print-mode');shareBodyMetricsInfographicPdf();}
+    }
 
     function renderToolsView() {
       renderMaintenanceMode();
@@ -6544,7 +6803,7 @@
           }
           descriptor=mode==='complete'?'complete':mode;
         }
-        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.0.6.json`);
+        await deliverJsonBackup(output,`glp1_backup_${stamp}_${descriptor}_v4.1.0.json`);
         closeExportBackupOptions();
       } catch(err) {
         console.error('Backup export failed:',err);
@@ -6638,7 +6897,7 @@
 
       if(imported.daysData&&typeof imported.daysData==='object'&&!Array.isArray(imported.daysData))Object.keys(imported.daysData).forEach(dateKey=>{
         if(!isValidDateKey(dateKey))return;const raw=imported.daysData[dateKey];if(!raw||typeof raw!=='object'||Array.isArray(raw))return;
-        const meals=[];if(Array.isArray(raw.meals))raw.meals.forEach((m,idx)=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const cal=parseFloat(m.calories),pr=parseFloat(m.protein),ca=parseFloat(m.carbs),fa=parseFloat(m.fat);meals.push({id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`,name:String(m.name||uiText('Comida','Meal')),slot:typeof m.slot==='string'?m.slot:'Comida',calories:Number.isFinite(cal)&&cal>=0?cal:0,protein:Number.isFinite(pr)&&pr>=0?pr:0,carbs:Number.isFinite(ca)&&ca>=0?ca:0,fat:Number.isFinite(fa)&&fa>=0?fa:0,tip:typeof m.tip==='string'?m.tip:'',time:typeof m.time==='string'?m.time:'',updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
+        const meals=[];if(Array.isArray(raw.meals))raw.meals.forEach((m,idx)=>{if(!m||typeof m!=='object'||Array.isArray(m))return;const cal=parseFloat(m.calories),pr=parseFloat(m.protein),ca=parseFloat(m.carbs),fa=parseFloat(m.fat);const name=String(m.name||m.nameEs||m.nameEn||uiText('Comida','Meal'));const tip=typeof m.tip==='string'?m.tip:(typeof m.tipEs==='string'?m.tipEs:(typeof m.tipEn==='string'?m.tipEn:''));meals.push({id:(typeof m.id==='string'&&m.id.trim())?m.id.trim():`meal_import_${dateKey}_${idx}_${Math.random().toString(36).slice(2,7)}`,name,nameEs:typeof m.nameEs==='string'?m.nameEs:'',nameEn:typeof m.nameEn==='string'?m.nameEn:'',slot:typeof m.slot==='string'?m.slot:'Comida',calories:Number.isFinite(cal)&&cal>=0?cal:0,protein:Number.isFinite(pr)&&pr>=0?pr:0,carbs:Number.isFinite(ca)&&ca>=0?ca:0,fat:Number.isFinite(fa)&&fa>=0?fa:0,tip,tipEs:typeof m.tipEs==='string'?m.tipEs:'',tipEn:typeof m.tipEn==='string'?m.tipEn:'',aiGenerated:Boolean(m.aiGenerated),analysisLanguage:typeof m.analysisLanguage==='string'?m.analysisLanguage:'',analysisSource:typeof m.analysisSource==='string'?m.analysisSource:'',time:typeof m.time==='string'?m.time:'',updatedAt:normalizeImportedTimestamp(m.updatedAt)});});
         const water=parseFloat(raw.water);
         const day={water:Number.isFinite(water)&&water>=0?water:0,waterUpdatedAt:normalizeImportedTimestamp(raw.waterUpdatedAt),waterEvents:Array.isArray(raw.waterEvents)?raw.waterEvents.filter(x=>x&&typeof x==='object'&&typeof x.id==='string').map(x=>({id:x.id,delta:Number(x.delta)||0,updatedAt:normalizeImportedTimestamp(x.updatedAt)})):[],meals,bowelMovements:Array.isArray(raw.bowelMovements)?raw.bowelMovements.filter(v=>typeof v==='string'&&!isNaN(new Date(v).getTime())):[],bowelMovementRecords:Array.isArray(raw.bowelMovementRecords)?raw.bowelMovementRecords.filter(x=>x&&typeof x==='object'&&typeof x.id==='string'&&typeof x.at==='string'&&!isNaN(new Date(x.at).getTime())).map(x=>({id:x.id,at:x.at,updatedAt:normalizeImportedTimestamp(x.updatedAt)})):[],bowelMovementsUpdatedAt:normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt),symptoms:(raw.symptoms&&typeof raw.symptoms==='object'&&!Array.isArray(raw.symptoms))?raw.symptoms:{hunger:3,nausea:'none',heartburn:'none',sulfur:'none',fatigue:'none',notes:''},symptomsUpdatedAt:(Number(raw.symptomsUpdatedAt)>0?normalizeImportedTimestamp(raw.symptomsUpdatedAt):0),electrolytes:(raw.electrolytes&&typeof raw.electrolytes==='object'&&!Array.isArray(raw.electrolytes))?raw.electrolytes:{},electrolytesUpdatedAt:normalizeImportedTimestamp(raw.electrolytesUpdatedAt)};
         next.daysData[dateKey]=day;ensureGranularDayData(dateKey,next.daysData[dateKey]);
@@ -6885,10 +7144,10 @@
       });
 
       document.getElementById('daily-meals-container').addEventListener('click', (e) => {
+        const translateBtn=e.target.closest('[data-translate-meal]');
+        if(translateBtn){translateSavedMeal(parseInt(translateBtn.dataset.translateMeal,10));return;}
         const btn = e.target.closest('[data-delete-meal]');
-        if (btn) {
-          removeMealItem(parseInt(btn.dataset.deleteMeal, 10));
-        }
+        if (btn) removeMealItem(parseInt(btn.dataset.deleteMeal, 10));
       });
 
       document.getElementById('setting-goal-weight').value = displayWeight(state.settings.goalWeight || 180).toFixed(1);
