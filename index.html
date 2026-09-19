@@ -289,6 +289,186 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
     }
 
+    /* v4.1.5 · Visual Refresh Phase 2 — Settings + Medication / PK */
+    .medication-refresh {
+      --med-emerald: rgba(16,185,129,.22);
+      --med-cyan: rgba(6,182,212,.20);
+      --med-violet: rgba(139,92,246,.20);
+    }
+    .medication-page-hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(16,185,129,.16), rgba(6,182,212,.08) 48%, rgba(139,92,246,.08));
+      border: 1px solid rgba(52,211,153,.24);
+      box-shadow: 0 22px 55px -38px rgba(16,185,129,.82), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .medication-page-hero::after {
+      content: '';
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      right: -78px;
+      top: -92px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(34,211,238,.16), rgba(34,211,238,0) 70%);
+      pointer-events: none;
+    }
+    .medication-page-icon,
+    .medication-card-icon,
+    .settings-refresh-icon {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px -18px rgba(0,0,0,.9);
+    }
+    .medication-page-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      color: #6ee7b7;
+      background: linear-gradient(145deg, rgba(16,185,129,.24), rgba(6,182,212,.15));
+      border-color: rgba(110,231,183,.25);
+    }
+    .medication-card-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      color: #6ee7b7;
+      background: rgba(16,185,129,.12);
+      border-color: rgba(52,211,153,.18);
+    }
+    .medication-control-card {
+      background: linear-gradient(145deg, rgba(16,185,129,.08), rgba(22,34,56,.93) 42%, rgba(22,34,56,.84));
+      border-color: rgba(52,211,153,.22) !important;
+      box-shadow: 0 20px 50px -40px rgba(16,185,129,.72), inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .medication-summary-box {
+      background: linear-gradient(145deg, rgba(9,13,22,.64), rgba(17,26,46,.82));
+      border-color: rgba(71,85,105,.48) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .medication-zone-tile {
+      background: rgba(9,13,22,.44) !important;
+      border-color: rgba(71,85,105,.42) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .pk-refresh-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(150deg, rgba(16,185,129,.13), rgba(22,34,56,.94) 44%, rgba(37,99,235,.08));
+      border-color: rgba(52,211,153,.24) !important;
+      box-shadow: 0 24px 58px -42px rgba(16,185,129,.75), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .pk-refresh-card::before {
+      content: '';
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -50px;
+      bottom: -70px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(59,130,246,.14), transparent 70%);
+      pointer-events: none;
+    }
+    .pk-stat-tile {
+      background: rgba(9,13,22,.50) !important;
+      border-color: rgba(71,85,105,.44) !important;
+      min-height: 58px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .pk-chart-shell {
+      background: rgba(9,13,22,.46) !important;
+      border-color: rgba(71,85,105,.42) !important;
+    }
+    .medication-support-card {
+      background: linear-gradient(145deg, rgba(6,182,212,.055), rgba(22,34,56,.92));
+      box-shadow: 0 18px 46px -38px rgba(6,182,212,.62), inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .medication-inventory-card {
+      background: linear-gradient(145deg, rgba(16,185,129,.065), rgba(22,34,56,.92));
+      border-color: rgba(52,211,153,.18) !important;
+      box-shadow: 0 18px 46px -38px rgba(16,185,129,.62), inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .settings-refresh {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(155deg, rgba(71,85,105,.10), rgba(22,34,56,.94) 42%, rgba(37,99,235,.07));
+      border-color: rgba(96,165,250,.20) !important;
+      box-shadow: 0 22px 55px -42px rgba(59,130,246,.70), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .settings-refresh::after {
+      content: '';
+      position: absolute;
+      width: 145px;
+      height: 145px;
+      right: -70px;
+      top: -80px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(139,92,246,.12), rgba(139,92,246,0) 72%);
+      pointer-events: none;
+    }
+    .settings-refresh-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      color: #93c5fd;
+      background: linear-gradient(145deg, rgba(59,130,246,.20), rgba(139,92,246,.12));
+      border-color: rgba(147,197,253,.20);
+    }
+    .settings-section {
+      position: relative;
+      z-index: 1;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(9,13,22,.34);
+      border: 1px solid rgba(71,85,105,.38);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+    }
+    .settings-section-heading {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 10px;
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .045em;
+      text-transform: uppercase;
+    }
+    .settings-field-card {
+      min-width: 0;
+      padding: 10px;
+      border-radius: 13px;
+      background: rgba(17,26,46,.68);
+      border: 1px solid rgba(71,85,105,.36);
+    }
+    .settings-field-card select,
+    .settings-field-card input {
+      transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+    }
+    .settings-field-card select:focus,
+    .settings-field-card input:focus {
+      outline: none;
+      border-color: rgba(96,165,250,.55) !important;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.10);
+      background-color: rgba(9,13,22,.82) !important;
+    }
+    .settings-save-button {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(90deg, rgba(37,99,235,.95), rgba(8,145,178,.95));
+      border: 1px solid rgba(125,211,252,.24);
+      box-shadow: 0 14px 28px -20px rgba(56,189,248,.88), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .settings-save-button:hover {
+      filter: brightness(1.08);
+    }
+
     @media print {
       body {
         background-color: #ffffff !important;
@@ -374,7 +554,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.4</p>
+          <p id="print-app-version">Versión: v4.1.5</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -399,7 +579,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.4</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.5</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -726,20 +906,34 @@
       </section>
 
       <!-- TAB 2: MEDICAMENTO Y SALUD -->
-      <section id="tab-mounjaro" class="tab-content hidden space-y-4">
-        
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 id="hub-card-title" class="text-sm font-bold text-white">Control de inyecciones</h3>
-              <p id="hub-regimen-subtitle" class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
+      <section id="tab-mounjaro" class="tab-content medication-refresh hidden space-y-4">
+
+        <div class="medication-page-hero rounded-3xl p-4">
+          <div class="relative z-[1] flex items-center gap-3">
+            <div class="medication-page-icon"><i data-lucide="pill" class="w-5 h-5"></i></div>
+            <div class="min-w-0">
+              <span class="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">Seguimiento de tratamiento</span>
+              <h2 class="text-base font-black text-white mt-0.5">Medicamento y salud</h2>
+              <p class="text-[10px] text-slate-400 mt-1">Seguimiento de dosis, nivel estimado, almacenamiento e inventario.</p>
             </div>
-            <button onclick="openLogInjectionModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-all">
+          </div>
+        </div>
+        
+        <div class="glass-panel medication-control-card rounded-3xl p-4 border border-[#223455] space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="medication-card-icon"><i data-lucide="syringe" class="w-4 h-4"></i></div>
+              <div class="min-w-0">
+                <h3 id="hub-card-title" class="text-sm font-bold text-white">Control de inyecciones</h3>
+                <p id="hub-regimen-subtitle" class="text-[10px] text-slate-400">Ciclo semanal y rotación de sitios</p>
+              </div>
+            </div>
+            <button onclick="openLogInjectionModal()" class="shrink-0 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl shadow transition-all">
               + Registrar dosis
             </button>
           </div>
 
-          <div class="p-3 bg-[#111a2e] border border-[#223455] rounded-xl space-y-2 text-xs">
+          <div class="medication-summary-box p-3 border border-[#223455] rounded-2xl space-y-2 text-xs">
             <div class="flex justify-between items-center">
               <span class="text-slate-400">Última dosis administrada:</span>
               <span id="hub-last-dose" class="font-bold text-emerald-400">--</span>
@@ -757,15 +951,15 @@
           <div id="injection-zones-card">
             <h4 class="text-xs font-bold text-slate-300 mb-2">Zonas de aplicación recomendadas</h4>
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
+              <div class="medication-zone-tile p-2.5 rounded-xl border border-[#223455]">
                 <span class="block font-bold text-white">Abdomen</span>
                 <span class="text-[9px] text-slate-400">2" del ombligo</span>
               </div>
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
+              <div class="medication-zone-tile p-2.5 rounded-xl border border-[#223455]">
                 <span class="block font-bold text-white">Muslo</span>
                 <span class="text-[9px] text-slate-400">Zona frontal/alta</span>
               </div>
-              <div class="p-2.5 rounded-xl bg-[#111a2e] border border-[#223455]">
+              <div class="medication-zone-tile p-2.5 rounded-xl border border-[#223455]">
                 <span class="block font-bold text-white">Brazo</span>
                 <span class="text-[9px] text-slate-400">Tríceps posterior</span>
               </div>
@@ -774,16 +968,16 @@
         </div>
 
         <!-- v4.0.5 Pharmacokinetic estimate -->
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
-          <div class="flex items-center justify-between gap-2"><div><span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Nivel estimado de medicamento (PK)</span><h3 id="pk-medication-name" class="text-sm font-bold text-white">--</h3></div><span id="pk-phase" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Sin datos</span></div>
+        <div class="glass-panel pk-refresh-card rounded-3xl p-4 border border-emerald-500/25 space-y-3">
+          <div class="relative z-[1] flex items-center justify-between gap-3"><div class="flex items-center gap-2.5 min-w-0"><div class="medication-card-icon"><i data-lucide="activity" class="w-4 h-4"></i></div><div class="min-w-0"><span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Nivel estimado de medicamento (PK)</span><h3 id="pk-medication-name" class="text-sm font-bold text-white truncate">--</h3></div></div><span id="pk-phase" class="shrink-0 text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Sin datos</span></div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Activo estimado</span><p id="pk-active-mg" class="text-sm font-black text-emerald-300">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Vs pico esperado</span><p id="pk-steady-percent" class="text-sm font-black text-cyan-300">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Desde última dosis</span><p id="pk-hours-since" class="text-sm font-black text-violet-300">--</p></div>
-            <div class="bg-[#111a2e] p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Próxima dosis estimada</span><p id="pk-next-dose" class="text-[10px] font-black text-amber-300">--</p></div>
+            <div class="pk-stat-tile p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Activo estimado</span><p id="pk-active-mg" class="text-sm font-black text-emerald-300">--</p></div>
+            <div class="pk-stat-tile p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Vs pico esperado</span><p id="pk-steady-percent" class="text-sm font-black text-cyan-300">--</p></div>
+            <div class="pk-stat-tile p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Desde última dosis</span><p id="pk-hours-since" class="text-sm font-black text-violet-300">--</p></div>
+            <div class="pk-stat-tile p-2 rounded-xl border border-[#223455]"><span class="text-[8px] text-slate-500">Próxima dosis estimada</span><p id="pk-next-dose" class="text-[10px] font-black text-amber-300">--</p></div>
           </div>
           <div class="h-2 rounded-full bg-[#111a2e] overflow-hidden border border-[#223455]"><div id="pk-level-bar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div></div>
-          <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-2">
+          <div class="pk-chart-shell rounded-2xl border border-[#223455] p-2.5">
             <div class="flex items-center justify-between mb-1"><span class="text-[8px] text-slate-500 font-bold uppercase">Curva estimada hasta la próxima dosis</span><span class="text-[8px] text-slate-600">No es concentración sanguínea</span></div>
             <div class="relative h-36"><canvas id="pkCurveChart"></canvas></div>
           </div>
@@ -791,7 +985,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div id="room-temp-card" class="glass-panel rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
+          <div id="room-temp-card" class="glass-panel medication-support-card rounded-2xl p-3.5 border border-cyan-500/25 space-y-2">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="thermometer-sun" class="w-4 h-4 text-cyan-400"></i>
@@ -822,7 +1016,7 @@
             </div>
           </div>
 
-          <div id="med-inventory-card" class="glass-panel rounded-2xl p-3.5 border border-[#223455] space-y-2">
+          <div id="med-inventory-card" class="glass-panel medication-inventory-card rounded-2xl p-3.5 border border-[#223455] space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="package-check" class="w-4 h-4 text-emerald-400"></i>
@@ -1201,72 +1395,92 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <h3 class="text-sm font-bold text-white">Metas y cálculo metabólico</h3>
-
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1 text-xs">Idioma de la aplicación:</label>
-            <select id="setting-language" onchange="setAppLanguage(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-violet-500/40 rounded-xl text-violet-300 font-bold text-xs">
-              <option value="es">Español</option>
-              <option value="en">English</option>
-            </select>
-            <p class="text-[10px] text-slate-500 mt-1">La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.</p>
+        <div class="glass-panel settings-refresh rounded-3xl p-4 border border-[#223455] space-y-3.5">
+          <div class="relative z-[1] flex items-center gap-2.5">
+            <div class="settings-refresh-icon"><i data-lucide="settings-2" class="w-4 h-4"></i></div>
+            <div>
+              <span class="text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">Configuración</span>
+              <h3 class="text-sm font-black text-white mt-0.5">Metas y cálculo metabólico</h3>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1 text-xs">Sistema de unidades:</label>
-            <select id="setting-units" onchange="setUnitSystem(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-cyan-500/40 rounded-xl text-cyan-300 font-bold text-xs">
-              <option value="imperial">Imperial — lb, oz, in</option>
-              <option value="metric">Métrico — kg, mL, cm</option>
-            </select>
-            <p class="text-[10px] text-slate-500 mt-1">Tus datos se conservan internamente en un formato estable y solo se convierten para entrada, visualización y reportes.</p>
-          </div>
-          
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
-            <select id="setting-medication" class="w-full p-2.5 bg-[#111a2e] border border-emerald-500/40 rounded-xl text-emerald-400 font-bold text-xs" onchange="handleMedicationChange(this.value)">
-              <option value="mounjaro">Mounjaro (tirzepatide)</option>
-              <option value="zepbound">Zepbound (tirzepatide)</option>
-              <option value="ozempic">Ozempic Injection (semaglutide)</option>
-              <option value="wegovy">Wegovy Injection (semaglutide)</option>
-              <option value="trulicity">Trulicity (dulaglutide)</option>
-              <option value="saxenda">Saxenda (liraglutide)</option>
-              <option value="victoza">Victoza (liraglutide)</option>
-              <option value="ozempic_tablets">Ozempic Tablets (semaglutide)</option>
-            </select>
-            <p id="medication-regimen-help" class="text-[10px] text-slate-500 mt-1">La app adapta frecuencia, vida media y registro según el medicamento seleccionado. No modifica ni recomienda tratamiento.</p>
+          <div class="settings-section">
+            <div class="settings-section-heading"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-blue-300"></i><span>Preferencias de la app</span></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="settings-field-card">
+                <label class="block text-slate-300 font-semibold mb-1 text-xs">Idioma de la aplicación:</label>
+                <select id="setting-language" onchange="setAppLanguage(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-violet-500/40 rounded-xl text-violet-300 font-bold text-xs">
+                  <option value="es">Español</option>
+                  <option value="en">English</option>
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">La interfaz puede usarse en español o inglés. El reporte para la cita puede elegirse por separado.</p>
+              </div>
+
+              <div class="settings-field-card">
+                <label class="block text-slate-300 font-semibold mb-1 text-xs">Sistema de unidades:</label>
+                <select id="setting-units" onchange="setUnitSystem(this.value)" class="w-full p-2.5 bg-[#111a2e] border border-cyan-500/40 rounded-xl text-cyan-300 font-bold text-xs">
+                  <option value="imperial">Imperial — lb, oz, in</option>
+                  <option value="metric">Métrico — kg, mL, cm</option>
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">Tus datos se conservan internamente en un formato estable y solo se convierten para entrada, visualización y reportes.</p>
+              </div>
+            </div>
           </div>
 
-          <div id="setting-presentation-wrap">
-            <label id="setting-presentation-label" class="block text-slate-300 font-semibold mb-1 text-xs">Presentación:</label>
-            <select id="setting-presentation" class="w-full p-2.5 bg-[#111a2e] border border-amber-500/35 rounded-xl text-amber-300 font-bold text-xs" onchange="handlePresentationChange(this.value)"></select>
-            <p id="setting-presentation-help" class="text-[10px] text-slate-500 mt-1">La presentación determina las reglas correctas de almacenamiento e inventario.</p>
+          <div class="settings-section">
+            <div class="settings-section-heading"><i data-lucide="pill" class="w-3.5 h-3.5 text-emerald-300"></i><span>Medicamento y presentación</span></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="settings-field-card">
+                <label class="block text-slate-300 font-semibold mb-1 text-xs">Medicamento activo:</label>
+                <select id="setting-medication" class="w-full p-2.5 bg-[#111a2e] border border-emerald-500/40 rounded-xl text-emerald-400 font-bold text-xs" onchange="handleMedicationChange(this.value)">
+                  <option value="mounjaro">Mounjaro (tirzepatide)</option>
+                  <option value="zepbound">Zepbound (tirzepatide)</option>
+                  <option value="ozempic">Ozempic Injection (semaglutide)</option>
+                  <option value="wegovy">Wegovy Injection (semaglutide)</option>
+                  <option value="trulicity">Trulicity (dulaglutide)</option>
+                  <option value="saxenda">Saxenda (liraglutide)</option>
+                  <option value="victoza">Victoza (liraglutide)</option>
+                  <option value="ozempic_tablets">Ozempic Tablets (semaglutide)</option>
+                </select>
+                <p id="medication-regimen-help" class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">La app adapta frecuencia, vida media y registro según el medicamento seleccionado. No modifica ni recomienda tratamiento.</p>
+              </div>
+
+              <div id="setting-presentation-wrap" class="settings-field-card">
+                <label id="setting-presentation-label" class="block text-slate-300 font-semibold mb-1 text-xs">Presentación:</label>
+                <select id="setting-presentation" class="w-full p-2.5 bg-[#111a2e] border border-amber-500/35 rounded-xl text-amber-300 font-bold text-xs" onchange="handlePresentationChange(this.value)"></select>
+                <p id="setting-presentation-help" class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">La presentación determina las reglas correctas de almacenamiento e inventario.</p>
+              </div>
+            </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 text-xs pt-1">
-            <div>
-              <label id="setting-goal-weight-label" class="block text-slate-400 font-medium mb-1">Peso objetivo / Meta (lbs):</label>
-              <input id="setting-goal-weight" type="number" min="50" max="1000" step="0.5" placeholder="Ej: 180" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-cyan-300 font-bold">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
-              <input id="setting-cal-goal" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Gasto total (TDEE):</label>
-              <input id="setting-tdee" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Meta proteína (g):</label>
-              <input id="setting-protein-goal" type="number" min="10" max="500" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
-            </div>
-            <div class="col-span-2 space-y-2">
-              <label id="setting-water-goal-label" class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
-              <input id="setting-water-goal" type="number" min="8" max="300" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+          <div class="settings-section">
+            <div class="settings-section-heading"><i data-lucide="target" class="w-3.5 h-3.5 text-cyan-300"></i><span>Metas diarias</span></div>
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div class="settings-field-card">
+                <label id="setting-goal-weight-label" class="block text-slate-400 font-medium mb-1">Peso objetivo / Meta (lbs):</label>
+                <input id="setting-goal-weight" type="number" min="50" max="1000" step="0.5" placeholder="Ej: 180" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-cyan-300 font-bold">
+              </div>
+              <div class="settings-field-card">
+                <label class="block text-slate-400 font-medium mb-1">Meta calorías (kcal):</label>
+                <input id="setting-cal-goal" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              </div>
+              <div class="settings-field-card">
+                <label class="block text-slate-400 font-medium mb-1">Gasto total (TDEE):</label>
+                <input id="setting-tdee" type="number" min="500" max="10000" step="10" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              </div>
+              <div class="settings-field-card">
+                <label class="block text-slate-400 font-medium mb-1">Meta proteína (g):</label>
+                <input id="setting-protein-goal" type="number" min="10" max="500" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              </div>
+              <div class="settings-field-card col-span-2">
+                <label id="setting-water-goal-label" class="block text-slate-400 font-medium mb-1">Meta agua (oz):</label>
+                <input id="setting-water-goal" type="number" min="8" max="300" step="1" class="w-full p-2 bg-[#111a2e] border border-[#223455] rounded-xl text-white">
+              </div>
             </div>
           </div>
-          <button onclick="saveNutritionalSettings()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-colors">
-            Guardar configuración
+
+          <button onclick="saveNutritionalSettings()" class="settings-save-button w-full py-2.5 text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i><span>Guardar configuración</span>
           </button>
         </div>
 
@@ -1342,7 +1556,7 @@
           <div>
             <p class="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">GLP-1 Companion</p>
             <h3 class="text-base font-black text-white mt-1">Acerca de GLP-1 Companion</h3>
-            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.4 · Progressive Web App</p>
+            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.5 · Progressive Web App</p>
           </div>
           <div class="about-developer-card rounded-2xl p-4">
             <p class="text-[10px] text-slate-400">Designed &amp; Developed by</p>
@@ -1934,7 +2148,7 @@
       </div>
     </div>
 
-    <!-- v4.1.4 hotfix: legacy privacy-lock markup retained but never activated; Sign Out returns to local-only mode. -->
+    <!-- v4.1.3 hotfix: legacy privacy-lock markup retained but never activated; Sign Out returns to local-only mode. -->
     <div id="privacy-lock-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center bg-[#090d16]/98 backdrop-blur-md p-5">
       <div class="w-full max-w-sm rounded-3xl border border-cyan-500/30 bg-[#111a2e] p-6 text-center shadow-2xl">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center"><i data-lucide="lock-keyhole" class="w-7 h-7 text-cyan-300"></i></div>
@@ -1957,7 +2171,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.4";
+    const APP_VERSION = "v4.1.5";
     const CLIENT_SCHEMA_VERSION = 13;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
     const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -2410,6 +2624,13 @@
       "+ Manual": "+ Manual",
       "Analizar plato": "Analyze meal",
       "Control de inyecciones": "Injection tracking",
+      "Seguimiento de tratamiento": "Treatment tracking",
+      "Medicamento y salud": "Medication & health",
+      "Seguimiento de dosis, nivel estimado, almacenamiento e inventario.": "Dose tracking, estimated level, storage and inventory.",
+      "Configuración": "Settings",
+      "Preferencias de la app": "App preferences",
+      "Medicamento y presentación": "Medication and presentation",
+      "Metas diarias": "Daily goals",
       "Ciclo semanal y rotación de sitios": "Weekly cycle and injection-site rotation",
       "+ Registrar dosis": "+ Log dose",
       "Última dosis administrada:": "Last administered dose:",
@@ -2587,7 +2808,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.4": "Version: v4.1.4",
+      "Versión: v4.1.5": "Version: v4.1.5",
       "Acerca de GLP-1 Companion": "About GLP-1 Companion",
       "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
