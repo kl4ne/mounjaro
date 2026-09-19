@@ -469,6 +469,211 @@
       filter: brightness(1.08);
     }
 
+
+
+    /* v4.1.6 · Visual Refresh Phase 3 — Weight + Body Metrics */
+    .tools-refresh {
+      --tools-blue: rgba(59,130,246,.20);
+      --tools-teal: rgba(20,184,166,.18);
+      --tools-violet: rgba(139,92,246,.18);
+    }
+    .tools-page-hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(37,99,235,.15), rgba(20,184,166,.08) 48%, rgba(139,92,246,.09));
+      border: 1px solid rgba(96,165,250,.23);
+      box-shadow: 0 22px 56px -40px rgba(59,130,246,.78), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .tools-page-hero::after {
+      content: '';
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      right: -88px;
+      top: -100px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(45,212,191,.16), rgba(45,212,191,0) 70%);
+      pointer-events: none;
+    }
+    .tools-page-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #67e8f9;
+      background: linear-gradient(145deg, rgba(37,99,235,.24), rgba(20,184,166,.16));
+      border: 1px solid rgba(103,232,249,.24);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 28px -20px rgba(34,211,238,.85);
+    }
+    .progress-stat-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 86px;
+      background: linear-gradient(150deg, rgba(17,26,46,.92), rgba(9,13,22,.72));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 18px 42px -34px rgba(2,6,23,.95);
+    }
+    .progress-stat-card::after {
+      content: '';
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 9999px;
+      right: -34px;
+      bottom: -36px;
+      background: radial-gradient(circle, rgba(148,163,184,.13), transparent 70%);
+      pointer-events: none;
+    }
+    .progress-stat-start { border-color: rgba(100,116,139,.34) !important; }
+    .progress-stat-current { border-color: rgba(34,211,238,.24) !important; background: linear-gradient(150deg, rgba(6,182,212,.075), rgba(17,26,46,.92) 58%); }
+    .progress-stat-lost { border-color: rgba(52,211,153,.25) !important; background: linear-gradient(150deg, rgba(16,185,129,.09), rgba(17,26,46,.92) 58%); }
+    .goal-refresh-card,
+    .maintenance-refresh-card,
+    .weight-refresh-card,
+    .measurement-refresh-card,
+    .health-refresh-card,
+    .metrics-refresh-card {
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 22px 54px -42px rgba(15,23,42,.95), inset 0 1px 0 rgba(255,255,255,.028);
+    }
+    .goal-refresh-card { background: linear-gradient(145deg, rgba(6,182,212,.095), rgba(22,34,56,.94) 48%, rgba(37,99,235,.06)); }
+    .maintenance-refresh-card { background: linear-gradient(145deg, rgba(16,185,129,.09), rgba(22,34,56,.94) 50%); }
+    .weight-refresh-card { background: linear-gradient(150deg, rgba(37,99,235,.08), rgba(22,34,56,.95) 42%, rgba(6,182,212,.045)); border-color: rgba(96,165,250,.20) !important; }
+    .measurement-refresh-card { background: linear-gradient(150deg, rgba(20,184,166,.07), rgba(22,34,56,.94) 48%); border-color: rgba(45,212,191,.18) !important; }
+    .health-refresh-card { background: linear-gradient(150deg, rgba(139,92,246,.10), rgba(22,34,56,.94) 48%); }
+    .metrics-refresh-card { background: linear-gradient(150deg, rgba(6,182,212,.08), rgba(22,34,56,.94) 44%, rgba(16,185,129,.045)); }
+    .tools-section-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(59,130,246,.12);
+      border: 1px solid rgba(96,165,250,.18);
+      color: #7dd3fc;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .health-refresh-card input,
+    .health-refresh-card select,
+    .maintenance-refresh-card input {
+      transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+    }
+    .health-refresh-card input:focus,
+    .health-refresh-card select:focus,
+    .maintenance-refresh-card input:focus {
+      outline: none;
+      border-color: rgba(139,92,246,.55) !important;
+      box-shadow: 0 0 0 3px rgba(139,92,246,.09);
+    }
+    .metrics-refresh-card .metric-refresh-tile {
+      background: rgba(9,13,22,.48) !important;
+      border-color: rgba(71,85,105,.42) !important;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .metrics-refresh-card .metric-refresh-tile:hover { background: rgba(17,26,46,.72) !important; }
+    .weight-refresh-card canvas,
+    .symptom-trend-refresh-card canvas { filter: saturate(1.06); }
+
+    /* v4.1.6 · Visual Refresh Phase 4 — Meals + Hydration + Symptoms */
+    .phase4-nutrition-card {
+      background: linear-gradient(145deg, rgba(245,158,11,.105), rgba(22,34,56,.95) 48%, rgba(249,115,22,.035)) !important;
+      border-color: rgba(251,191,36,.22) !important;
+    }
+    .phase4-hydration-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(6,182,212,.12), rgba(22,34,56,.95) 48%, rgba(37,99,235,.045)) !important;
+      border-color: rgba(34,211,238,.23) !important;
+      box-shadow: 0 22px 52px -40px rgba(6,182,212,.72), inset 0 1px 0 rgba(255,255,255,.03) !important;
+    }
+    .phase4-hydration-card::after {
+      content: '';
+      position: absolute;
+      width: 135px;
+      height: 135px;
+      right: -66px;
+      top: -74px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(34,211,238,.14), transparent 72%);
+      pointer-events: none;
+    }
+    .phase4-hydration-card > * { position: relative; z-index: 1; }
+    .phase4-hydration-card [id^="water-btn-"] {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+    }
+    .phase4-meals-card {
+      background: linear-gradient(145deg, rgba(249,115,22,.085), rgba(22,34,56,.95) 48%, rgba(245,158,11,.035)) !important;
+      border-color: rgba(251,146,60,.22) !important;
+      box-shadow: 0 22px 52px -40px rgba(249,115,22,.68), inset 0 1px 0 rgba(255,255,255,.03) !important;
+    }
+    .phase4-meal-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fdba74;
+      background: rgba(249,115,22,.12);
+      border: 1px solid rgba(251,146,60,.20);
+    }
+    #daily-meals-container > * {
+      border-radius: 14px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+    }
+    .bowel-refresh-card,
+    .symptoms-refresh-card,
+    .dose-response-refresh-card,
+    .tolerance-refresh-card,
+    .symptom-trend-refresh-card {
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -40px rgba(2,6,23,.95), inset 0 1px 0 rgba(255,255,255,.028);
+    }
+    .bowel-refresh-card { background: linear-gradient(150deg, rgba(6,182,212,.07), rgba(22,34,56,.94) 52%); border-color: rgba(34,211,238,.18) !important; }
+    .symptoms-refresh-card { background: linear-gradient(150deg, rgba(244,63,94,.075), rgba(22,34,56,.95) 42%, rgba(249,115,22,.035)); border-color: rgba(251,113,133,.20) !important; }
+    .dose-response-refresh-card { background: linear-gradient(150deg, rgba(16,185,129,.075), rgba(22,34,56,.94) 50%); }
+    .tolerance-refresh-card { background: linear-gradient(150deg, rgba(245,158,11,.07), rgba(22,34,56,.94) 50%); }
+    .symptom-trend-refresh-card { background: linear-gradient(150deg, rgba(139,92,246,.08), rgba(22,34,56,.94) 50%); }
+    .symptoms-refresh-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fda4af;
+      background: rgba(244,63,94,.11);
+      border: 1px solid rgba(251,113,133,.20);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .symptom-fields-shell {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(9,13,22,.36);
+      border: 1px solid rgba(71,85,105,.36);
+    }
+    .symptom-fields-shell select,
+    .symptom-fields-shell input[type="text"] {
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .symptom-fields-shell select:focus,
+    .symptom-fields-shell input[type="text"]:focus {
+      outline: none;
+      border-color: rgba(251,113,133,.48) !important;
+      box-shadow: 0 0 0 3px rgba(244,63,94,.08);
+    }
+
     @media print {
       body {
         background-color: #ffffff !important;
@@ -554,7 +759,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.5</p>
+          <p id="print-app-version">Versión: v4.1.6</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -579,7 +784,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.5</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.6</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -738,7 +943,7 @@
           </div>
         </div>
 
-        <div class="glass-panel dashboard-card dashboard-nutrition-card rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-nutrition-card phase4-nutrition-card rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center">
@@ -770,7 +975,7 @@
           </div>
         </div>
 
-        <div class="glass-panel dashboard-card dashboard-hydration-card rounded-2xl p-4 border border-cyan-500/25 space-y-3">
+        <div class="glass-panel dashboard-card dashboard-hydration-card phase4-hydration-card rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center">
@@ -884,11 +1089,14 @@
           <p class="text-[9px] text-slate-500 leading-relaxed">Las asociaciones se calculan únicamente con tus propios registros y no prueban causa ni sustituyen una evaluación médica.</p>
         </div>
 
-        <div class="glass-panel dashboard-card dashboard-meals-card rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-bold text-white">Registro de alimentos</h3>
-              <p class="text-[10px] text-slate-400">Analizador visual con IA o entrada manual</p>
+        <div class="glass-panel dashboard-card dashboard-meals-card phase4-meals-card rounded-2xl p-4 border border-[#223455] space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="phase4-meal-icon"><i data-lucide="utensils" class="w-4 h-4"></i></div>
+              <div class="min-w-0">
+                <h3 class="text-sm font-bold text-white">Registro de alimentos</h3>
+                <p class="text-[10px] text-slate-400">Analizador visual con IA o entrada manual</p>
+              </div>
             </div>
             <div class="flex items-center space-x-1.5">
               <button onclick="openManualMealModal()" class="px-2.5 py-1.5 text-xs font-semibold bg-[#111a2e] border border-[#223455] text-slate-200 rounded-xl hover:bg-slate-800 transition-colors">
@@ -1037,7 +1245,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2.5">
+        <div class="glass-panel bowel-refresh-card rounded-2xl p-4 border border-[#223455] space-y-2.5">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
@@ -1069,11 +1277,14 @@
         </div>
 
         <!-- Síntomas y motor de correlación -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
+        <div class="glass-panel symptoms-refresh-card rounded-2xl p-4 border border-[#223455] space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="symptoms-refresh-icon"><i data-lucide="activity" class="w-4 h-4"></i></div>
+              <div class="min-w-0">
               <h3 class="text-sm font-bold text-white">Síntomas y tolerancia digestiva</h3>
               <p class="text-[10px] text-slate-400">Monitorea efectos secundarios para tu consulta médica</p>
+              </div>
             </div>
             <div class="flex flex-col items-end gap-1">
               <span id="symptoms-today-status" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">Hoy: no registrado</span>
@@ -1091,7 +1302,7 @@
             <p id="correlation-alert-text" class="text-[11px] leading-relaxed"></p>
           </div>
 
-          <div class="space-y-3 text-xs">
+          <div class="symptom-fields-shell space-y-3 text-xs">
             <div>
               <div class="flex justify-between items-center mb-1">
                 <span class="text-slate-300 font-medium">Nivel de apetito ("Ruido mental de comida"):</span>
@@ -1148,7 +1359,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 space-y-3">
+        <div class="glass-panel dose-response-refresh-card rounded-2xl p-4 border border-emerald-500/25 space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-sm font-bold text-white">Respuesta a la dosis</h3>
@@ -1160,7 +1371,7 @@
           <p class="text-[9px] text-slate-500 leading-relaxed">La hora exacta se usa para el cálculo PK. Estas ventanas de tolerancia agrupan registros por el día de la dosis y los dos días siguientes; son aproximadas y no representan un diagnóstico.</p>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-amber-500/25 space-y-3">
+        <div class="glass-panel tolerance-refresh-card rounded-2xl p-4 border border-amber-500/25 space-y-3">
           <div>
             <h3 class="text-sm font-bold text-white">Patrones de tolerancia</h3>
             <p class="text-[10px] text-slate-400">Asociaciones observadas en tus últimos 30 días de alimentos, hidratación, dosis y síntomas</p>
@@ -1169,7 +1380,7 @@
           <p class="text-[9px] text-slate-500">La app identifica coincidencias en tus registros; no determina causa ni diagnóstico.</p>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 space-y-3">
+        <div class="glass-panel symptom-trend-refresh-card rounded-2xl p-4 border border-violet-500/25 space-y-3">
           <div>
             <h3 class="text-sm font-bold text-white">Tendencia de síntomas</h3>
             <p class="text-[10px] text-slate-400">Intensidad registrada durante los últimos 30 días</p>
@@ -1188,20 +1399,31 @@
       </section>
 
       <!-- TAB 3: PROGRESO Y HERRAMIENTAS -->
-      <section id="tab-tools" class="tab-content hidden space-y-4">
+      <section id="tab-tools" class="tab-content tools-refresh hidden space-y-4">
+
+        <div class="tools-page-hero rounded-3xl p-4">
+          <div class="relative z-[1] flex items-center gap-3">
+            <div class="tools-page-icon"><i data-lucide="trending-down" class="w-5 h-5"></i></div>
+            <div class="min-w-0">
+              <span class="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">Progreso corporal</span>
+              <h2 class="text-base font-black text-white mt-0.5">Peso y métricas corporales</h2>
+              <p class="text-[10px] text-slate-400 mt-1">Tendencias, composición, medidas y metas en un solo lugar.</p>
+            </div>
+          </div>
+        </div>
         
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
+          <div class="glass-panel progress-stat-card progress-stat-start p-3 rounded-2xl border border-[#223455]">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Inicial</span>
             <p id="prog-start-w" class="text-base font-black text-white">--</p>
             <span id="prog-start-unit" class="text-[9px] text-slate-500">lbs</span>
           </div>
-          <div class="glass-panel p-3 rounded-2xl border border-[#223455]">
+          <div class="glass-panel progress-stat-card progress-stat-current p-3 rounded-2xl border border-[#223455]">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Actual</span>
             <p id="prog-cur-w" class="text-base font-black text-cyan-400">--</p>
             <span id="prog-current-unit" class="text-[9px] text-slate-500">lbs</span>
           </div>
-          <div class="glass-panel p-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
+          <div class="glass-panel progress-stat-card progress-stat-lost p-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
             <span class="text-[10px] font-bold text-emerald-400 uppercase">Total perdido</span>
             <p id="prog-lost-w" class="text-base font-black text-emerald-400">0.0</p>
             <span id="prog-lost-unit" class="text-[9px] text-emerald-500">lbs</span>
@@ -1209,7 +1431,7 @@
         </div>
 
         <!-- Proyección de peso meta -->
-        <div class="glass-panel rounded-2xl p-3.5 border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-1.5">
+        <div class="glass-panel goal-refresh-card rounded-2xl p-3.5 border border-cyan-500/30 space-y-1.5">
           <div class="flex justify-between items-center">
             <span class="text-[10px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1">
               <i data-lucide="target" class="w-3.5 h-3.5 text-cyan-400"></i> Proyección de peso meta
@@ -1221,7 +1443,7 @@
         </div>
 
         <!-- Modo mantenimiento -->
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel maintenance-refresh-card rounded-2xl p-4 border border-emerald-500/25 space-y-3">
           <div class="flex items-center justify-between gap-3">
             <div>
               <span class="text-[10px] font-semibold text-emerald-300 uppercase tracking-wide">Modo mantenimiento</span>
@@ -1245,11 +1467,14 @@
         </div>
 
         <!-- Curva de peso con Media Móvil de 7 días -->
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
+        <div class="glass-panel weight-refresh-card rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
-            <div>
+            <div class="flex items-center gap-2.5">
+              <div class="tools-section-icon"><i data-lucide="chart-line" class="w-4 h-4"></i></div>
+              <div>
               <h3 id="weight-chart-title" class="text-sm font-bold text-white">Control y curva de peso (lbs)</h3>
               <p class="text-[10px] text-slate-400">Incluye media móvil (7 días) para filtrar retención de agua</p>
+              </div>
             </div>
             <button onclick="openWeightModal()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors">
               + Anotar peso
@@ -1266,11 +1491,14 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
+        <div class="glass-panel measurement-refresh-card rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
-            <div>
+            <div class="flex items-center gap-2.5">
+              <div class="tools-section-icon"><i data-lucide="ruler" class="w-4 h-4"></i></div>
+              <div>
               <h3 class="text-xs font-bold text-white">Medidas corporales (*Non-Scale Victories*)</h3>
               <p id="measurements-subtitle" class="text-[10px] text-slate-400">Pérdida de grasa visceral en pulgadas (cintura, pecho, cadera, cuello)</p>
+              </div>
             </div>
             <button onclick="openMeasurementModal()" class="px-2.5 py-1 bg-[#111a2e] border border-[#223455] hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-bold transition-colors">
               + Medidas
@@ -1281,7 +1509,7 @@
         </div>
 
         <!-- v4.0.5 Health Profile -->
-        <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel health-refresh-card rounded-2xl p-4 border border-violet-500/25 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div><span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Health Profile</span><h3 class="text-sm font-bold text-white">Perfil para métricas corporales</h3></div>
             <span id="health-profile-completion" class="text-[9px] font-bold px-2 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Incompleto</span>
@@ -1297,15 +1525,15 @@
         </div>
 
         <!-- v4.0.5 Smart Body Metrics -->
-        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
-          <div><span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Smart Body Metrics</span><h3 class="text-sm font-bold text-white">Métricas calculadas con tus registros</h3></div>
+        <div class="glass-panel metrics-refresh-card rounded-2xl p-4 border border-cyan-500/25 space-y-3">
+          <div class="flex items-center gap-2.5"><div class="tools-section-icon"><i data-lucide="scan-heart" class="w-4 h-4"></i></div><div><span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Smart Body Metrics</span><h3 class="text-sm font-bold text-white">Métricas calculadas con tus registros</h3></div></div>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
-            <div onclick="openMetricInfo('bmi')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-cyan-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">IMC / BMI · ⓘ</span><p id="metric-bmi" class="text-sm font-black text-cyan-300">--</p><p id="metric-bmi-class" class="text-[8px] text-slate-500">--</p></div>
-            <div onclick="openMetricInfo('bmr')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-violet-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TMB / BMR · ⓘ</span><p id="metric-bmr" class="text-sm font-black text-violet-300">--</p><p class="text-[8px] text-slate-500">kcal/día</p></div>
-            <div onclick="openMetricInfo('tdee')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TDEE sugerido · ⓘ</span><p id="metric-tdee" class="text-sm font-black text-emerald-300">--</p><button id="metric-tdee-use" onclick="event.stopPropagation();applySuggestedTdee()" class="hidden mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] text-emerald-300 font-bold">Usar sugerencia</button></div>
-            <div onclick="openMetricInfo('whtr')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-amber-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Cintura/altura · ⓘ</span><p id="metric-whtr" class="text-sm font-black text-amber-300">--</p><p id="metric-whtr-class" class="text-[8px] text-slate-500">--</p></div>
-            <div onclick="openMetricInfo('bodyfat')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-rose-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Grasa estimada · ⓘ</span><p id="metric-bodyfat" class="text-sm font-black text-rose-300">--</p><p class="text-[8px] text-slate-500">US Navy</p></div>
-            <div onclick="openMetricInfo('composition')" class="bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Masa grasa / magra · ⓘ</span><p id="metric-fatmass" class="text-xs font-black text-rose-300">--</p><p id="metric-leanmass" class="text-[9px] font-bold text-emerald-300">--</p></div>
+            <div onclick="openMetricInfo('bmi')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-cyan-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">IMC / BMI · ⓘ</span><p id="metric-bmi" class="text-sm font-black text-cyan-300">--</p><p id="metric-bmi-class" class="text-[8px] text-slate-500">--</p></div>
+            <div onclick="openMetricInfo('bmr')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-violet-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TMB / BMR · ⓘ</span><p id="metric-bmr" class="text-sm font-black text-violet-300">--</p><p class="text-[8px] text-slate-500">kcal/día</p></div>
+            <div onclick="openMetricInfo('tdee')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">TDEE sugerido · ⓘ</span><p id="metric-tdee" class="text-sm font-black text-emerald-300">--</p><button id="metric-tdee-use" onclick="event.stopPropagation();applySuggestedTdee()" class="hidden mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[8px] text-emerald-300 font-bold">Usar sugerencia</button></div>
+            <div onclick="openMetricInfo('whtr')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-amber-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Cintura/altura · ⓘ</span><p id="metric-whtr" class="text-sm font-black text-amber-300">--</p><p id="metric-whtr-class" class="text-[8px] text-slate-500">--</p></div>
+            <div onclick="openMetricInfo('bodyfat')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-rose-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Grasa estimada · ⓘ</span><p id="metric-bodyfat" class="text-sm font-black text-rose-300">--</p><p class="text-[8px] text-slate-500">US Navy</p></div>
+            <div onclick="openMetricInfo('composition')" class="metric-refresh-tile bg-[#111a2e] p-2 rounded-xl border border-[#223455] cursor-pointer hover:border-emerald-500/40 active:scale-[0.99] transition-all" role="button" tabindex="0"><span class="text-[9px] text-slate-500">Masa grasa / magra · ⓘ</span><p id="metric-fatmass" class="text-xs font-black text-rose-300">--</p><p id="metric-leanmass" class="text-[9px] font-bold text-emerald-300">--</p></div>
           </div>
           <div onclick="openMetricInfo('hydration')" class="flex items-center justify-between gap-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-2.5 cursor-pointer hover:border-cyan-500/40 active:scale-[0.995] transition-all" role="button" tabindex="0"><div><span class="text-[9px] text-slate-500">Hidratación sugerida · ⓘ</span><p id="metric-hydration" class="text-xs font-black text-cyan-300">--</p></div><button id="metric-hydration-use" onclick="event.stopPropagation();applySmartHydrationGoal()" class="hidden px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9px] font-bold">Usar sugerencia</button></div>
           <button onclick="openBodyMetricsInfographic()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-blue-950/30 border border-blue-400/25">
@@ -1556,7 +1784,7 @@
           <div>
             <p class="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">GLP-1 Companion</p>
             <h3 class="text-base font-black text-white mt-1">Acerca de GLP-1 Companion</h3>
-            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.5 · Progressive Web App</p>
+            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.6 · Progressive Web App</p>
           </div>
           <div class="about-developer-card rounded-2xl p-4">
             <p class="text-[10px] text-slate-400">Designed &amp; Developed by</p>
@@ -2139,7 +2367,7 @@
       <img id="body-infographic-print-img" alt="Body Metrics Infographic" />
     </div>
 
-    <!-- v4.1.2: controlled PWA update prompt. Updates never reload an unsaved form automatically. -->
+    <!-- v4.1.6: safe auto-update. Installs automatically when no active form/modal can lose input. -->
     <div id="pwa-update-banner" class="fixed left-3 right-3 bottom-20 z-[90] hidden max-w-md mx-auto rounded-2xl border border-cyan-500/40 bg-[#111a2e] shadow-2xl p-3">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 shrink-0 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center"><i data-lucide="refresh-cw" class="w-4 h-4 text-cyan-300"></i></div>
@@ -2171,7 +2399,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.5";
+    const APP_VERSION = "v4.1.6";
     const CLIENT_SCHEMA_VERSION = 13;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
     const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -2424,16 +2652,15 @@
 
     let swRegistration = null;
     let swReloadRequested = false;
-    let swStartupInteraction = false;
+    let swSafeRetryTimer = null;
     const PWA_UPDATE_RELOAD_KEY = 'glp1_pwa_update_reload';
     const PWA_VERSION_SEEN_KEY = 'glp1_pwa_version_seen';
-    const APP_BOOT_STARTED_AT = Date.now();
 
     function renderHardeningUiLanguage() {
       const en = isEnglish();
       const set = (id, text) => { const el=document.getElementById(id); if(el) el.textContent=text; };
       set('pwa-update-title', en ? 'Update ready' : 'Actualización lista');
-      set('pwa-update-text', en ? 'It will install automatically the next time the app opens safely, or you can update now.' : 'Se instalará automáticamente la próxima vez que la app abra de forma segura, o puedes actualizar ahora.');
+      set('pwa-update-text', en ? 'A new version is ready. It will install automatically as soon as it is safe, or you can update now.' : 'Hay una nueva versión lista. Se instalará automáticamente tan pronto sea seguro, o puedes actualizar ahora.');
       set('pwa-update-btn', en ? 'Update now' : 'Actualizar ahora');
       set('privacy-lock-title', en ? 'Data protected' : 'Datos protegidos');
       set('privacy-lock-text', en ? 'You signed out. Your local data is still saved on this device, but it is hidden to protect your privacy.' : 'Cerraste sesión. Tus datos locales siguen guardados en este dispositivo, pero están ocultos para proteger tu privacidad.');
@@ -2462,11 +2689,32 @@
     }
 
     function canAutoApplyWaitingUpdate() {
-      const startupWindow=(Date.now()-APP_BOOT_STARTED_AT) <= 12000;
-      return startupWindow
-        && !swStartupInteraction
-        && document.visibilityState === 'visible'
+      return document.visibilityState === 'visible'
         && !hasUnsafeUpdateUiState();
+    }
+
+    function scheduleSafeAutoUpdateRetry() {
+      if (swSafeRetryTimer) clearInterval(swSafeRetryTimer);
+      const startedAt=Date.now();
+      swSafeRetryTimer=setInterval(() => {
+        if (!swRegistration || !swRegistration.waiting) {
+          clearInterval(swSafeRetryTimer);
+          swSafeRetryTimer=null;
+          hidePwaUpdateBanner();
+          return;
+        }
+        if (canAutoApplyWaitingUpdate()) {
+          clearInterval(swSafeRetryTimer);
+          swSafeRetryTimer=null;
+          activateWaitingServiceWorker(true);
+          return;
+        }
+        // Do not keep a background timer alive indefinitely if the user is editing for a long time.
+        if (Date.now()-startedAt > 10*60*1000) {
+          clearInterval(swSafeRetryTimer);
+          swSafeRetryTimer=null;
+        }
+      }, 1200);
     }
 
     function activateWaitingServiceWorker(automatic=false) {
@@ -2493,14 +2741,19 @@
       if (registration) swRegistration = registration;
       if (!swRegistration || !swRegistration.waiting) return;
       if (canAutoApplyWaitingUpdate()) {
-        // Give startup rendering a moment to settle, then re-check safety before activating.
+        // Safe path: no prompt. Activate automatically and confirm after reload.
         setTimeout(() => {
           if (!swRegistration || !swRegistration.waiting) return;
           if (canAutoApplyWaitingUpdate()) activateWaitingServiceWorker(true);
-          else showPwaUpdateBanner(swRegistration);
-        }, 350);
+          else {
+            showPwaUpdateBanner(swRegistration);
+            scheduleSafeAutoUpdateRetry();
+          }
+        }, 450);
       } else {
+        // A form field or modal is active; never force a reload that could discard input.
         showPwaUpdateBanner(swRegistration);
+        scheduleSafeAutoUpdateRetry();
       }
     }
 
@@ -2532,10 +2785,6 @@
       overlay.classList.add('hidden');
       overlay.classList.remove('flex');
     }
-
-    ['pointerdown','keydown','input','change','touchstart'].forEach(type => {
-      window.addEventListener(type, () => { swStartupInteraction = true; }, { once:true, passive:true });
-    });
 
     if ('serviceWorker' in navigator) {
       let swReloading = false;
@@ -2631,6 +2880,9 @@
       "Preferencias de la app": "App preferences",
       "Medicamento y presentación": "Medication and presentation",
       "Metas diarias": "Daily goals",
+      "Progreso corporal": "Body progress",
+      "Peso y métricas corporales": "Weight & body metrics",
+      "Tendencias, composición, medidas y metas en un solo lugar.": "Trends, composition, measurements and goals in one place.",
       "Ciclo semanal y rotación de sitios": "Weekly cycle and injection-site rotation",
       "+ Registrar dosis": "+ Log dose",
       "Última dosis administrada:": "Last administered dose:",
@@ -2808,7 +3060,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.5": "Version: v4.1.5",
+      "Versión: v4.1.6": "Version: v4.1.6",
       "Acerca de GLP-1 Companion": "About GLP-1 Companion",
       "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
