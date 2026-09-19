@@ -293,7 +293,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.2</p>
+          <p id="print-app-version">Versión: v4.1.3</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -318,7 +318,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.2</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.3</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1832,7 +1832,7 @@
       </div>
     </div>
 
-    <!-- v4.1.2: explicit sign-out privacy lock. Data is preserved locally but hidden until authentication. -->
+    <!-- v4.1.3 hotfix: legacy privacy-lock markup retained but never activated; Sign Out returns to local-only mode. -->
     <div id="privacy-lock-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center bg-[#090d16]/98 backdrop-blur-md p-5">
       <div class="w-full max-w-sm rounded-3xl border border-cyan-500/30 bg-[#111a2e] p-6 text-center shadow-2xl">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center"><i data-lucide="lock-keyhole" class="w-7 h-7 text-cyan-300"></i></div>
@@ -1855,7 +1855,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.2";
+    const APP_VERSION = "v4.1.3";
     const CLIENT_SCHEMA_VERSION = 13;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
     const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -2149,13 +2149,13 @@
     }
     function clearPrivacyLock() { try { localStorage.removeItem(PRIVACY_LOCK_KEY); } catch (_) {} }
     function renderPrivacyLock() {
+      // v4.1.3 hotfix: Sign Out must leave the app usable in local-only mode.
+      // Clear any v4.1.2 lock left on this device and keep the legacy overlay hidden.
+      clearPrivacyLock();
       const overlay=document.getElementById('privacy-lock-overlay');
       if(!overlay)return;
-      const locked=!currentUser && Boolean(getPrivacyLock());
-      renderHardeningUiLanguage();
-      overlay.classList.toggle('hidden',!locked);
-      overlay.classList.toggle('flex',locked);
-      if(locked){ try{lucide.createIcons();}catch(_){} }
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
     }
 
     if ('serviceWorker' in navigator) {
@@ -2418,7 +2418,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.2": "Version: v4.1.2",
+      "Versión: v4.1.3": "Version: v4.1.3",
       "Acerca de GLP-1 Companion": "About GLP-1 Companion",
       "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
@@ -3978,6 +3978,7 @@
 
           showToast(isEnglish() ? `Connected as: ${user.email}` : `Conectado como: ${user.email}`);
         } else {
+          clearPrivacyLock();
           renderPrivacyLock();
           cloudInitialReadComplete = false;
           cloudSyncDeferredUntilBootstrap = false;
@@ -3992,10 +3993,10 @@
     async function handleAuthAction() {
       if (currentUser) {
         try {
-          setPrivacyLock(currentUser.uid);
+          clearPrivacyLock();
           await auth.signOut();
           renderPrivacyLock();
-          showToast(uiText("Sesión cerrada. Tus datos locales están protegidos hasta que vuelvas a iniciar sesión.", "Signed out. Your local data is protected until you sign in again."));
+          showToast(uiText("Sesión cerrada. La sincronización en la nube está desactivada; puedes seguir usando tus registros locales.", "Signed out. Cloud sync is off; you can continue using your local records."));
         } catch (err) {
           showToast(uiText("Error al cerrar sesión: ", "Sign-out error: ") + err.message);
         }
