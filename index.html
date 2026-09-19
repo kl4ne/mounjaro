@@ -674,6 +674,221 @@
       box-shadow: 0 0 0 3px rgba(244,63,94,.08);
     }
 
+    /* v4.1.7 · Visual Refresh Phase 5 — Reports + Backups + final consistency */
+    .reports-refresh-card,
+    .backup-refresh-card {
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 58px -42px rgba(2,6,23,.96), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .reports-refresh-card {
+      background: linear-gradient(145deg, rgba(16,185,129,.105), rgba(22,34,56,.95) 46%, rgba(6,182,212,.055));
+      border-color: rgba(52,211,153,.23) !important;
+    }
+    .reports-refresh-card::after {
+      content: '';
+      position: absolute;
+      width: 155px;
+      height: 155px;
+      right: -76px;
+      top: -84px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(34,211,238,.13), transparent 72%);
+      pointer-events: none;
+    }
+    .reports-refresh-card > *, .backup-refresh-card > * { position: relative; z-index: 1; }
+    .phase5-report-icon,
+    .phase5-backup-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 12px 28px -22px rgba(0,0,0,.95);
+    }
+    .phase5-report-icon {
+      color: #6ee7b7;
+      background: linear-gradient(145deg, rgba(16,185,129,.23), rgba(6,182,212,.13));
+      border: 1px solid rgba(110,231,183,.23);
+    }
+    .phase5-backup-icon {
+      color: #a5b4fc;
+      background: linear-gradient(145deg, rgba(99,102,241,.20), rgba(139,92,246,.14));
+      border: 1px solid rgba(165,180,252,.22);
+    }
+    .reports-action-grid, .backup-action-grid { display: grid; gap: 9px; }
+    .report-action-card, .backup-action-card {
+      position: relative;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border-radius: 16px;
+      text-align: left;
+      border: 1px solid rgba(71,85,105,.42);
+      background: rgba(9,13,22,.46);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+    .report-action-card:hover, .backup-action-card:hover {
+      background: rgba(17,26,46,.74);
+      border-color: rgba(100,116,139,.56);
+    }
+    .report-action-card:active, .backup-action-card:active { transform: scale(.992); }
+    .report-action-icon, .backup-action-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15,23,42,.74);
+      border: 1px solid rgba(71,85,105,.42);
+    }
+    .report-action-card small, .backup-action-card small {
+      display: block;
+      margin-top: 2px;
+      color: #64748b;
+      font-size: 9px;
+      line-height: 1.3;
+      font-weight: 600;
+    }
+    .report-action-card .phase5-arrow, .backup-action-card .phase5-arrow {
+      margin-left: auto;
+      color: #475569;
+      flex: 0 0 auto;
+    }
+    .report-action-notes { border-color: rgba(52,211,153,.22); }
+    .report-action-notes .report-action-icon { color: #6ee7b7; background: rgba(16,185,129,.11); border-color: rgba(52,211,153,.18); }
+    .report-action-pdf { border-color: rgba(34,211,238,.22); }
+    .report-action-pdf .report-action-icon { color: #67e8f9; background: rgba(6,182,212,.11); border-color: rgba(34,211,238,.18); }
+    .report-action-health { border-color: rgba(251,113,133,.18); }
+    .report-action-health .report-action-icon { color: #fda4af; background: rgba(244,63,94,.10); border-color: rgba(251,113,133,.18); }
+    .report-action-visit { border-color: rgba(167,139,250,.24); }
+    .report-action-visit .report-action-icon { color: #c4b5fd; background: rgba(139,92,246,.12); border-color: rgba(167,139,250,.20); }
+
+    .appointment-refresh-modal,
+    .backup-modal-refresh {
+      background: linear-gradient(155deg, rgba(22,34,56,.99), rgba(15,23,42,.99));
+      box-shadow: 0 34px 90px -44px rgba(2,6,23,1), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+    .appointment-refresh-modal { border-color: rgba(167,139,250,.30) !important; }
+    .appointment-field-card {
+      padding: 10px;
+      border-radius: 15px;
+      background: rgba(9,13,22,.38);
+      border: 1px solid rgba(71,85,105,.38);
+    }
+    .appointment-field-card select { transition: border-color .16s ease, box-shadow .16s ease; }
+    .appointment-field-card select:focus {
+      outline: none;
+      border-color: rgba(167,139,250,.52) !important;
+      box-shadow: 0 0 0 3px rgba(139,92,246,.08);
+    }
+    .appointment-summary-shell {
+      background: rgba(9,13,22,.58) !important;
+      border-color: rgba(100,116,139,.40) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+    }
+
+    .backup-refresh-card {
+      background: linear-gradient(145deg, rgba(99,102,241,.105), rgba(22,34,56,.95) 46%, rgba(139,92,246,.055));
+      border-color: rgba(129,140,248,.22) !important;
+    }
+    .backup-refresh-card::after {
+      content: '';
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      right: -82px;
+      bottom: -94px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(139,92,246,.13), transparent 72%);
+      pointer-events: none;
+    }
+    .backup-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      color: #c4b5fd;
+      background: rgba(139,92,246,.10);
+      border: 1px solid rgba(167,139,250,.18);
+    }
+    .backup-action-export { border-color: rgba(52,211,153,.20); }
+    .backup-action-export .backup-action-icon { color: #6ee7b7; background: rgba(16,185,129,.10); border-color: rgba(52,211,153,.17); }
+    .backup-action-import { border-color: rgba(34,211,238,.20); cursor: pointer; }
+    .backup-action-import .backup-action-icon { color: #67e8f9; background: rgba(6,182,212,.10); border-color: rgba(34,211,238,.17); }
+    .backup-action-server { border-color: rgba(167,139,250,.22); }
+    .backup-action-server .backup-action-icon { color: #c4b5fd; background: rgba(139,92,246,.11); border-color: rgba(167,139,250,.18); }
+    .backup-danger-zone {
+      padding: 10px;
+      border-radius: 15px;
+      background: rgba(127,29,29,.075);
+      border: 1px solid rgba(244,63,94,.15);
+    }
+    .backup-danger-zone button { box-shadow: inset 0 1px 0 rgba(255,255,255,.018); }
+
+    .backup-modal-refresh { border-color: rgba(129,140,248,.24) !important; }
+    .backup-option-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 66px;
+      padding: 11px 12px !important;
+      border-radius: 16px !important;
+      background: rgba(9,13,22,.44) !important;
+      border-color: rgba(71,85,105,.42) !important;
+      transition: background .16s ease, border-color .16s ease, transform .16s ease;
+    }
+    .backup-option-card:hover { background: rgba(17,26,46,.72) !important; border-color: rgba(129,140,248,.32) !important; }
+    .backup-option-card:active { transform: scale(.993); }
+    .backup-option-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a5b4fc;
+      background: rgba(99,102,241,.11);
+      border: 1px solid rgba(129,140,248,.17);
+    }
+    .backup-option-complete { background: linear-gradient(145deg, rgba(16,185,129,.10), rgba(9,13,22,.48)) !important; border-color: rgba(52,211,153,.24) !important; }
+    .backup-option-complete .backup-option-icon { color: #6ee7b7; background: rgba(16,185,129,.11); border-color: rgba(52,211,153,.18); }
+    .server-backup-item {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(9,13,22,.46);
+      border: 1px solid rgba(71,85,105,.40);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+    }
+    .backup-view-tile {
+      padding: 9px;
+      border-radius: 12px;
+      background: rgba(9,13,22,.46);
+      border: 1px solid rgba(71,85,105,.38);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+    }
+    .import-preview-refresh {
+      background: linear-gradient(155deg, rgba(22,34,56,.99), rgba(15,23,42,.99));
+      border-color: rgba(34,211,238,.27) !important;
+      box-shadow: 0 34px 90px -44px rgba(2,6,23,1), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+
+    /* Final visual consistency: keyboard focus and tap feedback remain obvious without changing app logic. */
+    button:focus-visible, a:focus-visible, label:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid rgba(103,232,249,.76);
+      outline-offset: 2px;
+    }
+    #tab-tools .glass-panel { transition: border-color .16s ease, box-shadow .16s ease; }
+
     @media print {
       body {
         background-color: #ffffff !important;
@@ -759,7 +974,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.6</p>
+          <p id="print-app-version">Versión: v4.1.7</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -784,7 +999,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.6</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.7</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1593,32 +1808,35 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-[#162238] space-y-3">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <i data-lucide="file-text" class="w-4 h-4"></i>
-            </div>
+        <div class="glass-panel reports-refresh-card rounded-3xl p-4 border border-emerald-500/30 space-y-3.5">
+          <div class="flex items-start gap-2.5">
+            <div class="phase5-report-icon"><i data-lucide="file-heart" class="w-4 h-4"></i></div>
             <div>
-              <h3 class="text-sm font-bold text-white">Reporte clínico médico</h3>
-              <p class="text-[10px] text-slate-300">Formatos para consulta médica, Apple Notes o impresión directa en PDF</p>
+              <span class="text-[9px] font-black uppercase tracking-[0.16em] text-emerald-300">Reportes y consulta</span>
+              <h3 class="text-sm font-black text-white mt-0.5">Reporte clínico médico</h3>
+              <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Formatos para consulta médica, Apple Notes o impresión directa en PDF</p>
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <button onclick="copyDoctorSummary()" class="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-500/20">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-              <span>Copiar para Notes</span>
+          <div class="reports-action-grid grid-cols-1 sm:grid-cols-2">
+            <button onclick="copyDoctorSummary()" class="report-action-card report-action-notes">
+              <span class="report-action-icon"><i data-lucide="copy" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Copiar para Notes</strong><small>Resumen en texto para pegar en Notes</small></span>
+              <i data-lucide="arrow-up-right" class="phase5-arrow w-3.5 h-3.5"></i>
             </button>
-            <button onclick="triggerPrintReport()" class="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-cyan-600/20">
-              <i data-lucide="printer" class="w-4 h-4"></i>
-              <span>Imprimir / PDF</span>
+            <button onclick="triggerPrintReport()" class="report-action-card report-action-pdf">
+              <span class="report-action-icon"><i data-lucide="printer" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Imprimir / PDF</strong><small>Reporte listo para imprimir o guardar</small></span>
+              <i data-lucide="arrow-up-right" class="phase5-arrow w-3.5 h-3.5"></i>
             </button>
-            <button onclick="openAppleHealthModal()" class="py-2.5 bg-[#111a2e] hover:bg-slate-800 border border-[#223455] text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
-              <i data-lucide="heart" class="w-4 h-4 text-rose-400"></i>
-              <span>Apple Health</span>
+            <button onclick="openAppleHealthModal()" class="report-action-card report-action-health">
+              <span class="report-action-icon"><i data-lucide="heart-pulse" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Apple Health</strong><small>Enviar peso actual mediante tu atajo</small></span>
+              <i data-lucide="arrow-up-right" class="phase5-arrow w-3.5 h-3.5"></i>
             </button>
-            <button onclick="openAppointmentPrepModal()" class="py-2.5 bg-violet-600/30 hover:bg-violet-600/45 border border-violet-500/40 text-violet-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all">
-              <i data-lucide="clipboard-list" class="w-4 h-4 text-violet-300"></i>
-              <span>Preparar mi cita</span>
+            <button onclick="openAppointmentPrepModal()" class="report-action-card report-action-visit">
+              <span class="report-action-icon"><i data-lucide="clipboard-list" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Preparar mi cita</strong><small>Resumen configurable para tu próxima cita</small></span>
+              <i data-lucide="arrow-up-right" class="phase5-arrow w-3.5 h-3.5"></i>
             </button>
           </div>
         </div>
@@ -1754,29 +1972,40 @@
           <p class="text-[9px] text-slate-500 leading-relaxed">El estado refleja solicitudes reales; la app no hace llamadas automáticas solo para comprobar disponibilidad. El respaldo se usa únicamente ante errores recuperables de la IA principal; si el problema es conexión, App Check, autenticación o permisos, pasa directo a captura manual.</p>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-bold text-white">Sistema de backups</h3>
-              <p id="backup-local-status" class="text-[9px] text-slate-500 mt-0.5">Backups locales rotativos: --/3</p>
+        <div class="glass-panel backup-refresh-card rounded-3xl p-4 border border-[#223455] space-y-3.5">
+          <div class="flex items-start gap-2.5">
+            <div class="phase5-backup-icon"><i data-lucide="shield-check" class="w-4 h-4"></i></div>
+            <div class="min-w-0 flex-1">
+              <span class="text-[9px] font-black uppercase tracking-[0.16em] text-indigo-300">Protección de datos</span>
+              <h3 class="text-sm font-black text-white mt-0.5">Sistema de backups</h3>
+              <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Exporta tu información o restaura copias de seguridad. En iPhone/iPad, usa Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.</p>
+              <p id="backup-local-status" class="backup-status-pill text-[9px] font-bold mt-2">Backups locales rotativos: --/3</p>
             </div>
-            <button onclick="openServerSafetyBackups()" class="px-2.5 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/25 text-violet-300 text-[10px] font-bold hover:bg-violet-500/20">Server Safety Backups</button>
           </div>
-          <p class="text-xs text-slate-400">
-            Exporta tu información o restaura copias de seguridad. En iPhone/iPad, usa Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.
-          </p>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="openExportBackupOptions()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow shadow-emerald-950/30">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar Backup
+          <div class="backup-action-grid grid-cols-1 sm:grid-cols-3">
+            <button onclick="openExportBackupOptions()" class="backup-action-card backup-action-export">
+              <span class="backup-action-icon"><i data-lucide="download" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Exportar Backup</strong><small>Guarda una copia fuera de la app</small></span>
+              <i data-lucide="chevron-right" class="phase5-arrow w-3.5 h-3.5"></i>
             </button>
-            <label class="py-2.5 bg-cyan-600 hover:bg-cyan-500 border border-cyan-400/40 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center shadow shadow-cyan-950/30">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar Backup
+            <label class="backup-action-card backup-action-import">
+              <span class="backup-action-icon"><i data-lucide="upload" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Importar Backup</strong><small>Revisa antes de restaurar tus datos</small></span>
+              <i data-lucide="chevron-right" class="phase5-arrow w-3.5 h-3.5"></i>
               <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="importDataJSON(event)">
             </label>
+            <button onclick="openServerSafetyBackups()" class="backup-action-card backup-action-server">
+              <span class="backup-action-icon"><i data-lucide="cloud-cog" class="w-4 h-4"></i></span>
+              <span><strong class="block text-xs text-slate-100">Server Safety Backups</strong><small>Revisa las 3 copias rotativas de Firebase</small></span>
+              <i data-lucide="chevron-right" class="phase5-arrow w-3.5 h-3.5"></i>
+            </button>
           </div>
-          <button onclick="openResetModal()" class="w-full py-2 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl text-xs font-bold transition-colors">
-            Reiniciar todos los datos
-          </button>
+          <div class="backup-danger-zone">
+            <div class="flex items-center gap-2 mb-2"><i data-lucide="triangle-alert" class="w-3.5 h-3.5 text-rose-300"></i><span class="text-[9px] font-black uppercase tracking-[0.14em] text-rose-300">Zona de riesgo</span></div>
+            <button onclick="openResetModal()" class="w-full py-2.5 text-rose-300 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/20 rounded-xl text-xs font-bold transition-colors">
+              Reiniciar todos los datos
+            </button>
+          </div>
         </div>
 
         <div class="glass-panel about-refresh rounded-3xl p-5 border border-[#223455] space-y-3">
@@ -1784,7 +2013,7 @@
           <div>
             <p class="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">GLP-1 Companion</p>
             <h3 class="text-base font-black text-white mt-1">Acerca de GLP-1 Companion</h3>
-            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.6 · Progressive Web App</p>
+            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.7 · Progressive Web App</p>
           </div>
           <div class="about-developer-card rounded-2xl p-4">
             <p class="text-[10px] text-slate-400">Designed &amp; Developed by</p>
@@ -2194,7 +2423,7 @@
 
     <!-- Modal Preparar mi cita -->
     <div id="modal-appointment-prep" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-violet-500/30 w-full max-w-lg rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+      <div class="appointment-refresh-modal border border-violet-500/30 w-full max-w-lg rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-violet-500/20 text-violet-300 flex items-center justify-center">
@@ -2210,8 +2439,8 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="appointment-field-card">
             <label class="block text-xs font-semibold text-slate-300 mb-1">Periodo del resumen</label>
             <select id="appointment-range" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-[#223455] rounded-xl text-white text-xs">
             <option value="30">Últimos 30 días</option>
@@ -2219,7 +2448,7 @@
             <option value="all">Desde el inicio</option>
             </select>
           </div>
-          <div>
+          <div class="appointment-field-card">
             <label class="block text-xs font-semibold text-slate-300 mb-1">Idioma del reporte</label>
             <select id="appointment-language" onchange="refreshAppointmentSummary()" class="w-full p-2.5 bg-[#111a2e] border border-violet-500/40 rounded-xl text-violet-200 text-xs">
               <option value="es">Español</option>
@@ -2228,7 +2457,7 @@
           </div>
         </div>
 
-        <textarea id="appointment-summary-text" readonly class="w-full min-h-[330px] p-3 bg-[#090d16] border border-[#223455] rounded-2xl text-[11px] leading-relaxed text-slate-200 font-mono resize-none"></textarea>
+        <textarea id="appointment-summary-text" readonly class="appointment-summary-shell w-full min-h-[330px] p-3.5 bg-[#090d16] border border-[#223455] rounded-2xl text-[11px] leading-relaxed text-slate-200 font-mono resize-none"></textarea>
 
         <p class="text-[10px] text-slate-500 leading-relaxed">Este resumen organiza los datos que registraste. No diagnostica ni modifica tu tratamiento.</p>
 
@@ -2273,7 +2502,7 @@
 
     <!-- Modal Import Preview v4.0.5 -->
     <div id="modal-import-preview" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-cyan-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="import-preview-refresh border border-cyan-500/30 w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><span class="text-[10px] text-cyan-300 font-bold uppercase">Vista previa</span><h3 class="text-sm font-bold text-white">Importar backup</h3></div><button onclick="cancelImportPreview()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <p id="import-preview-version" class="text-[10px] text-slate-400">--</p>
         <div id="import-preview-grid" class="grid grid-cols-2 gap-2 text-center"></div>
@@ -2307,21 +2536,21 @@
 
     <!-- Export Backup Options v4.0.5 -->
     <div id="modal-export-backup" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between"><div><h3 id="export-backup-modal-title" class="text-sm font-black text-white">Export Backup</h3><p id="export-backup-modal-subtitle" class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <div class="backup-modal-refresh border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-2.5"><span class="phase5-backup-icon !w-9 !h-9 !rounded-xl"><i data-lucide="package-open" class="w-4 h-4"></i></span><div><h3 id="export-backup-modal-title" class="text-sm font-black text-white">Export Backup</h3><p id="export-backup-modal-subtitle" class="text-[10px] text-slate-400">Selecciona qué deseas guardar</p></div></div><button onclick="closeExportBackupOptions()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <div class="space-y-2">
-          <button onclick="exportBackupPackage('current')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-emerald-500/40"><p id="export-current-title" class="text-xs font-bold text-white">Current Data</p><p id="export-current-desc" class="text-[9px] text-slate-500">Solo el estado actual</p></button>
-          <button onclick="exportBackupPackage('local')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-cyan-500/40"><p id="export-local-title" class="text-xs font-bold text-white">Current + Local Backups</p><p id="export-local-desc" class="text-[9px] text-slate-500">Incluye hasta 3 snapshots locales rotativos</p></button>
-          <button onclick="exportBackupPackage('server')" class="w-full text-left p-3 rounded-xl bg-[#111a2e] border border-[#223455] hover:border-violet-500/40"><p id="export-server-title" class="text-xs font-bold text-white">Current + Server Backups</p><p id="export-server-desc" class="text-[9px] text-slate-500">Incluye las copias Server Safety disponibles</p></button>
-          <button onclick="exportBackupPackage('complete')" class="w-full text-left p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15"><p id="export-complete-title" class="text-xs font-black text-emerald-300">Complete Backup — Recommended</p><p id="export-complete-desc" class="text-[9px] text-slate-400">Current + local + server backups</p></button>
+          <button onclick="exportBackupPackage('current')" class="backup-option-card w-full text-left"><span class="backup-option-icon"><i data-lucide="database" class="w-4 h-4"></i></span><span><p id="export-current-title" class="text-xs font-bold text-white">Current Data</p><p id="export-current-desc" class="text-[9px] text-slate-500">Solo el estado actual</p></span></button>
+          <button onclick="exportBackupPackage('local')" class="backup-option-card w-full text-left"><span class="backup-option-icon"><i data-lucide="hard-drive-download" class="w-4 h-4"></i></span><span><p id="export-local-title" class="text-xs font-bold text-white">Current + Local Backups</p><p id="export-local-desc" class="text-[9px] text-slate-500">Incluye hasta 3 snapshots locales rotativos</p></span></button>
+          <button onclick="exportBackupPackage('server')" class="backup-option-card w-full text-left"><span class="backup-option-icon"><i data-lucide="cloud-download" class="w-4 h-4"></i></span><span><p id="export-server-title" class="text-xs font-bold text-white">Current + Server Backups</p><p id="export-server-desc" class="text-[9px] text-slate-500">Incluye las copias Server Safety disponibles</p></span></button>
+          <button onclick="exportBackupPackage('complete')" class="backup-option-card backup-option-complete w-full text-left"><span class="backup-option-icon"><i data-lucide="shield-check" class="w-4 h-4"></i></span><span><p id="export-complete-title" class="text-xs font-black text-emerald-300">Complete Backup — Recommended</p><p id="export-complete-desc" class="text-[9px] text-slate-400">Current + local + server backups</p></span></button>
         </div>
-        <p id="export-backup-ios-instructions" class="text-[9px] text-slate-500"></p>
+        <p id="export-backup-ios-instructions" class="text-[9px] text-slate-500 leading-relaxed"></p>
       </div>
     </div>
 
     <!-- Server Safety Backups v4.0.5 -->
     <div id="modal-server-backups" class="fixed inset-0 z-50 bg-[#090d16]/85 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-lg rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
+      <div class="backup-modal-refresh border border-[#223455] w-full max-w-lg rounded-3xl p-5 max-h-[85vh] overflow-y-auto hide-scrollbar space-y-4 shadow-2xl">
         <div class="flex items-center justify-between"><div><h3 class="text-sm font-black text-white">Server Safety Backups</h3><p class="text-[10px] text-slate-400">Las 3 copias rotativas conservadas por Firebase</p></div><button onclick="closeServerSafetyBackups()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <div id="server-backups-list" class="space-y-2"><p class="text-xs text-slate-500">Cargando…</p></div>
       </div>
@@ -2329,8 +2558,8 @@
 
     <!-- Backup View v4.0.5 -->
     <div id="modal-backup-view" class="fixed inset-0 z-[60] bg-[#090d16]/90 backdrop-blur-sm hidden items-center justify-center p-4">
-      <div class="bg-[#162238] border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between"><h3 class="text-sm font-black text-white">Backup Summary</h3><button onclick="closeBackupView()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <div class="backup-modal-refresh border border-[#223455] w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="backup-option-icon"><i data-lucide="list-checks" class="w-4 h-4"></i></span><h3 class="text-sm font-black text-white">Backup Summary</h3></div><button onclick="closeBackupView()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button></div>
         <div id="backup-view-content" class="text-xs text-slate-300 space-y-2"></div>
       </div>
     </div>
@@ -2399,7 +2628,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.6";
+    const APP_VERSION = "v4.1.7";
     const CLIENT_SCHEMA_VERSION = 13;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
     const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -2957,6 +3186,11 @@
       "Tiempo acumulado de ayuno": "Elapsed fasting time",
       "Iniciar ayuno": "Start fast",
       "Reporte clínico médico": "Medical visit report",
+      "Reportes y consulta": "Reports & visits",
+      "Resumen en texto para pegar en Notes": "Text summary ready to paste into Notes",
+      "Reporte listo para imprimir o guardar": "Report ready to print or save",
+      "Enviar peso actual mediante tu atajo": "Send current weight through your shortcut",
+      "Resumen configurable para tu próxima cita": "Configurable summary for your next visit",
       "Formatos para consulta médica, Apple Notes o impresión directa en PDF": "Formats for medical visits, Notes, or PDF printing",
       "Copiar para Notes": "Copy for Notes",
       "Imprimir / PDF": "Print / PDF",
@@ -3060,7 +3294,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.6": "Version: v4.1.6",
+      "Versión: v4.1.7": "Version: v4.1.7",
       "Acerca de GLP-1 Companion": "About GLP-1 Companion",
       "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
@@ -3203,6 +3437,11 @@
       "Curva estimada hasta la próxima dosis": "Estimated curve until next dose",
       "No es concentración sanguínea": "Not a blood concentration",
       "Sistema de backups": "Backup system",
+      "Protección de datos": "Data protection",
+      "Guarda una copia fuera de la app": "Save a copy outside the app",
+      "Revisa antes de restaurar tus datos": "Review before restoring your data",
+      "Revisa las 3 copias rotativas de Firebase": "Review the 3 rotating Firebase copies",
+      "Zona de riesgo": "Risk zone",
       "Backups locales rotativos: --/3": "Rotating local backups: --/3",
       "Exporta tu información o restaura copias de seguridad. En iPhone/iPad, usa Save to Files y guarda preferiblemente en iCloud Drive → GLP-1 Companion.": "Export your information or restore backups. On iPhone/iPad, use Save to Files and preferably save to iCloud Drive → GLP-1 Companion.",
       "Exportar Backup": "Export Backup",
@@ -7732,7 +7971,7 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
         const items=await fetchServerSafetyBackups();
         if(!list)return;
         if(!items.length){list.innerHTML=`<p class="text-xs text-slate-500">${escapeHtml(uiText('Todavía no hay copias Server Safety disponibles. Se crean al sincronizar cambios posteriores.','No Server Safety backups are available yet. They are created as later changes sync.'))}</p>`;return;}
-        list.innerHTML=items.map((item,idx)=>{const c=backupSummary(item.snapshot),stamp=item.savedAt?new Date(item.savedAt).toLocaleString(isEnglish()?'en-US':'es-US'):'--';return `<div class="p-3 rounded-xl bg-[#111a2e] border border-[#223455] space-y-2"><div class="flex items-start justify-between gap-2"><div><p class="text-xs font-black text-white">${escapeHtml(uiText('Copia de servidor','Server backup'))} ${idx+1}</p><p class="text-[9px] text-slate-500">${escapeHtml(stamp)} · rev ${item.revision}</p></div><span class="text-[9px] text-cyan-300">${c.weights} ${escapeHtml(uiText('pesajes','weights'))} · ${c.injections} ${escapeHtml(uiText('dosis','doses'))}</span></div><div class="grid grid-cols-2 gap-2"><button onclick="viewServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-1.5 rounded-lg bg-slate-800 text-slate-200 text-[10px] font-bold">View</button><button onclick="restoreServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold">Restore</button></div></div>`;}).join('');
+        list.innerHTML=items.map((item,idx)=>{const c=backupSummary(item.snapshot),stamp=item.savedAt?new Date(item.savedAt).toLocaleString(isEnglish()?'en-US':'es-US'):'--';return `<div class="server-backup-item space-y-2.5"><div class="flex items-start justify-between gap-2"><div><p class="text-xs font-black text-white">${escapeHtml(uiText('Copia de servidor','Server backup'))} ${idx+1}</p><p class="text-[9px] text-slate-500">${escapeHtml(stamp)} · rev ${item.revision}</p></div><span class="text-[9px] px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/15 text-cyan-300 font-bold">${c.weights} ${escapeHtml(uiText('pesajes','weights'))} · ${c.injections} ${escapeHtml(uiText('dosis','doses'))}</span></div><div class="grid grid-cols-2 gap-2"><button onclick="viewServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center justify-center gap-1.5"><i data-lucide="eye" class="w-3.5 h-3.5"></i>${escapeHtml(uiText('Ver','View'))}</button><button onclick="restoreServerSafetyBackup('${escapeHtml(item.slot)}')" class="py-2 rounded-xl bg-amber-500/12 hover:bg-amber-500/18 border border-amber-500/25 text-amber-300 text-[10px] font-bold flex items-center justify-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>${escapeHtml(uiText('Restaurar','Restore'))}</button></div></div>`;}).join('');
         lucide.createIcons();
       } catch(err) {
         console.error('Server safety backup read failed:',err);
@@ -7746,7 +7985,7 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
       const item=serverSafetyBackupsCache.find(x=>x.slot===slot);if(!item)return;
       const c=backupSummary(item.snapshot),content=document.getElementById('backup-view-content'),modal=document.getElementById('modal-backup-view');
       const stamp=item.savedAt?new Date(item.savedAt).toLocaleString(isEnglish()?'en-US':'es-US'):'--';
-      if(content)content.innerHTML=`<p><b>${escapeHtml(uiText('Fecha/hora','Date/time'))}:</b> ${escapeHtml(stamp)}</p><p><b>Revision:</b> ${item.revision}</p><div class="grid grid-cols-2 gap-2 mt-2">${[[uiText('Pesajes','Weights'),c.weights],[uiText('Dosis','Doses'),c.injections],[uiText('Comidas','Meals'),c.meals],[uiText('Medidas','Measurements'),c.measurements],[uiText('Días','Days'),c.days],[uiText('Health Profile','Health Profile'),c.health?uiText('Sí','Yes'):uiText('No','No')]].map(([l,v])=>`<div class="p-2 rounded-lg bg-[#111a2e] border border-[#223455]"><span class="text-[9px] text-slate-500">${escapeHtml(String(l))}</span><p class="font-black text-white">${escapeHtml(String(v))}</p></div>`).join('')}</div>`;
+      if(content)content.innerHTML=`<p><b>${escapeHtml(uiText('Fecha/hora','Date/time'))}:</b> ${escapeHtml(stamp)}</p><p><b>Revision:</b> ${item.revision}</p><div class="grid grid-cols-2 gap-2 mt-2">${[[uiText('Pesajes','Weights'),c.weights],[uiText('Dosis','Doses'),c.injections],[uiText('Comidas','Meals'),c.meals],[uiText('Medidas','Measurements'),c.measurements],[uiText('Días','Days'),c.days],[uiText('Health Profile','Health Profile'),c.health?uiText('Sí','Yes'):uiText('No','No')]].map(([l,v])=>`<div class="backup-view-tile"><span class="text-[9px] text-slate-500">${escapeHtml(String(l))}</span><p class="font-black text-white">${escapeHtml(String(v))}</p></div>`).join('')}</div>`;
       if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
     }
 
