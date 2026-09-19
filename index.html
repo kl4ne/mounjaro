@@ -208,6 +208,87 @@
       box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
     }
 
+    /* v4.1.4 · Visual Refresh Phase 1 — Dashboard + About */
+    #app-container {
+      background:
+        radial-gradient(circle at 15% 0%, rgba(37, 99, 235, 0.10), transparent 34%),
+        radial-gradient(circle at 92% 18%, rgba(16, 185, 129, 0.08), transparent 30%),
+        #090d16;
+    }
+    .dashboard-overview {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(29,78,216,.16), rgba(6,182,212,.08) 46%, rgba(16,185,129,.10));
+      border: 1px solid rgba(56,189,248,.22);
+      box-shadow: 0 20px 55px -34px rgba(56,189,248,.75), inset 0 1px 0 rgba(255,255,255,.035);
+    }
+    .dashboard-overview::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      right: -58px;
+      top: -72px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(52,211,153,.20), rgba(52,211,153,0) 70%);
+      pointer-events: none;
+    }
+    .dashboard-overview-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, rgba(59,130,246,.24), rgba(6,182,212,.14));
+      border: 1px solid rgba(125,211,252,.28);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    #tab-dashboard > .dashboard-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: 0 18px 44px -34px rgba(2,6,23,.95), inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    #tab-dashboard > .dashboard-card:active {
+      transform: scale(.995);
+    }
+    .dashboard-med-card { background: linear-gradient(145deg, rgba(16,185,129,.10), rgba(22,34,56,.94) 48%, rgba(22,34,56,.82)); }
+    .dashboard-balance-card { background: linear-gradient(145deg, rgba(59,130,246,.08), rgba(22,34,56,.94) 52%); border-color: rgba(59,130,246,.22) !important; }
+    .dashboard-nutrition-card { box-shadow: 0 18px 44px -34px rgba(245,158,11,.45), inset 0 1px 0 rgba(255,255,255,.025) !important; }
+    .dashboard-hydration-card { background: linear-gradient(145deg, rgba(6,182,212,.10), rgba(22,34,56,.94) 50%); }
+    .dashboard-weekly-card { box-shadow: 0 18px 44px -34px rgba(139,92,246,.50), inset 0 1px 0 rgba(255,255,255,.025) !important; }
+    .dashboard-insights-card { box-shadow: 0 18px 44px -34px rgba(6,182,212,.45), inset 0 1px 0 rgba(255,255,255,.025) !important; }
+    .dashboard-meals-card { background: linear-gradient(145deg, rgba(249,115,22,.07), rgba(22,34,56,.94) 52%); border-color: rgba(249,115,22,.20) !important; }
+    .about-refresh {
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      background: linear-gradient(160deg, rgba(37,99,235,.10), rgba(22,34,56,.92) 48%, rgba(139,92,246,.08));
+      border-color: rgba(96,165,250,.24) !important;
+      box-shadow: 0 20px 50px -38px rgba(96,165,250,.65);
+    }
+    .about-code-badge {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 900 18px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #a5f3fc;
+      background: linear-gradient(145deg, rgba(6,182,212,.20), rgba(37,99,235,.20));
+      border: 1px solid rgba(103,232,249,.28);
+      box-shadow: 0 12px 30px -18px rgba(34,211,238,.8), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .about-developer-card {
+      background: rgba(9,13,22,.42);
+      border: 1px solid rgba(71,85,105,.48);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
     @media print {
       body {
         background-color: #ffffff !important;
@@ -293,7 +374,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v4.1.3</p>
+          <p id="print-app-version">Versión: v4.1.4</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -318,7 +399,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.3</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v4.1.4</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -379,8 +460,22 @@
       
       <!-- TAB 1: PANEL Y DIARIO -->
       <section id="tab-dashboard" class="tab-content space-y-4">
+
+        <div class="dashboard-overview rounded-3xl p-4">
+          <div class="flex items-center gap-3 relative z-10">
+            <div class="dashboard-overview-icon shrink-0">
+              <i data-lucide="heart-pulse" class="w-5 h-5 text-cyan-300"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">Resumen de hoy</p>
+              <h1 class="text-base font-black text-white leading-tight mt-0.5">Tu salud, de un vistazo</h1>
+              <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">Medicación, nutrición, hidratación y tendencias en un solo panel.</p>
+            </div>
+            <span class="text-[9px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 rounded-full px-2 py-1 whitespace-nowrap">GLP-1</span>
+          </div>
+        </div>
         
-        <div class="glass-panel rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
+        <div class="glass-panel dashboard-card dashboard-med-card rounded-2xl p-4 glow-emerald border border-emerald-500/25 relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10 mb-2.5">
             <div>
               <div class="flex items-center gap-1.5">
@@ -423,7 +518,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-balance-card rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Balance diario</span>
@@ -463,7 +558,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-nutrition-card rounded-2xl p-4 border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center">
@@ -495,7 +590,7 @@
           </div>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 space-y-3">
+        <div class="glass-panel dashboard-card dashboard-hydration-card rounded-2xl p-4 border border-cyan-500/25 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <div class="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center">
@@ -552,7 +647,7 @@
         </div>
 
         <!-- Resumen semanal automático -->
-        <div class="glass-panel rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-weekly-card rounded-2xl p-4 border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <span class="text-[10px] font-semibold text-violet-300 uppercase tracking-wide">Resumen semanal</span>
@@ -597,7 +692,7 @@
         </div>
 
         <!-- Insights personales avanzados -->
-        <div class="glass-panel rounded-2xl p-4 border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-insights-card rounded-2xl p-4 border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-[#162238] to-[#162238] space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <span class="text-[10px] font-semibold text-cyan-300 uppercase tracking-wide">Insights personales</span>
@@ -609,7 +704,7 @@
           <p class="text-[9px] text-slate-500 leading-relaxed">Las asociaciones se calculan únicamente con tus propios registros y no prueban causa ni sustituyen una evaluación médica.</p>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-3">
+        <div class="glass-panel dashboard-card dashboard-meals-card rounded-2xl p-4 border border-[#223455] space-y-3">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-sm font-bold text-white">Registro de alimentos</h3>
@@ -1242,17 +1337,24 @@
           </button>
         </div>
 
-        <div class="glass-panel rounded-2xl p-4 border border-[#223455] space-y-2">
-          <div class="flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4 text-cyan-300"></i>
-            <h3 class="text-sm font-bold text-white">Acerca de GLP-1 Companion</h3>
+        <div class="glass-panel about-refresh rounded-3xl p-5 border border-[#223455] space-y-3">
+          <div class="about-code-badge" aria-hidden="true">&lt;/&gt;</div>
+          <div>
+            <p class="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">GLP-1 Companion</p>
+            <h3 class="text-base font-black text-white mt-1">Acerca de GLP-1 Companion</h3>
+            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v4.1.4 · Progressive Web App</p>
           </div>
-          <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-3">
-            <p class="text-[11px] text-slate-400">Designed &amp; Developed by</p>
-            <p class="text-sm font-black text-cyan-300 mt-0.5">Roberto S. Macfie</p>
-            <a href="mailto:rmacfie@hotmail.com" class="inline-flex items-center gap-1.5 text-[11px] text-slate-300 hover:text-white mt-1">
-              <i data-lucide="mail" class="w-3.5 h-3.5"></i> rmacfie@hotmail.com
+          <div class="about-developer-card rounded-2xl p-4">
+            <p class="text-[10px] text-slate-400">Designed &amp; Developed by</p>
+            <p class="text-base font-black text-cyan-200 mt-1">Roberto S. Macfie</p>
+            <a href="mailto:rmacfie@hotmail.com" class="inline-flex items-center justify-center gap-1.5 text-[11px] text-slate-300 hover:text-white mt-2 transition-colors">
+              <i data-lucide="mail" class="w-3.5 h-3.5 text-cyan-300"></i> rmacfie@hotmail.com
             </a>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-[9px] font-bold">
+            <span class="px-2 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300">Bilingüe</span>
+            <span class="px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">PWA</span>
+            <span class="px-2 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300">Local + Cloud</span>
           </div>
           <p class="text-[9px] text-slate-500">© 2026 Roberto S. Macfie. Todos los derechos reservados.</p>
         </div>
@@ -1832,7 +1934,7 @@
       </div>
     </div>
 
-    <!-- v4.1.3 hotfix: legacy privacy-lock markup retained but never activated; Sign Out returns to local-only mode. -->
+    <!-- v4.1.4 hotfix: legacy privacy-lock markup retained but never activated; Sign Out returns to local-only mode. -->
     <div id="privacy-lock-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center bg-[#090d16]/98 backdrop-blur-md p-5">
       <div class="w-full max-w-sm rounded-3xl border border-cyan-500/30 bg-[#111a2e] p-6 text-center shadow-2xl">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center"><i data-lucide="lock-keyhole" class="w-7 h-7 text-cyan-300"></i></div>
@@ -1855,7 +1957,7 @@
     /* ==========================================================================
        VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
        ========================================================================== */
-    const APP_VERSION = "v4.1.3";
+    const APP_VERSION = "v4.1.4";
     const CLIENT_SCHEMA_VERSION = 13;
     const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
     const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -2107,13 +2209,17 @@
     }
 
     let swRegistration = null;
-    let swUserApprovedUpdate = false;
+    let swReloadRequested = false;
+    let swStartupInteraction = false;
+    const PWA_UPDATE_RELOAD_KEY = 'glp1_pwa_update_reload';
+    const PWA_VERSION_SEEN_KEY = 'glp1_pwa_version_seen';
+    const APP_BOOT_STARTED_AT = Date.now();
 
     function renderHardeningUiLanguage() {
       const en = isEnglish();
       const set = (id, text) => { const el=document.getElementById(id); if(el) el.textContent=text; };
-      set('pwa-update-title', en ? 'New version available' : 'Nueva versión disponible');
-      set('pwa-update-text', en ? 'Update when you have finished saving your changes.' : 'Actualiza cuando hayas terminado de guardar tus cambios.');
+      set('pwa-update-title', en ? 'Update ready' : 'Actualización lista');
+      set('pwa-update-text', en ? 'It will install automatically the next time the app opens safely, or you can update now.' : 'Se instalará automáticamente la próxima vez que la app abra de forma segura, o puedes actualizar ahora.');
       set('pwa-update-btn', en ? 'Update now' : 'Actualizar ahora');
       set('privacy-lock-title', en ? 'Data protected' : 'Datos protegidos');
       set('privacy-lock-text', en ? 'You signed out. Your local data is still saved on this device, but it is hidden to protect your privacy.' : 'Cerraste sesión. Tus datos locales siguen guardados en este dispositivo, pero están ocultos para proteger tu privacidad.');
@@ -2134,11 +2240,67 @@
       if (banner) banner.classList.add('hidden');
     }
 
-    function applyWaitingServiceWorker() {
+    function hasUnsafeUpdateUiState() {
+      const active=document.activeElement;
+      if (active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName)) return true;
+      const openModal=Array.from(document.querySelectorAll('[id^="modal-"]')).some(el => !el.classList.contains('hidden'));
+      return openModal;
+    }
+
+    function canAutoApplyWaitingUpdate() {
+      const startupWindow=(Date.now()-APP_BOOT_STARTED_AT) <= 12000;
+      return startupWindow
+        && !swStartupInteraction
+        && document.visibilityState === 'visible'
+        && !hasUnsafeUpdateUiState();
+    }
+
+    function activateWaitingServiceWorker(automatic=false) {
       const waiting=swRegistration && swRegistration.waiting;
-      if (!waiting) { hidePwaUpdateBanner(); return; }
-      swUserApprovedUpdate = true;
+      if (!waiting) { hidePwaUpdateBanner(); return false; }
+      try {
+        localStorage.setItem(PWA_UPDATE_RELOAD_KEY, JSON.stringify({
+          fromVersion: APP_VERSION,
+          automatic: Boolean(automatic),
+          requestedAt: Date.now()
+        }));
+      } catch (_) {}
+      swReloadRequested = true;
+      hidePwaUpdateBanner();
       waiting.postMessage({ type:'SKIP_WAITING' });
+      return true;
+    }
+
+    function applyWaitingServiceWorker() {
+      activateWaitingServiceWorker(false);
+    }
+
+    function handleWaitingServiceWorker(registration) {
+      if (registration) swRegistration = registration;
+      if (!swRegistration || !swRegistration.waiting) return;
+      if (canAutoApplyWaitingUpdate()) {
+        // Give startup rendering a moment to settle, then re-check safety before activating.
+        setTimeout(() => {
+          if (!swRegistration || !swRegistration.waiting) return;
+          if (canAutoApplyWaitingUpdate()) activateWaitingServiceWorker(true);
+          else showPwaUpdateBanner(swRegistration);
+        }, 350);
+      } else {
+        showPwaUpdateBanner(swRegistration);
+      }
+    }
+
+    function showCompletedPwaUpdateToastIfNeeded() {
+      let pending=null;
+      try { pending=JSON.parse(localStorage.getItem(PWA_UPDATE_RELOAD_KEY)||'null'); } catch (_) {}
+      let seen='';
+      try { seen=localStorage.getItem(PWA_VERSION_SEEN_KEY)||''; } catch (_) {}
+      try { localStorage.setItem(PWA_VERSION_SEEN_KEY, APP_VERSION); } catch (_) {}
+      if (!pending || pending.fromVersion === APP_VERSION) return;
+      try { localStorage.removeItem(PWA_UPDATE_RELOAD_KEY); } catch (_) {}
+      setTimeout(() => {
+        showToast(isEnglish() ? `App updated successfully to ${APP_VERSION}.` : `App actualizada correctamente a ${APP_VERSION}.`, 4200);
+      }, 650);
     }
 
     function setPrivacyLock(uid) {
@@ -2149,8 +2311,7 @@
     }
     function clearPrivacyLock() { try { localStorage.removeItem(PRIVACY_LOCK_KEY); } catch (_) {} }
     function renderPrivacyLock() {
-      // v4.1.3 hotfix: Sign Out must leave the app usable in local-only mode.
-      // Clear any v4.1.2 lock left on this device and keep the legacy overlay hidden.
+      // v4.1.3+ hotfix behavior: Sign Out leaves the app usable in local-only mode.
       clearPrivacyLock();
       const overlay=document.getElementById('privacy-lock-overlay');
       if(!overlay)return;
@@ -2158,24 +2319,28 @@
       overlay.classList.remove('flex');
     }
 
+    ['pointerdown','keydown','input','change','touchstart'].forEach(type => {
+      window.addEventListener(type, () => { swStartupInteraction = true; }, { once:true, passive:true });
+    });
+
     if ('serviceWorker' in navigator) {
       let swReloading = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // A controller change is only allowed to reload this page after the user
-        // explicitly accepted the update. First-install controller changes stay quiet.
-        if (!swUserApprovedUpdate || swReloading) return;
+        if (!swReloadRequested || swReloading) return;
         swReloading = true;
         window.location.reload();
       });
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
           swRegistration = reg;
-          if (reg.waiting && navigator.serviceWorker.controller) showPwaUpdateBanner(reg);
+          if (reg.waiting && navigator.serviceWorker.controller) handleWaitingServiceWorker(reg);
+          // Ask the browser to check now so an update is discovered during app startup.
+          reg.update().catch(() => {});
           reg.addEventListener('updatefound', () => {
             const worker=reg.installing;
             if(!worker)return;
             worker.addEventListener('statechange', () => {
-              if(worker.state==='installed' && navigator.serviceWorker.controller) showPwaUpdateBanner(reg);
+              if(worker.state==='installed' && navigator.serviceWorker.controller) handleWaitingServiceWorker(reg);
             });
           });
         }).catch(err => console.warn("SW error:", err));
@@ -2343,6 +2508,10 @@
       "Importar JSON": "Import JSON",
       "Reiniciar todos los datos": "Reset all data",
       "Panel y diario": "Dashboard & daily log",
+      "Resumen de hoy": "Today’s overview",
+      "Tu salud, de un vistazo": "Your health at a glance",
+      "Medicación, nutrición, hidratación y tendencias en un solo panel.": "Medication, nutrition, hydration, and trends in one dashboard.",
+      "Bilingüe": "Bilingual",
       "Mounjaro y salud": "Medication & health",
       "Progreso y herramientas": "Progress & tools",
       "Analizador de comidas con IA": "AI meal analyzer",
@@ -2418,7 +2587,7 @@
       "Notificación": "Notification",
       "4 unidades": "4 units",
       "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-      "Versión: v4.1.3": "Version: v4.1.3",
+      "Versión: v4.1.4": "Version: v4.1.4",
       "Acerca de GLP-1 Companion": "About GLP-1 Companion",
       "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
       "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",
@@ -7499,7 +7668,12 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
       updateDateBadge();
       renderAiStatus();
       applyStaticTranslations();
+      const versionBadge=document.getElementById('app-version-badge');
+      if(versionBadge)versionBadge.textContent=APP_VERSION;
+      const aboutVersion=document.getElementById('about-app-version');
+      if(aboutVersion)aboutVersion.textContent=`${APP_VERSION} · Progressive Web App`;
       lucide.createIcons();
+      showCompletedPwaUpdateToastIfNeeded();
     });
   </script>
 </body>
