@@ -56,7 +56,7 @@ jobs:
           node --version
           npm --version
 
-      - name: Verify v5.3.0 source before install
+      - name: Verify v5.4.0 source before install
         shell: bash
         run: |
           set -euo pipefail
@@ -66,7 +66,9 @@ jobs:
           grep -Fq "v5.3.0-cache1" src/runtime/10-ai-phase2.ts
           grep -Fq "function renderAiHistoryView" src/runtime/10-ai-phase2.ts
           grep -Fq "function tryUseAiHistoryCache" src/runtime/10-ai-phase2.ts
-          echo "v5.3.0 source verified on proven 10-runtime architecture."
+          grep -Fq "function renderProgressTimelineView" src/runtime/10-ai-phase2.ts
+          grep -Fq "function explainProgressComparison" src/runtime/10-ai-phase2.ts
+          echo "v5.4.0 source verified on proven 10-runtime architecture."
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
@@ -74,10 +76,10 @@ jobs:
       - name: TypeScript strict validation
         run: npm run typecheck
 
-      - name: Build and validate v5.3.0 with Vite
+      - name: Build and validate v5.4.0 with Vite
         run: npm run build
 
-      - name: Final v5.3.0 deployment guard
+      - name: Final v5.4.0 deployment guard
         shell: bash
         run: |
           set -euo pipefail
@@ -102,22 +104,22 @@ jobs:
           require_file dist/runtime/10-ai-phase2.js
 
           if [ -e dist/runtime/11-ai-history-cache.js ]; then
-            echo "::error::Unexpected runtime 11 detected. v5.3.0 must use the proven 10-runtime architecture."
+            echo "::error::Unexpected runtime 11 detected. v5.4.0 must use the proven 10-runtime architecture."
             exit 1
           fi
 
-          if ! grep -q 'v5.3.0' dist/index.html; then
-            echo "::error::dist/index.html does not identify v5.3.0"
+          if ! grep -q 'v5.4.0' dist/index.html; then
+            echo "::error::dist/index.html does not identify v5.4.0"
             exit 1
           fi
-          echo "OK: index.html identifies v5.3.0"
+          echo "OK: index.html identifies v5.4.0"
 
-          if ! grep -q 'v5.3.0-pwa' dist/sw.js; then
-            echo "::error::dist/sw.js does not contain BUILD_ID v5.3.0-pwa"
+          if ! grep -q 'v5.4.0-pwa' dist/sw.js; then
+            echo "::error::dist/sw.js does not contain BUILD_ID v5.4.0-pwa"
             grep -n 'BUILD_ID' dist/sw.js || true
             exit 1
           fi
-          echo "OK: service worker is v5.3.0-pwa"
+          echo "OK: service worker is v5.4.0-pwa"
 
           for marker in \
             'v5.3.0-cache1' \
@@ -126,7 +128,11 @@ jobs:
             'function saveAiHistoryReport' \
             'function renderAiHistoryView' \
             'function openAiHistoryRecord' \
-            'function forceRegenerateAiReport'; do
+            'function forceRegenerateAiReport' \
+            'function renderProgressTimelineView' \
+            'function renderProgressComparisonPreview' \
+            'function explainProgressComparison' \
+            "tryUseAiHistoryCache('progress-comparison'"; do
             if ! grep -Fq "$marker" dist/runtime/10-ai-phase2.js; then
               echo "::error::AI History marker missing from production runtime 10: $marker"
               exit 1
@@ -137,14 +143,14 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const m = JSON.parse(fs.readFileSync('dist/manifest.webmanifest', 'utf8'));
-          if (m.version !== '5.3.0') {
+          if (m.version !== '5.4.0') {
             console.error(`::error::Unexpected manifest version: ${m.version}`);
             process.exit(1);
           }
           console.log(`OK: manifest version ${m.version}`);
           NODE
 
-          echo "GLP-1 Companion v5.3.0 AI History & Smart Cache production build verified."
+          echo "GLP-1 Companion v5.4.0 AI Timeline & Progress Comparison production build verified."
           find dist -maxdepth 2 -type f | sort
 
       - name: Configure GitHub Pages
