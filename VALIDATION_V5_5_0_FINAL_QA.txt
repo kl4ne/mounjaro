@@ -1,0 +1,40 @@
+GLP-1 Companion v5.5.0 — FINAL QA REPORT
+
+SCOPE
+- Base: stable v5.4.0 AI Timeline & Progress Comparison FINAL QA ZIP.
+- Existing 10-module runtime, AI History, Timeline, Progress Comparison and Smart Cache retained.
+- TypeScript-only runtime and Service Worker source architecture implemented.
+- AI Usage Analytics implemented with backward-compatible schema migration.
+
+VALIDATION COMPLETED
+- Source verifier: PASS (19 TypeScript source files, 10 runtime modules).
+- Generated JavaScript absent from clean source: PASS.
+- TypeScript strict core: PASS.
+- TypeScript strict runtime: PASS.
+- TypeScript strict Service Worker: PASS.
+- TypeScript strict tooling: PASS.
+- Runtime emit from TypeScript: PASS.
+- Service Worker emit from TypeScript: PASS.
+- Vite 8 production build: PASS (1,885 modules transformed).
+- Production dist verifier: PASS (19 files, 10 runtime modules).
+- Generated JavaScript syntax: PASS (12 production JavaScript files checked).
+- HTML IDs: PASS (unique; checked by source verifier).
+- Inline handlers: PASS (all resolved; checked by source verifier).
+- deploy.yml YAML parse: PASS (build and deploy jobs).
+- PWA cache/version guard: PASS (v5.5.0-pwa; stable runtime filenames use network-first).
+- Firebase merge/restore paths retain aiTelemetry and aiHistory: PASS by source inspection and strict compilation.
+- Smart Cache compatibility marker v5.3.0-cache1 retained: PASS.
+- GitHub Actions runner: ubuntu-24.04.
+- Node.js: 24.
+- Node 24-compatible Actions: checkout v7, setup-node v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5.
+- Final ZIP re-extraction and source verification: PASS.
+- Final ZIP forbidden-content check: PASS (no node_modules, dist, public/runtime or public/sw.js).
+- deploy.yml inside ZIP matches the separately delivered deploy.yml: PASS (SHA-256 equality).
+
+BUILD NOTE
+- The full TypeScript and Vite build was executed locally and passed.
+- Vite reported a non-fatal bundle-size warning for assets/main.js; output and deployment verification passed.
+
+DEPLOYMENT METHOD
+CLEAN / LIMPIAR PRIMERO.
+The v5.5.0 source intentionally omits public/runtime/*.js and public/sw.js. Overlaying it would leave obsolete generated files in GitHub. Clear the code files first, upload the complete ZIP, then replace deploy.yml with the separate supplied copy.
