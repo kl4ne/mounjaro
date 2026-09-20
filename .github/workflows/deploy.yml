@@ -33,6 +33,11 @@ jobs:
           node --version
           npm --version
 
+      - name: Show deployment source
+        run: |
+          echo "Commit being deployed:"
+          git rev-parse HEAD
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
@@ -46,8 +51,33 @@ jobs:
         run: |
           test -d dist
           test -f dist/index.html
-          echo "Vite dist verified successfully"
-          find dist -maxdepth 2 -type f | sort
+          test -f dist/sw.js
+          test -f dist/manifest.webmanifest
+          test -f dist/runtime/09-ai-intelligence.js
+
+          echo "Core v5.1.0 production files exist."
+
+      - name: Verify GLP-1 Companion v5.1.0
+        run: |
+          echo "Checking v5.1.0 deployment..."
+
+          if ! grep -q "v5.1.0-pwa" dist/sw.js; then
+            echo "ERROR: dist/sw.js is not v5.1.0-pwa"
+            cat dist/sw.js | head -30
+            exit 1
+          fi
+
+          if ! grep -q "09-ai-intelligence.js" dist/sw.js; then
+            echo "ERROR: sw.js does not precache AI intelligence runtime."
+            exit 1
+          fi
+
+          if grep -q "v5.0.1-pwa" dist/sw.js; then
+            echo "ERROR: old v5.0.1 service worker detected."
+            exit 1
+          fi
+
+          echo "v5.1.0 Service Worker verified successfully."
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
