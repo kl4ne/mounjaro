@@ -56,28 +56,63 @@ jobs:
           node --version
           npm --version
 
-      - name: Verify v5.1.0 source before install
+      - name: Verify v5.2.0 source before install
         run: node scripts/verify-source.mjs
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build and validate with Vite
+      - name: Build and validate v5.2.0 with Vite
         run: npm run build
 
-      - name: Final v5.1.0 deployment guard
+      - name: Final v5.2.0 deployment guard
         shell: bash
         run: |
           set -euo pipefail
-          test -d dist
-          test -f dist/index.html
-          test -f dist/sw.js
-          test -f dist/manifest.webmanifest
-          test -f dist/runtime/09-ai-intelligence.js
-          grep -q 'v5.1.0' dist/index.html
-          grep -q "v5.1.0-pwa" dist/sw.js
-          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('dist/manifest.webmanifest','utf8')); if(m.version!=='5.1.0') { console.error('Unexpected manifest version:',m.version); process.exit(1); } console.log('Manifest version:',m.version);"
-          echo "GLP-1 Companion v5.1.0 production build verified."
+
+          require_file() {
+            if [ ! -f "$1" ]; then
+              echo "::error::Missing production file: $1"
+              exit 1
+            fi
+            echo "OK: $1"
+          }
+
+          if [ ! -d dist ]; then
+            echo "::error::Missing dist directory"
+            exit 1
+          fi
+
+          require_file dist/index.html
+          require_file dist/sw.js
+          require_file dist/manifest.webmanifest
+          require_file dist/runtime/09-ai-intelligence.js
+          require_file dist/runtime/10-ai-phase2.js
+
+          if ! grep -q 'v5.2.0' dist/index.html; then
+            echo "::error::dist/index.html does not identify v5.2.0"
+            exit 1
+          fi
+          echo "OK: index.html identifies v5.2.0"
+
+          if ! grep -q 'v5.2.0-pwa' dist/sw.js; then
+            echo "::error::dist/sw.js does not contain BUILD_ID v5.2.0-pwa"
+            grep -n 'BUILD_ID' dist/sw.js || true
+            exit 1
+          fi
+          echo "OK: service worker is v5.2.0-pwa"
+
+          node <<'NODE'
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('dist/manifest.webmanifest', 'utf8'));
+          if (m.version !== '5.2.0') {
+            console.error(`::error::Unexpected manifest version: ${m.version}`);
+            process.exit(1);
+          }
+          console.log(`OK: manifest version ${m.version}`);
+          NODE
+
+          echo "GLP-1 Companion v5.2.0 AI Phase 2 production build verified."
           find dist -maxdepth 2 -type f | sort
 
       - name: Configure GitHub Pages
