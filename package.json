@@ -16,11 +16,14 @@
     "build": "npm run verify:source && npm run typecheck && npm run build:generated && vite build && npm run verify:dist",
     "preview": "vite preview",
     "verify:dist": "node scripts/verify-dist.mjs",
+    "typecheck:offline:core": "tsc -p tsconfig.offline.core.json --noEmit",
+    "typecheck:offline:tools": "tsc -p tsconfig.offline.tools.json --noEmit",
+    "typecheck:offline": "npm run typecheck:offline:core && npm run typecheck:runtime && npm run typecheck:sw && npm run typecheck:offline:tools",
     "verify:source": "node scripts/verify-source.mjs"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.1.10",
-    "tailwindcss": "4.1.10",
+    "@tailwindcss/vite": "4.3.3",
+    "tailwindcss": "4.3.3",
     "typescript": "5.8.3",
     "vite": "8.0.0"
   },
