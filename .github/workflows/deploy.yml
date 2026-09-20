@@ -57,10 +57,26 @@ jobs:
           npm --version
 
       - name: Verify v5.3.0 source before install
-        run: node scripts/verify-source.mjs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-source.mjs
+          test -f src/runtime/11-ai-history-cache.ts
+          test -f scripts/build-runtime.mjs
+          test -f scripts/verify-generated.mjs
+          grep -Fq 'src/runtime/**/*.ts' tsconfig.runtime.emit.json
+          grep -Fq 'node scripts/build-runtime.mjs' package.json
+          grep -Fq '11-ai-history-cache.js' scripts/verify-dist.mjs
+          echo "v5.3.0 source/build configuration verified before install."
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Generate and verify all 11 runtime modules
+        run: |
+          npm run build:generated
+          test -f public/runtime/11-ai-history-cache.js
+          echo "OK: public/runtime/11-ai-history-cache.js generated before Vite build"
 
       - name: Build and validate v5.3.0 with Vite
         run: npm run build
