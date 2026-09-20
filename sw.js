@@ -2,7 +2,7 @@
  * GLP-1 Companion v5.0 production service worker.
  * Custom SW retained intentionally for predictable GitHub Pages behavior.
  */
-const BUILD_ID = 'v5.0.0-pwa';
+const BUILD_ID = 'v5.0.1-pwa';
 const CACHE_PREFIX = 'glp1-v5-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${BUILD_ID}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${BUILD_ID}`;
