@@ -1,8 +1,9 @@
 /**
- * GLP-1 Companion v5.0 production service worker.
+ * GLP-1 Companion v5.1.0 production service worker.
  * Custom SW retained intentionally for predictable GitHub Pages behavior.
  */
-const BUILD_ID = 'v5.0.1-pwa';
+
+const BUILD_ID = 'v5.1.0-pwa';
 const CACHE_PREFIX = 'glp1-v5-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${BUILD_ID}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${BUILD_ID}`;
@@ -27,6 +28,7 @@ const CORE_ASSETS = [
   './runtime/06-injections-symptoms.js',
   './runtime/07-tools-reports-backups.js',
   './runtime/08-lifecycle-bootstrap.js',
+  './runtime/09-ai-intelligence.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -39,60 +41,105 @@ self.addEventListener('install', (event) => {
 self.addEventListener('message', (event) => {
   const data = event.data || {};
 
-  if (data.type === 'ACTIVATE_UPDATE' || data.type === 'SKIP_WAITING' || data.action === 'skipWaiting') {
+  if (
+    data.type === 'ACTIVATE_UPDATE' ||
+    data.type === 'SKIP_WAITING' ||
+    data.action === 'skipWaiting'
+  ) {
     self.skipWaiting();
     return;
   }
 
   if (data.type === 'GET_BUILD_INFO') {
-    const reply = { type: 'BUILD_INFO', buildId: BUILD_ID };
-    if (event.ports && event.ports[0]) event.ports[0].postMessage(reply);
-    else if (event.source) event.source.postMessage(reply);
+    const reply = {
+      type: 'BUILD_INFO',
+      buildId: BUILD_ID
+    };
+
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage(reply);
+    } else if (event.source) {
+      event.source.postMessage(reply);
+    }
   }
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(
-      keys
-        .filter((key) => (key.startsWith('glp1-cache-') || key.startsWith(CACHE_PREFIX))
-          && key !== SHELL_CACHE
-          && key !== RUNTIME_CACHE)
-        .map((key) => caches.delete(key))
-    );
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+
+      await Promise.all(
+        keys
+          .filter(
+            (key) =>
+              (
+                key.startsWith('glp1-cache-') ||
+                key.startsWith(CACHE_PREFIX)
+              ) &&
+              key !== SHELL_CACHE &&
+              key !== RUNTIME_CACHE
+          )
+          .map((key) => caches.delete(key))
+      );
+
+      await self.clients.claim();
+    })()
+  );
 });
 
-async function networkFirst(request, cacheName, fallbackRequest = null) {
+async function networkFirst(
+  request,
+  cacheName,
+  fallbackRequest = null
+) {
   const cache = await caches.open(cacheName);
+
   try {
-    const response = await fetch(request, { cache: 'no-store' });
-    if (response && (response.ok || response.type === 'opaque')) {
+    const response = await fetch(request, {
+      cache: 'no-store'
+    });
+
+    if (
+      response &&
+      (response.ok || response.type === 'opaque')
+    ) {
       cache.put(request, response.clone()).catch(() => {});
     }
+
     return response;
   } catch (_) {
-    return (await cache.match(request))
-      || (fallbackRequest ? await caches.match(fallbackRequest) : undefined)
-      || Response.error();
+    return (
+      (await cache.match(request)) ||
+      (fallbackRequest
+        ? await caches.match(fallbackRequest)
+        : undefined) ||
+      Response.error()
+    );
   }
 }
 
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
+
   if (cached) return cached;
+
   const response = await fetch(request);
-  if (response && (response.ok || response.type === 'opaque')) {
+
+  if (
+    response &&
+    (response.ok || response.type === 'opaque')
+  ) {
     cache.put(request, response.clone()).catch(() => {});
   }
+
   return response;
 }
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
+
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
@@ -100,27 +147,52 @@ self.addEventListener('fetch', (event) => {
 
   // HTML navigation must prefer the network so a newly deployed build is seen.
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, SHELL_CACHE, './index.html'));
+    event.respondWith(
+      networkFirst(
+        request,
+        SHELL_CACHE,
+        './index.html'
+      )
+    );
     return;
   }
 
-  // Never intercept API/data traffic. Firebase/AI requests keep their native path.
-  const staticDestination = ['script', 'style', 'font', 'image', 'manifest'].includes(request.destination);
+  // Never intercept API/data traffic.
+  // Firebase/AI requests keep their native path.
+  const staticDestination = [
+    'script',
+    'style',
+    'font',
+    'image',
+    'manifest'
+  ].includes(request.destination);
+
   if (!staticDestination) return;
 
   if (sameOrigin) {
-    // Important for v5: runtime/*.js uses stable filenames. Network-first prevents
-    // a new index from accidentally executing an older cached runtime module.
-    if (['script', 'style', 'manifest'].includes(request.destination)) {
-      event.respondWith(networkFirst(request, RUNTIME_CACHE));
+    // Runtime JS uses stable filenames.
+    // Network-first prevents an old cached runtime module
+    // from being executed after a new deployment.
+    if (
+      ['script', 'style', 'manifest'].includes(
+        request.destination
+      )
+    ) {
+      event.respondWith(
+        networkFirst(request, RUNTIME_CACHE)
+      );
       return;
     }
 
-    // Versioned images/fonts are safe to serve cache-first for fast offline startup.
-    event.respondWith(cacheFirst(request, RUNTIME_CACHE));
+    // Images/fonts are safe cache-first.
+    event.respondWith(
+      cacheFirst(request, RUNTIME_CACHE)
+    );
     return;
   }
 
-  // External static libraries (Chart.js/Lucide during migration) remain available offline.
-  event.respondWith(cacheFirst(request, RUNTIME_CACHE));
+  // External static libraries remain available offline.
+  event.respondWith(
+    cacheFirst(request, RUNTIME_CACHE)
+  );
 });
