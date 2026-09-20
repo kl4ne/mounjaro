@@ -1,50 +1,24 @@
-GLP-1 Companion v5.3.0 — AI History & Smart Cache FINAL QA
-============================================================
+GLP-1 Companion v5.4.0 — AI Timeline & Progress Comparison
 
-BASELINE
---------
-This release was rebuilt from the last known-good v5.2.0 Phase 2 CLEAN CORRECTED package.
-It intentionally keeps the proven 10-runtime-module architecture. AI History & Smart Cache
-is integrated into the existing runtime/10-ai-phase2 module so GitHub web uploads only need
-to replace existing runtime source files instead of adding a new nested runtime module.
+UPLOAD METHOD
+1) This is an additive update over the stable v5.3.0 repository. No full cleanup is required unless GitHub contains stale/mixed files.
+2) Upload all ZIP contents to the repository root and replace existing files.
+3) Because .github may be hidden on Windows, replace .github/workflows/deploy.yml manually using the separately supplied deploy.yml.
+4) Commit to main.
+5) Do not consider v5.4.0 deployed until BOTH build and deploy jobs are green.
 
-UPLOAD STEPS
-------------
-1) Extract the ZIP on your computer.
-2) Upload ALL package contents to the root of the existing clean GitHub repository.
-3) Do NOT recreate legacy root folders: assets/, icons/, runtime/, sw.js, manifest.webmanifest.
-4) Windows may hide .github because its name begins with a dot.
-5) ALWAYS replace .github/workflows/deploy.yml manually with the separate deploy.yml supplied
-   with this release. This is now part of the normal release procedure.
-6) In GitHub, open .github/workflows/deploy.yml and confirm these exact step names:
+WHAT v5.4.0 ADDS
+- AI Timeline built from saved AI History reports.
+- Deterministic comparison between two saved reports with the same range length.
+- What Changed Since My Last Check-In summary using the two latest Weekly AI Check-Ins.
+- Optional bilingual AI explanation that uses only app-calculated deltas.
+- Smart Cache + History for Progress Comparison reports.
+- Reopen, favorite, delete, filter and print progress comparisons.
+- Existing v5.3.0 Smart Cache fingerprints remain compatible to avoid wasting tokens.
 
-   Verify v5.3.0 source before install
-   TypeScript strict validation
-   Build and validate v5.3.0 with Vite
-   Final v5.3.0 deployment guard
-
-7) Commit to main. GitHub Actions should start automatically.
-8) Do not consider v5.3.0 deployed until BOTH build and deploy jobs are green.
-
-WHAT v5.3.0 ADDS
-----------------
-- AI History for Ask My Data, Weekly AI Check-In, AI Pattern Finder and Prepare My Visit.
-- Bilingual history storage (Spanish + English) from the original AI response.
-- Smart Cache using a deterministic data/request fingerprint.
-- Reuse of an identical saved report without spending AI tokens again.
-- Generate New option to intentionally bypass cache once.
-- Favorites / pin behavior.
-- Filters by report type, date and favorites.
-- Open and delete saved reports.
-- Reopen and reprint saved Prepare My Visit reports.
-- Firebase synchronization through the existing app-state sync model.
-- Backup/restore support for AI History.
-- Schema version 14 and min client v5.3.0 to prevent older clients from overwriting history.
-
-RELEASE ARCHITECTURE
---------------------
-Source runtime modules: 10
-AI History location: src/runtime/10-ai-phase2.ts
-Production history code: dist/runtime/10-ai-phase2.js
-Service worker: v5.3.0-pwa
-App/schema: v5.3.0 / schema 14
+TECHNICAL
+App: v5.4.0
+Schema: 14 (unchanged)
+Minimum supported client: v5.4.0
+Service worker: v5.4.0-pwa
+Runtime architecture: proven 10-module layout; v5.4.0 stays inside runtime 10.

@@ -142,7 +142,7 @@ function sanitizeAiTelemetry(input: unknown): RuntimeAiTelemetry {
 }
 function sanitizeAiHistory(input: unknown): RuntimeAiHistoryRecord[] {
     if (!Array.isArray(input)) return [];
-    const allowedTypes = new Set<RuntimeAiReportType>(['ask-data', 'weekly-checkin', 'pattern-finder', 'visit-prep']);
+    const allowedTypes = new Set<RuntimeAiReportType>(['ask-data', 'weekly-checkin', 'pattern-finder', 'visit-prep', 'progress-comparison']);
     const out: RuntimeAiHistoryRecord[] = [];
     input.forEach((raw) => {
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return;
@@ -1163,7 +1163,7 @@ function applyCloudDataMerge(cloud: RuntimeCloudDocument, options: { skipCloudWr
     }
     // v4.0.5 AI telemetry: per-device monotonic counters prevent cross-device increments from being lost.
     state.aiTelemetry = mergeAiTelemetry(state.aiTelemetry, cloud.aiTelemetry);
-    // v5.3.0 AI history: merge immutable report records by stable ID and updatedAt.
+    // v5.4.0 AI history: merge immutable report records by stable ID and updatedAt.
     // Favorites/deletes update the record timestamp, so the newest cross-device state wins.
     state.aiHistory = mergeAiHistory(state.aiHistory, cloud.aiHistory);
     // v4.1.2 inventory ledger: merge per-event IDs so two offline devices can

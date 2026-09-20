@@ -1,6 +1,6 @@
 "use strict";
 /**
- * GLP-1 Companion v5.3.0 — AI Intelligence Phase 1
+ * GLP-1 Companion v5.4.0 — AI Intelligence Phase 1 (retained)
  * Ask My Data + Weekly AI Check-In.
  *
  * Numeric summaries are calculated locally first. Firebase AI Logic receives a

@@ -1,5 +1,5 @@
 /**
- * GLP-1 Companion v5.3.0 PWA update manager.
+ * GLP-1 Companion v5.4.0 PWA update manager.
  *
  * Goals:
  * - A waiting update discovered during a fresh app launch installs automatically.

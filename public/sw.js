@@ -1,11 +1,11 @@
 "use strict";
 /// <reference lib="webworker" />
 /**
- * GLP-1 Companion v5.3.0 service worker source.
+ * GLP-1 Companion v5.4.0 service worker source.
  * Compiled to public/sw.js before the Vite build.
  */
 const sw = self;
-const BUILD_ID = 'v5.3.0-pwa';
+const BUILD_ID = 'v5.4.0-pwa';
 const CACHE_PREFIX = 'glp1-v5-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${BUILD_ID}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${BUILD_ID}`;

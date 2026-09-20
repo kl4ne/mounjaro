@@ -1,6 +1,6 @@
 "use strict";
 /**
- * GLP-1 Companion v5.3.0 — AI Intelligence Phase 2
+ * GLP-1 Companion v5.4.0 — AI Intelligence Phase 2
  * AI Pattern Finder + Prepare My Visit.
  *
  * Phase 2 preserves the Phase 1 rule: the app calculates the evidence first,
@@ -11,6 +11,8 @@ let lastPatternFinderResult = null;
 let lastPatternFinderContext = null;
 let lastVisitPrepResult = null;
 let lastVisitPrepContext = null;
+let lastProgressComparisonResult = null;
+let lastProgressComparisonContext = null;
 function phase2HasSymptoms(day) {
     return Object.keys(day.symptoms || {}).some((key) => key !== 'hunger');
 }
@@ -236,6 +238,8 @@ function renderAiPhase2View() {
     renderPatternFinderResult();
     renderVisitPrepResult();
     lucide.createIcons();
+    renderProgressTimelineView();
+    renderProgressComparisonResult();
 }
 async function findAiPatterns() {
     if (typeof window.firebaseAiPatternFinder !== 'function') {
@@ -401,7 +405,7 @@ function buildAiHistorySnapshot(context) {
     const snapshot = {};
     const keep = [
         'generatedAt', 'range', 'displayUnits', 'activeMedication', 'goals',
-        'summary', 'coverage', 'currentWeek', 'previousWeek', 'candidates'
+        'summary', 'coverage', 'currentWeek', 'previousWeek', 'candidates', 'comparison'
     ];
     keep.forEach((key) => {
         if (source[key] !== undefined)
@@ -485,6 +489,7 @@ function saveAiHistoryReport(input) {
     state.aiHistory = [record, ...state.aiHistory];
     persistState({ userMutation: true, skipLocalSafetyBackup: true });
     renderAiHistoryView();
+    renderProgressTimelineView();
     return record;
 }
 function aiHistoryTypeLabel(type) {
@@ -494,7 +499,9 @@ function aiHistoryTypeLabel(type) {
         return 'Weekly AI Check-In';
     if (type === 'pattern-finder')
         return 'AI Pattern Finder';
-    return uiText('Prepara tu visita', 'Prepare My Visit');
+    if (type === 'visit-prep')
+        return uiText('Prepara tu visita', 'Prepare My Visit');
+    return uiText('Comparación de progreso', 'Progress Comparison');
 }
 function aiHistoryTypeIcon(type) {
     if (type === 'ask-data')
@@ -503,7 +510,9 @@ function aiHistoryTypeIcon(type) {
         return 'calendar-heart';
     if (type === 'pattern-finder')
         return 'scan-search';
-    return 'clipboard-plus';
+    if (type === 'visit-prep')
+        return 'clipboard-plus';
+    return 'arrow-left-right';
 }
 function aiHistoryPreview(record) {
     const r = record.result;
@@ -541,12 +550,12 @@ function renderAiHistoryView() {
     const favorites = document.getElementById('ai-history-favorites');
     const favoritesLabel = document.getElementById('ai-history-favorites-label');
     const clearDate = document.getElementById('ai-history-clear-date-text');
-    ['ask-data-history-text', 'weekly-ai-history-text', 'pattern-ai-history-text', 'visit-ai-history-text'].forEach((id) => {
+    ['ask-data-history-text', 'weekly-ai-history-text', 'pattern-ai-history-text', 'visit-ai-history-text', 'progress-ai-history-text'].forEach((id) => {
         const el = document.getElementById(id);
         if (el)
             el.innerText = uiText('Ver historial', 'View history');
     });
-    ['ask-data-regenerate-text', 'weekly-ai-regenerate-text', 'pattern-ai-regenerate-text', 'visit-ai-regenerate-text'].forEach((id) => {
+    ['ask-data-regenerate-text', 'weekly-ai-regenerate-text', 'pattern-ai-regenerate-text', 'visit-ai-regenerate-text', 'progress-ai-regenerate-text'].forEach((id) => {
         const el = document.getElementById(id);
         if (el)
             el.innerText = uiText('Generar nuevo', 'Generate new');
@@ -567,7 +576,8 @@ function renderAiHistoryView() {
             'ask-data': uiText('Pregúntale a tus datos', 'Ask My Data'),
             'weekly-checkin': 'Weekly AI Check-In',
             'pattern-finder': 'AI Pattern Finder',
-            'visit-prep': uiText('Prepara tu visita', 'Prepare My Visit')
+            'visit-prep': uiText('Prepara tu visita', 'Prepare My Visit'),
+            'progress-comparison': uiText('Comparación de progreso', 'Progress Comparison')
         };
         Array.from(filter.options).forEach((option) => { option.text = labels[option.value] || option.text; });
     }
@@ -612,6 +622,279 @@ function renderAiHistoryView() {
         </div>`;
     }).join('');
     lucide.createIcons();
+}
+function progressHistorySources() {
+    ensureV4State();
+    return state.aiHistory
+        .filter((record) => !record.deletedAt && record.type !== 'progress-comparison')
+        .sort((a, b) => b.createdAt - a.createdAt);
+}
+function progressSummaryForRecord(record) {
+    const snapshot = record.snapshot || {};
+    if (snapshot.summary && typeof snapshot.summary === 'object' && !Array.isArray(snapshot.summary)) {
+        return snapshot.summary;
+    }
+    if (snapshot.currentWeek && typeof snapshot.currentWeek === 'object' && !Array.isArray(snapshot.currentWeek)) {
+        const week = snapshot.currentWeek;
+        return {
+            avgWater: week.avgWater,
+            avgProteinG: week.avgProteinG,
+            weightChange: week.weightChange,
+            symptomDays: week.symptomDays,
+            trackedDays: week.trackedDays,
+            doseEntries: week.doseCount
+        };
+    }
+    return {};
+}
+function progressNumber(value) {
+    if (value === null || value === undefined || value === '')
+        return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
+function progressMetricDeltas(older, newer) {
+    const oldSummary = progressSummaryForRecord(older);
+    const newSummary = progressSummaryForRecord(newer);
+    const units = newer.snapshot?.displayUnits && typeof newer.snapshot.displayUnits === 'object' && !Array.isArray(newer.snapshot.displayUnits)
+        ? newer.snapshot.displayUnits : {};
+    const defs = [
+        ['weightChange', 'Cambio de peso', 'Weight change', String(units.weight || '')],
+        ['avgWater', 'Agua promedio', 'Average water', String(units.water || '')],
+        ['avgProteinG', 'Proteína promedio', 'Average protein', 'g'],
+        ['symptomDays', 'Días con síntomas', 'Symptom days', ''],
+        ['trackedDays', 'Días registrados', 'Tracked days', ''],
+        ['doseEntries', 'Dosis registradas', 'Logged doses', '']
+    ];
+    return defs.map(([key, labelEs, labelEn, unit]) => {
+        const oldValue = progressNumber(oldSummary[key]);
+        const newValue = progressNumber(newSummary[key]);
+        return {
+            key, labelEs, labelEn, older: oldValue, newer: newValue,
+            delta: oldValue === null || newValue === null ? null : roundAiMetric(newValue - oldValue, 1),
+            unit
+        };
+    });
+}
+function buildProgressComparisonContext(older, newer) {
+    const sameRange = older.rangeDays === newer.rangeDays;
+    return {
+        generatedAt: new Date().toISOString(),
+        range: { startDate: newer.rangeStart, endDate: newer.rangeEnd, days: newer.rangeDays },
+        older: { id: older.id, type: older.type, createdAt: older.createdAt, rangeStart: older.rangeStart, rangeEnd: older.rangeEnd, rangeDays: older.rangeDays },
+        newer: { id: newer.id, type: newer.type, createdAt: newer.createdAt, rangeStart: newer.rangeStart, rangeEnd: newer.rangeEnd, rangeDays: newer.rangeDays },
+        metrics: progressMetricDeltas(older, newer),
+        coverageNoteEs: sameRange
+            ? `Comparación entre dos reportes guardados de ${newer.rangeDays} días. Los cambios reflejan únicamente los datos registrados en cada periodo.`
+            : 'Los periodos tienen duraciones diferentes; evita interpretar las diferencias como equivalentes.',
+        coverageNoteEn: sameRange
+            ? `Comparison between two saved ${newer.rangeDays}-day reports. Changes reflect only the data logged in each period.`
+            : 'The periods have different lengths; avoid treating their differences as directly equivalent.'
+    };
+}
+function progressRecordOption(record) {
+    const range = record.rangeDays ? ` · ${record.rangeDays}${uiText('d', 'd')}` : '';
+    return `${aiHistoryDateLabel(record.createdAt)} · ${aiHistoryTypeLabel(record.type)}${range}`;
+}
+function populateProgressComparisonSelectors() {
+    const newerSelect = document.getElementById('progress-compare-newer');
+    const olderSelect = document.getElementById('progress-compare-older');
+    if (!newerSelect || !olderSelect)
+        return;
+    const records = progressHistorySources();
+    const oldNewer = newerSelect.value;
+    const oldOlder = olderSelect.value;
+    newerSelect.innerHTML = records.map((record) => `<option value="${record.id}">${escapeHtml(progressRecordOption(record))}</option>`).join('');
+    if (oldNewer && records.some((record) => record.id === oldNewer))
+        newerSelect.value = oldNewer;
+    const newer = records.find((record) => record.id === newerSelect.value) || records[0] || null;
+    const olderCandidates = newer
+        ? records.filter((record) => record.id !== newer.id && record.createdAt < newer.createdAt && record.rangeDays === newer.rangeDays)
+        : [];
+    olderSelect.innerHTML = olderCandidates.map((record) => `<option value="${record.id}">${escapeHtml(progressRecordOption(record))}</option>`).join('');
+    if (oldOlder && olderCandidates.some((record) => record.id === oldOlder))
+        olderSelect.value = oldOlder;
+}
+function renderProgressTimelineView() {
+    const list = document.getElementById('progress-timeline-list');
+    const empty = document.getElementById('progress-timeline-empty');
+    if (!list)
+        return;
+    const subtitle = document.getElementById('progress-timeline-subtitle');
+    const checkinTitle = document.getElementById('progress-last-checkin-title');
+    const newerLabel = document.getElementById('progress-newer-label');
+    const olderLabel = document.getElementById('progress-older-label');
+    const buttonText = document.getElementById('progress-ai-button-text');
+    const printText = document.getElementById('progress-print-text');
+    const changesLabel = document.getElementById('progress-changes-label');
+    const watchLabel = document.getElementById('progress-watch-label');
+    const recentLabel = document.getElementById('progress-recent-label');
+    const recentCount = document.getElementById('progress-recent-count-label');
+    if (subtitle)
+        subtitle.innerText = uiText('Compara reportes guardados y mira qué cambió sin volver a calcular tus datos.', 'Compare saved reports and see what changed without recalculating your data.');
+    if (checkinTitle)
+        checkinTitle.innerText = uiText('¿Qué cambió desde mi último check-in?', 'What Changed Since My Last Check-In?');
+    if (newerLabel)
+        newerLabel.innerText = uiText('Reporte más nuevo', 'Newer report');
+    if (olderLabel)
+        olderLabel.innerText = uiText('Reporte anterior comparable', 'Comparable older report');
+    if (buttonText)
+        buttonText.innerText = uiText('Explicar cambios con IA', 'Explain changes with AI');
+    if (printText)
+        printText.innerText = uiText('Imprimir', 'Print');
+    if (changesLabel)
+        changesLabel.innerText = uiText('Cambios observados', 'Observed changes');
+    if (watchLabel)
+        watchLabel.innerText = uiText('Para observar', 'What to watch');
+    if (recentLabel)
+        recentLabel.innerText = uiText('Timeline reciente', 'Recent timeline');
+    if (recentCount)
+        recentCount.innerText = uiText('últimos 12 reportes', 'latest 12 reports');
+    if (empty)
+        empty.innerText = uiText('Genera reportes de IA para construir tu timeline.', 'Generate AI reports to build your timeline.');
+    const records = progressHistorySources().slice(0, 12);
+    populateProgressComparisonSelectors();
+    if (empty)
+        empty.classList.toggle('hidden', records.length > 0);
+    list.innerHTML = records.map((record, index) => {
+        const active = index === 0 ? 'border-cyan-500/30 bg-cyan-500/5' : 'border-[#223455] bg-[#111a2e]';
+        return `<button type="button" onclick="openAiHistoryRecord('${record.id}')" class="w-full text-left rounded-xl border ${active} p-2.5 flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-300 flex items-center justify-center shrink-0"><i data-lucide="${aiHistoryTypeIcon(record.type)}" class="w-3.5 h-3.5"></i></span>
+          <span class="min-w-0 flex-1"><strong class="block text-[10px] text-slate-100 truncate">${escapeHtml(aiHistoryTypeLabel(record.type))}</strong><small class="block text-[8px] text-slate-500 mt-0.5">${escapeHtml(aiHistoryDateLabel(record.createdAt))} · ${record.rangeDays || 0} ${escapeHtml(uiText('días', 'days'))}</small></span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-600"></i>
+        </button>`;
+    }).join('');
+    renderProgressComparisonPreview();
+    renderLatestWeeklyChange();
+    lucide.createIcons();
+}
+function onProgressNewerChanged() {
+    const olderSelect = document.getElementById('progress-compare-older');
+    if (olderSelect)
+        olderSelect.value = '';
+    populateProgressComparisonSelectors();
+    renderProgressComparisonPreview();
+}
+function renderProgressComparisonPreview() {
+    const card = document.getElementById('progress-compare-preview');
+    const metricsEl = document.getElementById('progress-compare-metrics');
+    const note = document.getElementById('progress-compare-note');
+    const button = document.getElementById('progress-ai-button');
+    if (!card || !metricsEl || !note)
+        return;
+    const newerId = document.getElementById('progress-compare-newer')?.value || '';
+    const olderId = document.getElementById('progress-compare-older')?.value || '';
+    const records = progressHistorySources();
+    const newer = records.find((record) => record.id === newerId);
+    const older = records.find((record) => record.id === olderId);
+    if (!newer || !older) {
+        card.classList.add('hidden');
+        if (button)
+            button.disabled = true;
+        return;
+    }
+    if (button)
+        button.disabled = false;
+    card.classList.remove('hidden');
+    const context = buildProgressComparisonContext(older, newer);
+    lastProgressComparisonContext = context;
+    metricsEl.innerHTML = context.metrics.map((metric) => {
+        const label = isEnglish() ? metric.labelEn : metric.labelEs;
+        const delta = metric.delta === null ? '--' : `${metric.delta > 0 ? '+' : ''}${metric.delta}${metric.unit ? ` ${metric.unit}` : ''}`;
+        const newerValue = metric.newer === null ? '--' : `${metric.newer}${metric.unit ? ` ${metric.unit}` : ''}`;
+        return `<div class="rounded-xl bg-[#090d16] border border-[#223455] p-2.5"><span class="text-[8px] uppercase font-bold text-slate-500">${escapeHtml(label)}</span><p class="text-xs font-black text-cyan-300 mt-1">${escapeHtml(delta)}</p><p class="text-[8px] text-slate-500 mt-0.5">${escapeHtml(uiText('Nuevo', 'New'))}: ${escapeHtml(newerValue)}</p></div>`;
+    }).join('');
+    note.innerText = isEnglish() ? context.coverageNoteEn : context.coverageNoteEs;
+}
+function renderLatestWeeklyChange() {
+    const target = document.getElementById('progress-last-checkin');
+    if (!target)
+        return;
+    const weekly = progressHistorySources().filter((record) => record.type === 'weekly-checkin').slice(0, 2);
+    if (weekly.length < 2) {
+        target.innerText = uiText('Genera al menos dos Weekly AI Check-In para ver cambios automáticos entre semanas.', 'Generate at least two Weekly AI Check-Ins to see automatic week-to-week changes.');
+        return;
+    }
+    const metrics = progressMetricDeltas(weekly[1], weekly[0]).filter((metric) => metric.delta !== null);
+    target.innerHTML = metrics.slice(0, 4).map((metric) => {
+        const label = isEnglish() ? metric.labelEn : metric.labelEs;
+        const delta = metric.delta;
+        return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#111a2e] border border-[#223455] text-[9px] text-slate-300"><strong>${escapeHtml(label)}</strong> ${escapeHtml(`${delta > 0 ? '+' : ''}${delta}${metric.unit ? ` ${metric.unit}` : ''}`)}</span>`;
+    }).join(' ');
+}
+function normalizeProgressComparisonResult(data) {
+    return {
+        summaryEs: String(data.summaryEs || '').trim(), summaryEn: String(data.summaryEn || '').trim(),
+        changesEs: String(data.changesEs || '').trim(), changesEn: String(data.changesEn || '').trim(),
+        watchEs: String(data.watchEs || '').trim(), watchEn: String(data.watchEn || '').trim(),
+        coverageEs: String(data.coverageEs || '').trim(), coverageEn: String(data.coverageEn || '').trim()
+    };
+}
+function renderProgressComparisonResult() {
+    const card = document.getElementById('progress-ai-result-card');
+    if (!card)
+        return;
+    if (!lastProgressComparisonResult) {
+        card.classList.add('hidden');
+        return;
+    }
+    card.classList.remove('hidden');
+    const r = lastProgressComparisonResult;
+    document.getElementById('progress-ai-summary').innerText = isEnglish() ? r.summaryEn : r.summaryEs;
+    renderAiEvidenceLines('progress-ai-changes', isEnglish() ? r.changesEn : r.changesEs);
+    renderAiEvidenceLines('progress-ai-watch', isEnglish() ? r.watchEn : r.watchEs);
+    document.getElementById('progress-ai-coverage').innerText = isEnglish() ? r.coverageEn : r.coverageEs;
+}
+async function explainProgressComparison() {
+    if (typeof window.firebaseAiProgressComparison !== 'function') {
+        showToast(uiText('La explicación de progreso aún no está disponible.', 'Progress explanation is not available yet.'));
+        return;
+    }
+    renderProgressComparisonPreview();
+    const context = lastProgressComparisonContext;
+    if (!context) {
+        showToast(uiText('Selecciona dos reportes comparables primero.', 'Select two comparable reports first.'));
+        return;
+    }
+    const fingerprint = createAiHistoryFingerprint({ type: 'progress-comparison', comparison: context });
+    if (tryUseAiHistoryCache('progress-comparison', fingerprint))
+        return;
+    document.getElementById('progress-ai-result-card')?.classList.add('hidden');
+    try {
+        const output = await runAiIntelligenceRequest((modelName) => window.firebaseAiProgressComparison({ contextJson: JSON.stringify(context), modelName }), 'progress-ai-button-text');
+        lastProgressComparisonResult = normalizeProgressComparisonResult(output);
+        saveAiHistoryReport({
+            type: 'progress-comparison', fingerprint, rangeDays: context.range.days,
+            requestText: `${aiHistoryTypeLabel(context.older.type)} → ${aiHistoryTypeLabel(context.newer.type)}`,
+            result: lastProgressComparisonResult,
+            context: { generatedAt: context.generatedAt, range: context.range, comparison: context }
+        });
+        renderProgressComparisonResult();
+        renderProgressTimelineView();
+        lucide.createIcons();
+    }
+    catch (error) {
+        console.warn('Progress comparison AI failed:', error);
+        showAiIntelligenceError(error);
+    }
+}
+function printProgressComparison() {
+    if (!lastProgressComparisonContext) {
+        showToast(uiText('Selecciona primero dos reportes para comparar.', 'Select two reports to compare first.'));
+        return;
+    }
+    const popup = window.open('', '_blank');
+    if (!popup) {
+        showToast(uiText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
+        return;
+    }
+    const c = lastProgressComparisonContext;
+    const result = lastProgressComparisonResult;
+    const metricRows = c.metrics.map((m) => `<tr><td>${escapeHtml(isEnglish() ? m.labelEn : m.labelEs)}</td><td>${escapeHtml(m.older === null ? '—' : String(m.older))}</td><td>${escapeHtml(m.newer === null ? '—' : String(m.newer))}</td><td>${escapeHtml(m.delta === null ? '—' : `${m.delta > 0 ? '+' : ''}${m.delta} ${m.unit}`.trim())}</td></tr>`).join('');
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>GLP-1 Companion · Progress Comparison</title><style>@page{size:Letter;margin:.55in}body{font-family:Arial,sans-serif;color:#172033;font-size:10.5pt}h1{font-size:18pt}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border:1px solid #d9e0ea;padding:7px;text-align:left}.box{border:1px solid #d9e0ea;border-radius:10px;padding:12px;margin:10px 0;white-space:pre-line}.muted{color:#5b6778;font-size:9pt}</style></head><body><h1>GLP-1 Companion · ${escapeHtml(uiText('Comparación de progreso', 'Progress Comparison'))}</h1><p class="muted">${escapeHtml(aiHistoryDateLabel(c.older.createdAt))} → ${escapeHtml(aiHistoryDateLabel(c.newer.createdAt))}</p><table><thead><tr><th>${escapeHtml(uiText('Métrica', 'Metric'))}</th><th>${escapeHtml(uiText('Anterior', 'Older'))}</th><th>${escapeHtml(uiText('Nuevo', 'Newer'))}</th><th>${escapeHtml(uiText('Cambio', 'Change'))}</th></tr></thead><tbody>${metricRows}</tbody></table>${result ? `<div class="box"><strong>${escapeHtml(uiText('Explicación de IA', 'AI explanation'))}</strong><p>${escapeHtml(isEnglish() ? result.summaryEn : result.summaryEs)}</p></div>` : ''}<div class="box">${escapeHtml(isEnglish() ? c.coverageNoteEn : c.coverageNoteEs)}</div></body></html>`);
+    popup.document.close();
+    popup.focus();
+    setTimeout(() => popup.print(), 250);
 }
 function renderVisitHistorySnapshotStats(record) {
     const stats = document.getElementById('visit-ai-stats');
@@ -663,7 +946,7 @@ function applyAiHistoryRecord(record, scroll = true) {
             range.value = String(record.rangeDays);
         renderPatternFinderResult();
     }
-    else {
+    else if (record.type === 'visit-prep') {
         lastVisitPrepResult = normalizeVisitPrepResult(record.result);
         lastVisitPrepContext = record.snapshot;
         const range = document.getElementById('visit-ai-range');
@@ -672,13 +955,33 @@ function applyAiHistoryRecord(record, scroll = true) {
         renderVisitHistorySnapshotStats(record);
         renderVisitPrepResult();
     }
+    else {
+        lastProgressComparisonResult = normalizeProgressComparisonResult(record.result);
+        const comparison = record.snapshot?.comparison;
+        if (comparison && typeof comparison === 'object' && !Array.isArray(comparison)) {
+            lastProgressComparisonContext = comparison;
+            renderProgressTimelineView();
+            const newer = document.getElementById('progress-compare-newer');
+            const older = document.getElementById('progress-compare-older');
+            const c = lastProgressComparisonContext;
+            if (newer && c && Array.from(newer.options).some((option) => option.value === c.newer.id)) {
+                newer.value = c.newer.id;
+                populateProgressComparisonSelectors();
+            }
+            if (older && c && Array.from(older.options).some((option) => option.value === c.older.id))
+                older.value = c.older.id;
+            renderProgressComparisonPreview();
+        }
+        renderProgressComparisonResult();
+    }
     lucide.createIcons();
     if (scroll) {
         const targetId = {
             'ask-data': 'ai-data-answer-card',
             'weekly-checkin': 'weekly-ai-result-card',
             'pattern-finder': 'pattern-ai-result-card',
-            'visit-prep': 'visit-ai-result-card'
+            'visit-prep': 'visit-ai-result-card',
+            'progress-comparison': 'progress-ai-result-card'
         };
         requestAnimationFrame(() => document.getElementById(targetId[record.type])?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }
@@ -703,6 +1006,7 @@ function toggleAiHistoryFavorite(id) {
     record.updatedAt = mutationNow();
     persistState({ userMutation: true, skipLocalSafetyBackup: true });
     renderAiHistoryView();
+    renderProgressTimelineView();
 }
 function deleteAiHistoryRecord(id) {
     ensureV4State();
@@ -722,6 +1026,7 @@ function deleteAiHistoryRecord(id) {
     record.snapshot = {};
     persistState({ userMutation: true, skipLocalSafetyBackup: true });
     renderAiHistoryView();
+    renderProgressTimelineView();
 }
 function forceRegenerateAiReport(type) {
     AI_HISTORY_FORCE_ONCE.add(type);
@@ -731,8 +1036,10 @@ function forceRegenerateAiReport(type) {
         void generateWeeklyAiCheckIn();
     else if (type === 'pattern-finder')
         void findAiPatterns();
-    else
+    else if (type === 'visit-prep')
         void prepareMyVisit();
+    else
+        void explainProgressComparison();
 }
 function scrollToAiHistory() {
     document.getElementById('ai-history-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });

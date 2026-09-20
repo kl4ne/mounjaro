@@ -335,6 +335,51 @@ try {
     return parseJsonResponse(text);
   };
 
+  window.firebaseAiProgressComparison = async ({
+    contextJson,
+    modelName
+  }: ProgressComparisonAiRequest): Promise<JsonRecord> => {
+    const selectedModel =
+      modelName === AI_MODELS.fallback
+        ? AI_MODELS.fallback
+        : AI_MODELS.primary;
+
+    const responseSchema = Schema.object({
+      properties: {
+        summaryEs: Schema.string(),
+        summaryEn: Schema.string(),
+        changesEs: Schema.string(),
+        changesEn: Schema.string(),
+        watchEs: Schema.string(),
+        watchEn: Schema.string(),
+        coverageEs: Schema.string(),
+        coverageEn: Schema.string()
+      }
+    });
+
+    const model = getGenerativeModel(aiService, {
+      model: selectedModel,
+      systemInstruction:
+        'You explain a deterministic comparison between two saved GLP-1 Companion tracking reports. ' +
+        'Use ONLY the supplied JSON comparison and its app-calculated deltas. Do not invent facts, diagnose, claim causation, assess treatment effectiveness, or recommend medication/dose changes. ' +
+        'Describe changes neutrally and distinguish improvement, worsening, and simple numeric movement only when the app data directly supports that wording. ' +
+        'If coverage differs or evidence is sparse, emphasize that limitation. Return equivalent natural Spanish and English. ' +
+        'changesEs/changesEn and watchEs/watchEn should use concise bullet-style lines separated by newline characters.',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema
+      }
+    });
+
+    const prompt =
+      `APP-CALCULATED PROGRESS COMPARISON JSON (authoritative; do not use facts outside it):\n${contextJson}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    if (!text) throw new Error('Empty Firebase AI Logic progress comparison response');
+    return parseJsonResponse(text);
+  };
+
   window.firebaseAiLogicReady = true;
   window.firebaseAiLogicInitError = '';
 

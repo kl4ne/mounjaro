@@ -67,6 +67,11 @@ declare global {
     modelName?: string | null;
   }
 
+  interface ProgressComparisonAiRequest {
+    contextJson: string;
+    modelName?: string | null;
+  }
+
   interface Window {
     Chart?: unknown;
     lucide?: { createIcons?: () => void };
@@ -81,6 +86,7 @@ declare global {
     firebaseAiWeeklyCheckIn?: (request: WeeklyCheckInAiRequest) => Promise<Record<string, unknown>>;
     firebaseAiPatternFinder?: (request: PatternFinderAiRequest) => Promise<Record<string, unknown>>;
     firebaseAiPrepareVisit?: (request: PrepareVisitAiRequest) => Promise<Record<string, unknown>>;
+    firebaseAiProgressComparison?: (request: ProgressComparisonAiRequest) => Promise<Record<string, unknown>>;
     firebaseAiLogicReady?: boolean;
     firebaseAiLogicInitError?: string;
     GLP1_APP_VERSION?: string;

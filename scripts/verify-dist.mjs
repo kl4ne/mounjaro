@@ -27,7 +27,7 @@ for (const path of required) {
 }
 
 const unexpected11 = await stat('dist/runtime/11-ai-history-cache.js').catch(() => null);
-if (unexpected11) throw new Error('Unexpected runtime 11 output: v5.3.0 must use the proven 10-module runtime architecture');
+if (unexpected11) throw new Error('Unexpected runtime 11 output: v5.4.0 must use the proven 10-module runtime architecture');
 
 const html = await readFile('dist/index.html', 'utf8');
 if (html.includes('/src/main.ts')) throw new Error('dist/index.html still references TypeScript source');
@@ -37,14 +37,15 @@ for (const needle of ['cdn.jsdelivr.net/npm/chart.js', 'unpkg.com/lucide', 'gsta
 if (!html.includes('./assets/main.js') && !html.includes('assets/main.js')) {
   throw new Error('dist/index.html does not reference the Vite main bundle');
 }
-if (!html.includes('v5.3.0')) throw new Error('dist/index.html does not identify v5.3.0');
+if (!html.includes('v5.4.0')) throw new Error('dist/index.html does not identify v5.4.0');
 if (!html.includes('id="ai-history-panel"')) throw new Error('dist/index.html is missing AI History UI');
+if (!html.includes('id="progress-timeline-panel"')) throw new Error('dist/index.html is missing Progress Timeline UI');
 
 const manifest = JSON.parse(await readFile('dist/manifest.webmanifest', 'utf8'));
-if (manifest.version !== '5.3.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
+if (manifest.version !== '5.4.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
 
 const sw = await readFile('dist/sw.js', 'utf8');
-if (!sw.includes("v5.3.0-pwa")) throw new Error('Service worker build ID is not v5.3.0-pwa');
+if (!sw.includes("v5.4.0-pwa")) throw new Error('Service worker build ID is not v5.4.0-pwa');
 if (!sw.includes('./runtime/10-ai-phase2.js')) throw new Error('Service worker does not precache runtime 10');
 if (sw.includes('11-ai-history-cache')) throw new Error('Service worker still references runtime 11');
 
@@ -56,7 +57,11 @@ for (const marker of [
   'function saveAiHistoryReport',
   'function renderAiHistoryView',
   'function openAiHistoryRecord',
-  'function forceRegenerateAiReport'
+  'function forceRegenerateAiReport',
+  'function renderProgressTimelineView',
+  'function renderProgressComparisonPreview',
+  'function explainProgressComparison',
+  "tryUseAiHistoryCache('progress-comparison'"
 ]) {
   if (!phase2.includes(marker)) throw new Error(`Production runtime 10 is missing AI History marker: ${marker}`);
 }
@@ -75,4 +80,4 @@ async function walk(dir) {
   }
 }
 await walk('dist');
-console.log(`Verified v5.3.0 Vite dist: ${files.length} files, 10 runtime modules, AI History + Smart Cache present.`);
+console.log(`Verified v5.4.0 Vite dist: ${files.length} files, 10 runtime modules, AI History + Timeline/Progress Comparison present.`);

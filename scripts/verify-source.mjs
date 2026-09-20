@@ -28,7 +28,7 @@ for (const rel of required) {
   if (!info?.isFile()) throw new Error(`Missing source file: ${rel}`);
 }
 
-// v5.3.0 intentionally keeps the proven 10-runtime architecture from v5.2.0.
+// v5.4.0 keeps the proven 10-runtime architecture and extends runtime 10 with Timeline & Progress Comparison.
 // AI History & Smart Cache lives in runtime/10 so web uploads only replace an
 // existing file instead of depending on a brand-new nested runtime file.
 for (const forbidden of [
@@ -40,7 +40,7 @@ for (const forbidden of [
 }
 
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-if (pkg.version !== '5.3.0') throw new Error(`Unexpected package version: ${pkg.version}`);
+if (pkg.version !== '5.4.0') throw new Error(`Unexpected package version: ${pkg.version}`);
 if (pkg.scripts?.['build:runtime'] !== 'tsc -p tsconfig.runtime.emit.json') {
   throw new Error(`Unexpected runtime build command: ${pkg.scripts?.['build:runtime']}`);
 }
@@ -52,7 +52,7 @@ for (const dep of ['vite', 'typescript', 'tailwindcss', '@tailwindcss/vite']) {
 }
 
 const manifest = JSON.parse(await readFile(join(root, 'public/manifest.webmanifest'), 'utf8'));
-if (manifest.version !== '5.3.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
+if (manifest.version !== '5.4.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
 
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('src="/src/main.ts"')) throw new Error('index.html is not using the Vite TypeScript entry');
@@ -71,24 +71,28 @@ for (const marker of [
   'onclick="prepareMyVisit()"',
   'onclick="printVisitPrepReport()"',
   'id="ai-history-panel"',
+  'id="progress-timeline-panel"',
+  'id="progress-compare-newer"',
+  'id="progress-compare-older"',
+  'onclick="explainProgressComparison()"',
   'id="ai-history-list"',
   'onclick="scrollToAiHistory()"',
   "forceRegenerateAiReport('ask-data')",
   "forceRegenerateAiReport('weekly-checkin')",
   "forceRegenerateAiReport('pattern-finder')",
   "forceRegenerateAiReport('visit-prep')",
-  'v5.3.0 · Progressive Web App'
+  'v5.4.0 · Progressive Web App'
 ]) {
-  if (!html.includes(marker)) throw new Error(`Missing v5.3.0 UI marker: ${marker}`);
+  if (!html.includes(marker)) throw new Error(`Missing v5.4.0 UI marker: ${marker}`);
 }
 
 const core = await readFile(join(root, 'src/runtime/01-core-platform.ts'), 'utf8');
 for (const marker of [
-  'const APP_VERSION = "v5.3.0"',
+  'const APP_VERSION = "v5.4.0"',
   'const CLIENT_SCHEMA_VERSION = 14',
-  'const MIN_SUPPORTED_CLIENT_VERSION = "v5.3.0"'
+  'const MIN_SUPPORTED_CLIENT_VERSION = "v5.4.0"'
 ]) {
-  if (!core.includes(marker)) throw new Error(`Missing v5.3.0 core marker: ${marker}`);
+  if (!core.includes(marker)) throw new Error(`Missing v5.4.0 core marker: ${marker}`);
 }
 
 const stateStorage = await readFile(join(root, 'src/runtime/02-state-sync-storage.ts'), 'utf8');
@@ -133,16 +137,21 @@ for (const fn of [
   'toggleAiHistoryFavorite',
   'deleteAiHistoryRecord',
   'forceRegenerateAiReport',
-  'clearAiHistoryDateFilter'
+  'clearAiHistoryDateFilter',
+  'renderProgressTimelineView',
+  'renderProgressComparisonPreview',
+  'explainProgressComparison',
+  'printProgressComparison'
 ]) {
   if (!phase2Runtime.includes(`function ${fn}`) && !phase2Runtime.includes(`async function ${fn}`)) {
-    throw new Error(`Missing v5.3.0 runtime function in module 10: ${fn}`);
+    throw new Error(`Missing v5.4.0 runtime function in module 10: ${fn}`);
   }
 }
 for (const marker of [
   "const AI_HISTORY_CACHE_VERSION = 'v5.3.0-cache1'",
   "tryUseAiHistoryCache('pattern-finder'",
-  "tryUseAiHistoryCache('visit-prep'"
+  "tryUseAiHistoryCache('visit-prep'",
+  "tryUseAiHistoryCache('progress-comparison'"
 ]) {
   if (!phase2Runtime.includes(marker)) throw new Error(`Missing Smart Cache integration: ${marker}`);
 }
@@ -156,8 +165,14 @@ for (const marker of [
   if (!globals.includes(marker)) throw new Error(`Missing AI history type declaration: ${marker}`);
 }
 
+
+const stateHistory = await readFile(join(root, 'src/runtime/02-state-sync-storage.ts'), 'utf8');
+if (!stateHistory.includes("'progress-comparison'")) throw new Error('AI history sanitizer does not allow progress-comparison');
+const globalTypes = await readFile(join(root, 'src/runtime/runtime-globals.d.ts'), 'utf8');
+if (!globalTypes.includes("'progress-comparison'")) throw new Error('Runtime AI history type union is missing progress-comparison');
+
 const aiLogic = await readFile(join(root, 'src/firebase/ai-logic.ts'), 'utf8');
-for (const bridge of ['firebaseAiPatternFinder', 'firebaseAiPrepareVisit']) {
+for (const bridge of ['firebaseAiPatternFinder', 'firebaseAiPrepareVisit', 'firebaseAiProgressComparison']) {
   if (!aiLogic.includes(bridge)) throw new Error(`Missing Firebase AI bridge: ${bridge}`);
 }
 
@@ -166,7 +181,7 @@ if (!main.includes("'./runtime/10-ai-phase2.js'")) throw new Error('main.ts does
 if (main.includes('11-ai-history-cache')) throw new Error('main.ts still references experimental runtime 11');
 
 const sw = await readFile(join(root, 'src/pwa/sw.ts'), 'utf8');
-if (!sw.includes("v5.3.0-pwa")) throw new Error('Service worker source build ID is not v5.3.0-pwa');
+if (!sw.includes("v5.4.0-pwa")) throw new Error('Service worker source build ID is not v5.4.0-pwa');
 if (!sw.includes("./runtime/10-ai-phase2.js")) throw new Error('Service worker does not precache runtime 10');
 if (sw.includes('11-ai-history-cache')) throw new Error('Service worker still references experimental runtime 11');
 
@@ -210,4 +225,4 @@ const missingHandlers = [...inlineHandlers].filter((name) => {
 });
 if (missingHandlers.length) throw new Error(`Inline HTML handlers missing from runtime source: ${missingHandlers.join(', ')}`);
 
-console.log(`Verified v5.3.0 source: ${srcFiles.length} src files, ${runtimeFiles.length} runtime modules, AI History integrated into runtime 10, no duplicate IDs, all inline handlers resolved.`);
+console.log(`Verified v5.4.0 source: ${srcFiles.length} src files, ${runtimeFiles.length} runtime modules, AI History + Timeline/Progress Comparison integrated into runtime 10, no duplicate IDs, all inline handlers resolved.`);

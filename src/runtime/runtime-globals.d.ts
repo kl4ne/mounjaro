@@ -172,6 +172,11 @@ interface PrepareVisitAiRequest {
   modelName?: string | null;
 }
 
+interface ProgressComparisonAiRequest {
+  contextJson: string;
+  modelName?: string | null;
+}
+
 interface Window {
   GLP1_APP_VERSION: string;
   GLP1_SCHEMA_VERSION: number;
@@ -184,6 +189,7 @@ interface Window {
   firebaseAiWeeklyCheckIn?: (request: WeeklyCheckInAiRequest) => Promise<Record<string, unknown>>;
   firebaseAiPatternFinder?: (request: PatternFinderAiRequest) => Promise<Record<string, unknown>>;
   firebaseAiPrepareVisit?: (request: PrepareVisitAiRequest) => Promise<Record<string, unknown>>;
+  firebaseAiProgressComparison?: (request: ProgressComparisonAiRequest) => Promise<Record<string, unknown>>;
   firebaseAiLogicReady?: boolean;
   firebaseAiLogicInitError?: string;
   lucide?: LucideBridge;
@@ -350,7 +356,7 @@ interface RuntimeAiMonthStats {
 
 type RuntimeAiTelemetry = StringMap<RuntimeAiMonthStats>;
 
-type RuntimeAiReportType = 'ask-data' | 'weekly-checkin' | 'pattern-finder' | 'visit-prep';
+type RuntimeAiReportType = 'ask-data' | 'weekly-checkin' | 'pattern-finder' | 'visit-prep' | 'progress-comparison';
 interface RuntimeAiHistoryRecord {
   id: string;
   type: RuntimeAiReportType;
