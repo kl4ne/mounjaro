@@ -53,14 +53,14 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload Vite dist
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
 
       - name: Save generated package-lock
         uses: actions/upload-artifact@v4
         with:
-          name: npm-package-lock-v5.0.2
+          name: npm-package-lock-v5.1.0
           path: package-lock.json
           if-no-files-found: warn
           retention-days: 30
