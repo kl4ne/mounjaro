@@ -1,0 +1,193 @@
+name: Build and deploy GLP-1 Companion
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v7
+
+      - name: Reject legacy root structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          legacy_paths=(assets icons runtime sw.js manifest.webmanifest)
+          found=0
+          for path in "${legacy_paths[@]}"; do
+            if [ -e "$path" ]; then
+              echo "::error::Legacy root path detected: $path"
+              found=1
+            fi
+          done
+          if [ -e ".github/workflows/deploy-pages.yml" ]; then
+            echo "::error::Legacy workflow detected: .github/workflows/deploy-pages.yml"
+            found=1
+          fi
+          if [ "$found" -ne 0 ]; then
+            echo "Repository is not clean. Remove the legacy paths before deployment."
+            exit 1
+          fi
+          echo "Clean Vite repository structure verified."
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Show Node and npm versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Verify clean v5.5.0 TypeScript source before install
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-source.mjs
+          test -f src/runtime/10-ai-phase2.ts
+          test ! -e src/runtime/11-ai-history-cache.ts
+          grep -Fq "v5.3.0-cache1" src/runtime/10-ai-phase2.ts
+          grep -Fq "function renderAiHistoryView" src/runtime/10-ai-phase2.ts
+          grep -Fq "function tryUseAiHistoryCache" src/runtime/10-ai-phase2.ts
+          grep -Fq "function renderProgressTimelineView" src/runtime/10-ai-phase2.ts
+          grep -Fq "function explainProgressComparison" src/runtime/10-ai-phase2.ts
+          test ! -e public/runtime
+          test ! -e public/sw.js
+          grep -Fq "recordAiCacheHit" src/runtime/02-state-sync-storage.ts
+          grep -Fq "aggregateAiLast30Days" src/runtime/02-state-sync-storage.ts
+          echo "v5.5.0 clean TypeScript source verified on proven 10-runtime architecture."
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: TypeScript strict validation
+        run: npm run typecheck
+
+      - name: Build and validate v5.5.0 with Vite
+        run: npm run build
+
+      - name: Final v5.5.0 deployment guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          require_file() {
+            if [ ! -f "$1" ]; then
+              echo "::error::Missing production file: $1"
+              exit 1
+            fi
+            echo "OK: $1"
+          }
+
+          if [ ! -d dist ]; then
+            echo "::error::Missing dist directory"
+            exit 1
+          fi
+
+          require_file dist/index.html
+          require_file dist/sw.js
+          require_file dist/manifest.webmanifest
+          require_file dist/runtime/09-ai-intelligence.js
+          require_file dist/runtime/10-ai-phase2.js
+          require_file dist/runtime/02-state-sync-storage.js
+
+          if [ -e dist/runtime/11-ai-history-cache.js ]; then
+            echo "::error::Unexpected runtime 11 detected. v5.5.0 must use the proven 10-runtime architecture."
+            exit 1
+          fi
+
+          if ! grep -q 'v5.5.0' dist/index.html; then
+            echo "::error::dist/index.html does not identify v5.5.0"
+            exit 1
+          fi
+          echo "OK: index.html identifies v5.5.0"
+
+          if ! grep -q 'v5.5.0-pwa' dist/sw.js; then
+            echo "::error::dist/sw.js does not contain BUILD_ID v5.5.0-pwa"
+            grep -n 'BUILD_ID' dist/sw.js || true
+            exit 1
+          fi
+          echo "OK: service worker is v5.5.0-pwa"
+
+          for marker in \
+            'v5.3.0-cache1' \
+            'function createAiHistoryFingerprint' \
+            'function tryUseAiHistoryCache' \
+            'function saveAiHistoryReport' \
+            'function renderAiHistoryView' \
+            'function openAiHistoryRecord' \
+            'function forceRegenerateAiReport' \
+            'function renderProgressTimelineView' \
+            'function renderProgressComparisonPreview' \
+            'function explainProgressComparison' \
+            "tryUseAiHistoryCache('progress-comparison'"; do
+            if ! grep -Fq "$marker" dist/runtime/10-ai-phase2.js; then
+              echo "::error::AI History marker missing from production runtime 10: $marker"
+              exit 1
+            fi
+          done
+          echo "OK: AI History & Smart Cache are present in runtime 10"
+
+          for marker in \
+            'function recordAiUserAction' \
+            'function recordAiCacheHit' \
+            'function recordAiGenerationOutcome' \
+            'function aggregateAiLast30Days' \
+            'apiCallsAvoided'; do
+            if ! grep -Fq "$marker" dist/runtime/02-state-sync-storage.js; then
+              echo "::error::AI Usage Analytics marker missing from production runtime 02: $marker"
+              exit 1
+            fi
+          done
+          echo "OK: AI Usage Analytics is present in runtime 02"
+
+          node <<'NODE'
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('dist/manifest.webmanifest', 'utf8'));
+          if (m.version !== '5.5.0') {
+            console.error(`::error::Unexpected manifest version: ${m.version}`);
+            process.exit(1);
+          }
+          console.log(`OK: manifest version ${m.version}`);
+          NODE
+
+          echo "GLP-1 Companion v5.5.0 Architecture & Reliability Hardening + AI Usage Analytics production build verified."
+          find dist -maxdepth 2 -type f | sort
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Vite dist
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Vite build to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
