@@ -2,7 +2,8 @@ name: Build and deploy GLP-1 Companion
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -17,47 +18,61 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          package-manager-cache: false
+          node-version: '22.16.0'
 
-      - name: Install pinned dependencies
+      - name: Show Node and npm versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
         run: npm install --no-audit --no-fund
 
       - name: TypeScript strict validation
         run: npm run typecheck
 
-      - name: Build with Vite 8
+      - name: Build with Vite
         run: npm run build
+
+      - name: Verify Vite dist
+        run: |
+          test -d dist
+          test -f dist/index.html
+          echo "Vite dist verified successfully"
+          find dist -maxdepth 2 -type f | sort
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload Vite dist
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
-      - name: Preserve generated lockfile for first-build reproducibility
+      - name: Save generated package-lock
         uses: actions/upload-artifact@v4
         with:
           name: npm-package-lock-v5.0.2
           path: package-lock.json
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
     needs: build
+
     steps:
       - name: Deploy Vite build to GitHub Pages
         id: deployment
