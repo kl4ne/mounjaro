@@ -1,12 +1,12 @@
 /// <reference lib="webworker" />
 
 /**
- * GLP-1 Companion v5.1.0 service worker source.
+ * GLP-1 Companion v5.2.0 service worker source.
  * Compiled to public/sw.js before the Vite build.
  */
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-const BUILD_ID = 'v5.1.0-pwa';
+const BUILD_ID = 'v5.2.0-pwa';
 const CACHE_PREFIX = 'glp1-v5-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${BUILD_ID}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${BUILD_ID}`;
@@ -26,6 +26,7 @@ const CORE_ASSETS: readonly string[] = [
   './runtime/07-tools-reports-backups.js',
   './runtime/08-lifecycle-bootstrap.js',
   './runtime/09-ai-intelligence.js',
+  './runtime/10-ai-phase2.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png'

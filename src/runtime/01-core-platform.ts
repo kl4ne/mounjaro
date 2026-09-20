@@ -9,7 +9,7 @@
 /* ==========================================================================
    VERSION CONTROL, FIREBASE SYNC & SERVICE WORKER
    ========================================================================== */
-const APP_VERSION = "v5.1.0";
+const APP_VERSION = "v5.2.0";
 const CLIENT_SCHEMA_VERSION = 13;
 const MIN_SUPPORTED_CLIENT_VERSION = "v4.1.2";
 const DEVELOPER_NAME = "Roberto S. Macfie";
@@ -595,7 +595,7 @@ const STATIC_TRANSLATIONS: Record<string, string> = {
     "Notificación": "Notification",
     "4 unidades": "4 units",
     "GLP-1 Companion • Salud metabólica": "GLP-1 Companion • Metabolic health",
-    "Versión: v5.1.0": "Version: v5.1.0",
+    "Versión: v5.2.0": "Version: v5.2.0",
     "Acerca de GLP-1 Companion": "About GLP-1 Companion",
     "© 2026 Roberto S. Macfie. Todos los derechos reservados.": "© 2026 Roberto S. Macfie. All rights reserved.",
     "Gemini mediante Firebase AI Logic": "Gemini through Firebase AI Logic",

@@ -1,5 +1,5 @@
 /**
- * GLP-1 Companion v5.1.0 bootstrap.
+ * GLP-1 Companion v5.2.0 bootstrap.
  *
  * Production bootstrap: Firebase Modular + rebuilt PWA update manager. Runtime
  * chunks remain ordered to preserve the proven application behavior.
@@ -11,7 +11,7 @@ import './firebase/platform';
 import './firebase/ai-logic';
 import { startPwaUpdateManager } from './pwa/update-manager';
 
-// v5.1.0: Chart.js and Lucide are bundled by Vite instead of loaded from CDNs.
+// v5.2.0: Chart.js and Lucide are bundled by Vite instead of loaded from CDNs.
 // The classic runtime chunks use the same global names as the proven v5.0.1 runtime.
 window.Chart = Chart;
 window.lucide = {
@@ -31,7 +31,8 @@ const runtimeChunks = [
   './runtime/06-injections-symptoms.js',
   './runtime/07-tools-reports-backups.js',
   './runtime/08-lifecycle-bootstrap.js',
-  './runtime/09-ai-intelligence.js'
+  './runtime/09-ai-intelligence.js',
+  './runtime/10-ai-phase2.js'
 ] as const;
 
 function loadClassicScript(src: string): Promise<string> {

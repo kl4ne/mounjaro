@@ -240,6 +240,101 @@ try {
     return parseJsonResponse(text);
   };
 
+  window.firebaseAiPatternFinder = async ({
+    contextJson,
+    modelName
+  }: PatternFinderAiRequest): Promise<JsonRecord> => {
+    const selectedModel =
+      modelName === AI_MODELS.fallback
+        ? AI_MODELS.fallback
+        : AI_MODELS.primary;
+
+    const responseSchema = Schema.object({
+      properties: {
+        headlineEs: Schema.string(),
+        headlineEn: Schema.string(),
+        summaryEs: Schema.string(),
+        summaryEn: Schema.string(),
+        patternsEs: Schema.string(),
+        patternsEn: Schema.string(),
+        cautionEs: Schema.string(),
+        cautionEn: Schema.string(),
+        coverageEs: Schema.string(),
+        coverageEn: Schema.string()
+      }
+    });
+
+    const model = getGenerativeModel(aiService, {
+      model: selectedModel,
+      systemInstruction:
+        'You are the AI Pattern Finder inside GLP-1 Companion. The app has already calculated candidate associations from the user\'s own tracking records. ' +
+        'Use ONLY the supplied JSON candidates and coverage. Do not invent additional patterns, recalculate evidence in a way that contradicts the app, or infer causation. ' +
+        'Never diagnose a condition and never recommend changing, increasing, decreasing, delaying, or skipping medication. ' +
+        'If candidate evidence is weak or absent, say that clearly. Describe associations as observations in recorded data, not causes. ' +
+        'patternsEs and patternsEn should be concise bullet-style lines separated by newline characters, preserving the evidence counts or values supplied by the app. ' +
+        'caution must explicitly remind the user that association does not establish cause. Return equivalent natural Spanish and English content.',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema
+      }
+    });
+
+    const prompt =
+      `APP-CALCULATED PATTERN CONTEXT JSON (authoritative; do not add facts outside it):\n${contextJson}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    if (!text) throw new Error('Empty Firebase AI Logic Pattern Finder response');
+    return parseJsonResponse(text);
+  };
+
+  window.firebaseAiPrepareVisit = async ({
+    contextJson,
+    modelName
+  }: PrepareVisitAiRequest): Promise<JsonRecord> => {
+    const selectedModel =
+      modelName === AI_MODELS.fallback
+        ? AI_MODELS.fallback
+        : AI_MODELS.primary;
+
+    const responseSchema = Schema.object({
+      properties: {
+        summaryEs: Schema.string(),
+        summaryEn: Schema.string(),
+        highlightsEs: Schema.string(),
+        highlightsEn: Schema.string(),
+        discussionEs: Schema.string(),
+        discussionEn: Schema.string(),
+        gapsEs: Schema.string(),
+        gapsEn: Schema.string(),
+        coverageEs: Schema.string(),
+        coverageEn: Schema.string()
+      }
+    });
+
+    const model = getGenerativeModel(aiService, {
+      model: selectedModel,
+      systemInstruction:
+        'You prepare a concise visit-preparation summary from GLP-1 Companion tracking data. Use ONLY the app-calculated JSON. ' +
+        'This is organization of personal records, not medical advice. Do not diagnose, claim causation, assess treatment effectiveness, or recommend any medication/dose change. ' +
+        'highlights should summarize documented trends, counts and values. discussion should be neutral topics or questions the user may choose to discuss with a healthcare professional, not instructions. ' +
+        'gaps should identify missing or sparse tracking that limits interpretation. When data are limited, make that limitation clear. ' +
+        'Return equivalent natural Spanish and English. For highlights, discussion and gaps, use concise bullet-style lines separated by newline characters.',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema
+      }
+    });
+
+    const prompt =
+      `VISIT PREPARATION CONTEXT JSON (authoritative; do not use facts outside it):\n${contextJson}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    if (!text) throw new Error('Empty Firebase AI Logic Prepare My Visit response');
+    return parseJsonResponse(text);
+  };
+
   window.firebaseAiLogicReady = true;
   window.firebaseAiLogicInitError = '';
 

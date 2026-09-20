@@ -1,5 +1,5 @@
 /**
- * GLP-1 Companion v5.1.0 — initial TypeScript domain contracts.
+ * GLP-1 Companion v5.2.0 — initial TypeScript domain contracts.
  *
  * These interfaces intentionally describe the stable schema without changing
  * runtime serialization. They are a migration aid: JavaScript runtime modules

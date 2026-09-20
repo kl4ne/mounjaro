@@ -1,5 +1,5 @@
 /**
- * GLP-1 Companion v5.1.0 — AI Intelligence Phase 1
+ * GLP-1 Companion v5.2.0 — AI Intelligence Phase 1
  * Ask My Data + Weekly AI Check-In.
  *
  * Numeric summaries are calculated locally first. Firebase AI Logic receives a
@@ -211,7 +211,7 @@ function toAiWeekMetrics(metrics: ReturnType<typeof getWeekMetrics>): AiWeekMetr
 }
 
 function buildAiDataContext(rangeDays: number): AiDataContext {
-    const safeDays = [7, 30, 90].includes(rangeDays) ? rangeDays : 30;
+    const safeDays = [7, 30, 60, 90].includes(rangeDays) ? rangeDays : 30;
     const endDate = getFormattedDate(new Date());
     const keys = getRollingDateKeys(endDate, safeDays);
     const daily = keys.map(buildAiDailySnapshot);
@@ -410,6 +410,7 @@ function updateAiIntelligenceLanguage(): void {
     document.getElementById('ai-safety-note').innerText = uiText('La IA resume tus registros. No diagnostica ni recomienda cambios de dosis o tratamiento.', 'AI summarizes your records. It does not diagnose or recommend dose or treatment changes.');
     const question = document.getElementById('ai-data-question');
     question.placeholder = uiText('Ej: ¿Cómo me fue esta semana comparado con la anterior?', 'Example: How did I do this week compared with last week?');
+    if (typeof updateAiPhase2Language === 'function') updateAiPhase2Language();
 }
 
 function renderAiIntelligenceView(): void {
@@ -417,6 +418,7 @@ function renderAiIntelligenceView(): void {
     renderWeeklyDeterministicPreview();
     renderAskMyDataResult();
     renderWeeklyAiResult();
+    if (typeof renderAiPhase2View === 'function') renderAiPhase2View();
     lucide.createIcons();
 }
 
@@ -485,7 +487,7 @@ async function runAiIntelligenceRequest(
 function showAiIntelligenceError(error: unknown): void {
     const classification = classifyAiFailure(error);
     if (String(error instanceof Error ? error.message : error).includes('OFFLINE') || classification.reason === 'offline') {
-        showToast(uiText('Ask My Data necesita conexión para usar Firebase AI Logic. Tus datos locales siguen disponibles.', 'Ask My Data needs a connection to use Firebase AI Logic. Your local data remain available.'), 5200);
+        showToast(uiText('IA e Insights necesita conexión para usar Firebase AI Logic. Tus datos locales siguen disponibles.', 'AI & Insights needs a connection to use Firebase AI Logic. Your local data remain available.'), 5200);
         return;
     }
     if (classification.reason === 'security') {

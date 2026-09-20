@@ -10,6 +10,7 @@ const required = [
   'dist/runtime/01-core-platform.js',
   'dist/runtime/08-lifecycle-bootstrap.js',
   'dist/runtime/09-ai-intelligence.js',
+  'dist/runtime/10-ai-phase2.js',
   'dist/icons/icon-192.png',
   'dist/icons/icon-512.png'
 ];
@@ -29,10 +30,10 @@ if (!html.includes('./assets/main.js') && !html.includes('assets/main.js')) {
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.webmanifest', 'utf8'));
-if (manifest.version !== '5.1.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
+if (manifest.version !== '5.2.0') throw new Error(`Unexpected manifest version: ${manifest.version}`);
 
 const sw = await readFile('dist/sw.js', 'utf8');
-if (!sw.includes("v5.1.0-pwa")) throw new Error('Service worker build ID is not v5.1.0-pwa');
+if (!sw.includes("v5.2.0-pwa")) throw new Error('Service worker build ID is not v5.2.0-pwa');
 
 const files = [];
 async function walk(dir) {

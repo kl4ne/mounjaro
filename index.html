@@ -843,7 +843,7 @@
         </div>
         <div class="text-right text-xs text-slate-500">
           <p id="print-date">Fecha: --</p>
-          <p id="print-app-version">Versión: v5.1.0</p>
+          <p id="print-app-version">Versión: v5.2.0</p>
           <p class="text-[10px] text-slate-400">Designed &amp; Developed by Roberto S. Macfie</p>
         </div>
       </div>
@@ -868,7 +868,7 @@
               <h1 id="header-app-title" class="text-sm font-black tracking-tight text-white">Mounjaro Companion</h1>
               <div class="flex flex-col items-center leading-none">
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">PWA</span>
-                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v5.1.0</span>
+                <span class="text-[8px] font-bold text-slate-500 tracking-tighter mt-0.5" id="app-version-badge">v5.2.0</span>
               </div>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -1609,6 +1609,110 @@
           </div>
         </div>
 
+        <!-- v5.2.0 AI Phase 2: Pattern Finder -->
+        <div class="glass-panel rounded-3xl p-4 border border-emerald-500/20 space-y-3.5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <i data-lucide="scan-search" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 id="pattern-ai-title" class="text-sm font-black text-white">AI Pattern Finder</h3>
+                <p id="pattern-ai-subtitle" class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">Busca asociaciones repetidas en tus registros sin afirmar causa.</p>
+              </div>
+            </div>
+            <select id="pattern-ai-range" onchange="renderPatternDeterministicPreview()" class="shrink-0 bg-[#111a2e] border border-[#223455] rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-200">
+              <option value="30" selected>30 días</option>
+              <option value="60">60 días</option>
+              <option value="90">90 días</option>
+            </select>
+          </div>
+
+          <div id="pattern-ai-local-preview" class="grid grid-cols-2 gap-2 text-[10px]"></div>
+
+          <button type="button" onclick="findAiPatterns()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2">
+            <i data-lucide="radar" class="w-4 h-4"></i>
+            <span id="pattern-ai-button-text">Buscar patrones</span>
+          </button>
+
+          <div id="pattern-ai-result-card" class="hidden rounded-2xl bg-[#111a2e] border border-emerald-500/20 p-3.5 space-y-3">
+            <div>
+              <span class="text-[9px] font-black uppercase tracking-[0.14em] text-emerald-300">Pattern Finder</span>
+              <h4 id="pattern-ai-headline" class="text-sm font-black text-white mt-1"></h4>
+              <p id="pattern-ai-summary" class="text-xs text-slate-300 leading-relaxed mt-1.5"></p>
+            </div>
+            <div>
+              <p id="pattern-ai-evidence-label" class="text-[9px] font-black uppercase tracking-wider text-slate-500 mb-2">Asociaciones observadas</p>
+              <div id="pattern-ai-patterns" class="space-y-1.5 text-[10px] text-slate-300"></div>
+            </div>
+            <div class="rounded-xl p-2.5 bg-amber-500/5 border border-amber-500/15 flex gap-2 items-start">
+              <i data-lucide="triangle-alert" class="w-3.5 h-3.5 text-amber-300 shrink-0 mt-0.5"></i>
+              <p id="pattern-ai-caution" class="text-[9px] text-slate-400 leading-relaxed"></p>
+            </div>
+            <div class="rounded-xl bg-slate-950/40 border border-[#223455] p-2.5 flex gap-2 items-start">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-300 shrink-0 mt-0.5"></i>
+              <p id="pattern-ai-coverage" class="text-[9px] text-slate-400 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- v5.2.0 AI Phase 2: Prepare My Visit -->
+        <div class="glass-panel rounded-3xl p-4 border border-sky-500/20 space-y-3.5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 flex items-center justify-center shrink-0">
+                <i data-lucide="clipboard-plus" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 id="visit-ai-title" class="text-sm font-black text-white">Prepara tu visita</h3>
+                <p id="visit-ai-subtitle" class="text-[10px] text-slate-400 mt-0.5 leading-relaxed">Resume tus registros y organiza temas neutrales para conversar con tu profesional.</p>
+              </div>
+            </div>
+            <select id="visit-ai-range" onchange="renderVisitDeterministicPreview()" class="shrink-0 bg-[#111a2e] border border-[#223455] rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-200">
+              <option value="7">7 días</option>
+              <option value="30" selected>30 días</option>
+              <option value="60">60 días</option>
+              <option value="90">90 días</option>
+            </select>
+          </div>
+
+          <div id="visit-ai-stats" class="grid grid-cols-3 gap-2 text-center"></div>
+
+          <button type="button" onclick="prepareMyVisit()" class="w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black shadow-lg shadow-sky-950/20 flex items-center justify-center gap-2">
+            <i data-lucide="file-heart" class="w-4 h-4"></i>
+            <span id="visit-ai-button-text">Preparar resumen de visita</span>
+          </button>
+
+          <div id="visit-ai-result-card" class="hidden rounded-2xl bg-[#111a2e] border border-sky-500/20 p-3.5 space-y-3">
+            <div>
+              <span class="text-[9px] font-black uppercase tracking-[0.14em] text-sky-300">Visit Prep</span>
+              <p id="visit-ai-summary" class="text-xs text-slate-300 leading-relaxed mt-1.5"></p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div class="rounded-xl p-3 bg-cyan-500/5 border border-cyan-500/15">
+                <p id="visit-ai-highlights-label" class="text-[9px] font-black uppercase tracking-wider text-cyan-300 mb-1.5">Datos destacados</p>
+                <div id="visit-ai-highlights" class="space-y-1.5 text-[10px] text-slate-300"></div>
+              </div>
+              <div class="rounded-xl p-3 bg-violet-500/5 border border-violet-500/15">
+                <p id="visit-ai-discussion-label" class="text-[9px] font-black uppercase tracking-wider text-violet-300 mb-1.5">Temas para conversar</p>
+                <div id="visit-ai-discussion" class="space-y-1.5 text-[10px] text-slate-300"></div>
+              </div>
+            </div>
+            <div class="rounded-xl p-3 bg-amber-500/5 border border-amber-500/15">
+              <p id="visit-ai-gaps-label" class="text-[9px] font-black uppercase tracking-wider text-amber-300 mb-1.5">Datos que faltan</p>
+              <div id="visit-ai-gaps" class="space-y-1.5 text-[10px] text-slate-300"></div>
+            </div>
+            <div class="rounded-xl bg-slate-950/40 border border-[#223455] p-2.5 flex gap-2 items-start">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-sky-300 shrink-0 mt-0.5"></i>
+              <p id="visit-ai-coverage" class="text-[9px] text-slate-400 leading-relaxed"></p>
+            </div>
+            <button type="button" onclick="printVisitPrepReport()" class="w-full py-2.5 rounded-xl bg-[#0b1220] border border-sky-500/25 hover:border-sky-400/50 text-sky-200 text-xs font-black flex items-center justify-center gap-2">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span id="visit-ai-print-button-text">Imprimir reporte bilingüe</span>
+            </button>
+          </div>
+        </div>
+
       </section>
 
       <!-- TAB 4: PROGRESO Y HERRAMIENTAS -->
@@ -2011,7 +2115,7 @@
           <div>
             <p class="text-[9px] font-black uppercase tracking-[0.2em] text-cyan-300">GLP-1 Companion</p>
             <h3 class="text-base font-black text-white mt-1">Acerca de GLP-1 Companion</h3>
-            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v5.1.0 · Progressive Web App</p>
+            <p id="about-app-version" class="text-[10px] text-slate-500 mt-1">v5.2.0 · Progressive Web App</p>
           </div>
           <div class="about-developer-card rounded-2xl p-4">
             <p class="text-[10px] text-slate-400">Designed &amp; Developed by</p>

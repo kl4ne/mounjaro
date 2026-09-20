@@ -162,6 +162,16 @@ interface WeeklyCheckInAiRequest {
   modelName?: string | null;
 }
 
+interface PatternFinderAiRequest {
+  contextJson: string;
+  modelName?: string | null;
+}
+
+interface PrepareVisitAiRequest {
+  contextJson: string;
+  modelName?: string | null;
+}
+
 interface Window {
   GLP1_APP_VERSION: string;
   GLP1_SCHEMA_VERSION: number;
@@ -172,6 +182,8 @@ interface Window {
   firebaseAiTranslateMeal?: (request: MealTranslationRequest) => Promise<Record<string, unknown>>;
   firebaseAiAskMyData?: (request: AskMyDataAiRequest) => Promise<Record<string, unknown>>;
   firebaseAiWeeklyCheckIn?: (request: WeeklyCheckInAiRequest) => Promise<Record<string, unknown>>;
+  firebaseAiPatternFinder?: (request: PatternFinderAiRequest) => Promise<Record<string, unknown>>;
+  firebaseAiPrepareVisit?: (request: PrepareVisitAiRequest) => Promise<Record<string, unknown>>;
   firebaseAiLogicReady?: boolean;
   firebaseAiLogicInitError?: string;
   lucide?: LucideBridge;
