@@ -61,22 +61,18 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/verify-source.mjs
-          test -f src/runtime/11-ai-history-cache.ts
-          test -f scripts/build-runtime.mjs
-          test -f scripts/verify-generated.mjs
-          grep -Fq 'src/runtime/**/*.ts' tsconfig.runtime.emit.json
-          grep -Fq 'node scripts/build-runtime.mjs' package.json
-          grep -Fq '11-ai-history-cache.js' scripts/verify-dist.mjs
-          echo "v5.3.0 source/build configuration verified before install."
+          test -f src/runtime/10-ai-phase2.ts
+          test ! -e src/runtime/11-ai-history-cache.ts
+          grep -Fq "v5.3.0-cache1" src/runtime/10-ai-phase2.ts
+          grep -Fq "function renderAiHistoryView" src/runtime/10-ai-phase2.ts
+          grep -Fq "function tryUseAiHistoryCache" src/runtime/10-ai-phase2.ts
+          echo "v5.3.0 source verified on proven 10-runtime architecture."
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Generate and verify all 11 runtime modules
-        run: |
-          npm run build:generated
-          test -f public/runtime/11-ai-history-cache.js
-          echo "OK: public/runtime/11-ai-history-cache.js generated before Vite build"
+      - name: TypeScript strict validation
+        run: npm run typecheck
 
       - name: Build and validate v5.3.0 with Vite
         run: npm run build
@@ -104,7 +100,11 @@ jobs:
           require_file dist/manifest.webmanifest
           require_file dist/runtime/09-ai-intelligence.js
           require_file dist/runtime/10-ai-phase2.js
-          require_file dist/runtime/11-ai-history-cache.js
+
+          if [ -e dist/runtime/11-ai-history-cache.js ]; then
+            echo "::error::Unexpected runtime 11 detected. v5.3.0 must use the proven 10-runtime architecture."
+            exit 1
+          fi
 
           if ! grep -q 'v5.3.0' dist/index.html; then
             echo "::error::dist/index.html does not identify v5.3.0"
@@ -118,6 +118,21 @@ jobs:
             exit 1
           fi
           echo "OK: service worker is v5.3.0-pwa"
+
+          for marker in \
+            'v5.3.0-cache1' \
+            'function createAiHistoryFingerprint' \
+            'function tryUseAiHistoryCache' \
+            'function saveAiHistoryReport' \
+            'function renderAiHistoryView' \
+            'function openAiHistoryRecord' \
+            'function forceRegenerateAiReport'; do
+            if ! grep -Fq "$marker" dist/runtime/10-ai-phase2.js; then
+              echo "::error::AI History marker missing from production runtime 10: $marker"
+              exit 1
+            fi
+          done
+          echo "OK: AI History & Smart Cache are present in runtime 10"
 
           node <<'NODE'
           const fs = require('fs');
