@@ -1,0 +1,22 @@
+GLP-1 Companion v5.1.0 CLEAN — PRECHECK
+========================================
+
+PASS: package.json version = 5.1.0
+PASS: public/manifest.webmanifest version = 5.1.0
+PASS: index.html visible version references = v5.1.0
+PASS: src/pwa/sw.ts BUILD_ID = v5.1.0-pwa
+PASS: public/sw.js BUILD_ID = v5.1.0-pwa
+PASS: runtime module 09 present in TypeScript source and generated public runtime
+PASS: exactly 9 runtime TypeScript modules
+PASS: source verifier completed successfully
+PASS: runtime TypeScript strict validation completed successfully
+PASS: service-worker TypeScript compile completed successfully
+PASS: no legacy root assets/, icons/, runtime/, sw.js, manifest.webmanifest
+PASS: .github/workflows/deploy.yml included
+PASS: deployment workflow rejects legacy root structure before build
+PASS: deployment workflow verifies v5.1.0 output before publishing
+
+NOTE:
+The complete Vite production build requires npm dependencies. The GitHub Actions
+workflow installs those dependencies and treats any install/typecheck/build/output
+failure as a hard failure before Pages deployment.
