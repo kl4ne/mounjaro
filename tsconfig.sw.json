@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "WebWorker"
+    ],
+    "module": "None",
+    "strict": true,
+    "noImplicitAny": true,
+    "useUnknownInCatchVariables": true,
+    "skipLibCheck": true,
+    "rootDir": "src/pwa",
+    "outDir": "public",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
+    "removeComments": false
+  },
+  "include": [
+    "src/pwa/sw.ts"
+  ]
+}
