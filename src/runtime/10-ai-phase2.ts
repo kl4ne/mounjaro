@@ -1203,7 +1203,7 @@ function personalRound(value: number): number { return Math.round(value * 10) / 
 function personalDirection(value: number | null): PersonalProgressDirection { return value === null ? 'insufficient' : value > 0 ? 'increased' : value < 0 ? 'decreased' : 'unchanged'; }
 function personalWeek(keys: string[]): PersonalProgressWeek {
     const specs: Array<{ key: PersonalProgressMetric['key']; goal: number | null; unit: string; value: (d: RuntimeDayData) => number; logged: (d: RuntimeDayData) => boolean }> = [
-        { key: 'water', goal: state.settings.waterGoalConfigured ? state.settings.waterGoal : null, unit: state.settings.units === 'metric' ? 'mL' : 'oz', value: (d) => Number(displayWater(d.water || 0)) || 0, logged: (d) => Number(d.waterUpdatedAt) > 0 || d.waterEvents.length > 0 },
+        { key: 'water', goal: state.settings.waterGoalConfigured ? displayWater(state.settings.waterGoal) : null, unit: state.settings.units === 'metric' ? 'mL' : 'oz', value: (d) => Number(displayWater(d.water || 0)) || 0, logged: (d) => Number(d.waterUpdatedAt) > 0 || d.waterEvents.length > 0 },
         { key: 'protein', goal: state.settings.proteinGoalConfigured ? state.settings.proteinGoal : null, unit: 'g', value: (d) => d.meals.reduce((sum, meal) => sum + (Number(meal.protein) || 0), 0), logged: (d) => d.meals.length > 0 },
         { key: 'activity', goal: state.settings.activityGoalConfigured ? state.settings.activityGoalMinutes : null, unit: 'min', value: (d) => Number(d.activityMinutes) || 0, logged: (d) => Number(d.activityUpdatedAt) > 0 }
     ];

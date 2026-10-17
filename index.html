@@ -2146,7 +2146,7 @@
               <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
               <div>
                 <h3 class="text-xs font-bold text-white">AI Status · Firebase AI Logic</h3>
-                <p id="ai-status-month" class="text-[9px] text-slate-500">Estadísticas del mes actual</p>
+                <p id="ai-status-month" class="text-[9px] text-slate-500">Estadísticas del mes actual</p><p class="text-[9px] text-slate-500">Historial por rol: incluye intentos de modelos anteriores. Estado basado en el último uso, no en una prueba en vivo. / Role history includes previous models; status is not a live health check.</p>
               </div>
             </div>
             <div class="flex items-center gap-1.5"><span id="ai-translation-total" class="text-[9px] px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 font-bold">0 translations</span><span id="ai-failover-total" class="text-[9px] px-2 py-1 rounded-lg bg-violet-500/10 border border-violet-500/25 text-violet-300 font-bold">0 failovers</span></div>
@@ -2165,7 +2165,7 @@
           <div class="grid grid-cols-1 gap-2">
             <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-3 space-y-1.5">
               <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2"><span id="ai-primary-light" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span class="text-[11px] font-black text-white">IA principal · Gemini 3.5 Flash</span></div>
+                <div class="flex items-center gap-2"><span id="ai-primary-light" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span class="text-[11px] font-black text-white">IA principal · <span id="ai-primary-model-name">gemini-3.8-flash</span></span></div>
                 <span id="ai-primary-status" class="text-[9px] text-slate-400 font-bold">Sin comprobar</span>
               </div>
               <div class="grid grid-cols-4 gap-1 text-center">
@@ -2178,7 +2178,7 @@
             </div>
             <div class="rounded-xl bg-[#111a2e] border border-[#223455] p-3 space-y-1.5">
               <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2"><span id="ai-fallback-light" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span class="text-[11px] font-black text-white">IA respaldo · Gemini 3.5 Flash Lite</span></div>
+                <div class="flex items-center gap-2"><span id="ai-fallback-light" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span class="text-[11px] font-black text-white">IA respaldo · <span id="ai-fallback-model-name">gemini-3.5-flash-lite</span></span></div>
                 <span id="ai-fallback-status" class="text-[9px] text-slate-400 font-bold">Sin comprobar</span>
               </div>
               <div class="grid grid-cols-4 gap-1 text-center">
