@@ -13,7 +13,7 @@ import {
 import { firebaseApp } from './platform.js';
 
 const AI_MODELS = Object.freeze({
-  primary: 'gemini-3.5-flash',
+  primary: 'gemini-3.8-flash',
   fallback: 'gemini-3.5-flash-lite'
 });
 

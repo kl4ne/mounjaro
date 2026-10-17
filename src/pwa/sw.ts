@@ -1,12 +1,12 @@
 /// <reference lib="webworker" />
 
 /**
- * GLP-1 Companion v5.6.1 service worker source.
+ * GLP-1 Companion v5.6.2 service worker source.
  * Compiled to public/sw.js before the Vite build.
  */
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-const BUILD_ID = 'v5.6.1-pwa';
+const BUILD_ID = 'v5.6.2-pwa';
 const CACHE_PREFIX = 'glp1-v5-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${BUILD_ID}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${BUILD_ID}`;

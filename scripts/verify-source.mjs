@@ -31,7 +31,7 @@ for (const rel of required) {
   if (!info?.isFile()) throw new Error(`Missing source file: ${rel}`);
 }
 
-// v5.6.1 keeps the proven 10-runtime architecture while making TypeScript the only runtime source.
+// v5.6.2 keeps the proven 10-runtime architecture while making TypeScript the only runtime source.
 // AI History & Smart Cache lives in runtime/10 so web uploads only replace an
 // existing file instead of depending on a brand-new nested runtime file.
 for (const forbidden of [
@@ -44,7 +44,7 @@ for (const forbidden of [
 }
 
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-if (pkg.version !== '5.6.1') throw new Error(`Unexpected package version: ${pkg.version}`);
+if (pkg.version !== '5.6.2') throw new Error(`Unexpected package version: ${pkg.version}`);
 if (pkg.scripts?.['build:runtime'] !== 'tsc -p tsconfig.runtime.emit.json') {
   throw new Error(`Unexpected runtime build command: ${pkg.scripts?.['build:runtime']}`);
 }
@@ -56,7 +56,7 @@ for (const dep of ['vite', 'typescript', 'tailwindcss', '@tailwindcss/vite']) {
 }
 
 const manifest = JSON.parse(await readFile(join(root, 'public/manifest.webmanifest'), 'utf8'));
-if (manifest.version !== '5.6.1') throw new Error(`Unexpected manifest version: ${manifest.version}`);
+if (manifest.version !== '5.6.2') throw new Error(`Unexpected manifest version: ${manifest.version}`);
 
 const html = await readFile(join(root, 'index.html'), 'utf8');
 if (!html.includes('src="/src/main.ts"')) throw new Error('index.html is not using the Vite TypeScript entry');
@@ -90,7 +90,7 @@ for (const marker of [
   'onclick="saveTodayActivity()"',
   'onclick="explainPersonalProgress()"',
   "forceRegenerateAiReport('personal-progress')",
-  'v5.6.1 · Progressive Web App',
+  'v5.6.2 · Progressive Web App',
   'id="personal-periods"',
   'id="personal-this-week-grid"',
   'id="maintenance-explanation"',
@@ -99,16 +99,16 @@ for (const marker of [
   'id="ai-cache-efficiency"',
   'id="ai-last-30-days"'
 ]) {
-  if (!html.includes(marker)) throw new Error(`Missing v5.6.1 UI marker: ${marker}`);
+  if (!html.includes(marker)) throw new Error(`Missing v5.6.2 UI marker: ${marker}`);
 }
 
 const core = await readFile(join(root, 'src/runtime/01-core-platform.ts'), 'utf8');
 for (const marker of [
-  'const APP_VERSION = "v5.6.1"',
+  'const APP_VERSION = "v5.6.2"',
   'const CLIENT_SCHEMA_VERSION = 16',
   'const MIN_SUPPORTED_CLIENT_VERSION = "v5.5.0"'
 ]) {
-  if (!core.includes(marker)) throw new Error(`Missing v5.6.1 core marker: ${marker}`);
+  if (!core.includes(marker)) throw new Error(`Missing v5.6.2 core marker: ${marker}`);
 }
 
 const stateStorage = await readFile(join(root, 'src/runtime/02-state-sync-storage.ts'), 'utf8');
@@ -169,7 +169,7 @@ for (const fn of [
   'explainPersonalProgress'
 ]) {
   if (!phase2Runtime.includes(`function ${fn}`) && !phase2Runtime.includes(`async function ${fn}`)) {
-    throw new Error(`Missing v5.6.1 runtime function in module 10: ${fn}`);
+    throw new Error(`Missing v5.6.2 runtime function in module 10: ${fn}`);
   }
 }
 for (const marker of [
@@ -207,7 +207,7 @@ if (!main.includes("'./runtime/10-ai-phase2.js'")) throw new Error('main.ts does
 if (main.includes('11-ai-history-cache')) throw new Error('main.ts still references experimental runtime 11');
 
 const sw = await readFile(join(root, 'src/pwa/sw.ts'), 'utf8');
-if (!sw.includes("v5.6.1-pwa")) throw new Error('Service worker source build ID is not v5.6.1-pwa');
+if (!sw.includes("v5.6.2-pwa")) throw new Error('Service worker source build ID is not v5.6.2-pwa');
 if (!sw.includes("./runtime/10-ai-phase2.js")) throw new Error('Service worker does not precache runtime 10');
 if (sw.includes('11-ai-history-cache')) throw new Error('Service worker still references experimental runtime 11');
 
@@ -252,10 +252,10 @@ const missingHandlers = [...inlineHandlers].filter((name) => {
 if (missingHandlers.length) throw new Error(`Inline HTML handlers missing from runtime source: ${missingHandlers.join(', ')}`);
 
 for (const marker of ['function personalCompareMetric', 'missingDays:', 'percentageChange:', 'previousStartDate:', 'currentPeriodWeight', 'symptomMissingDays']) {
-  if (!phase2Runtime.includes(marker)) throw new Error(`Missing v5.6.1 compliance calculation marker: ${marker}`);
+  if (!phase2Runtime.includes(marker)) throw new Error(`Missing v5.6.2 compliance calculation marker: ${marker}`);
 }
 const pkRuntime = await readFile(join(root, 'src/runtime/06-injections-symptoms.ts'), 'utf8');
 for (const marker of ['pointRadius: markerRadius', 'pointHitRadius: 12', 'pkSelectedPointIndex']) {
   if (!pkRuntime.includes(marker) && !stateStorage.includes(marker)) throw new Error(`Missing persistent PK marker behavior: ${marker}`);
 }
-console.log(`Verified v5.6.1 source: ${srcFiles.length} src files, ${runtimeFiles.length} TypeScript runtime modules, no generated JavaScript checked in, corrective compliance markers present, no duplicate IDs, all inline handlers resolved.`);
+console.log(`Verified v5.6.2 source: ${srcFiles.length} src files, ${runtimeFiles.length} TypeScript runtime modules, no generated JavaScript checked in, corrective compliance markers present, no duplicate IDs, all inline handlers resolved.`);

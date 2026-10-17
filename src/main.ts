@@ -1,5 +1,5 @@
 /**
- * GLP-1 Companion v5.6.1 bootstrap.
+ * GLP-1 Companion v5.6.2 bootstrap.
  *
  * Production bootstrap: Firebase Modular + rebuilt PWA update manager. Runtime
  * chunks remain ordered to preserve the proven application behavior.
@@ -11,7 +11,7 @@ import './firebase/platform';
 import './firebase/ai-logic';
 import { startPwaUpdateManager } from './pwa/update-manager';
 
-// v5.6.1: generated runtime chunks are emitted from TypeScript during every build.
+// v5.6.2: generated runtime chunks are emitted from TypeScript during every build.
 // The classic runtime chunks use the same global names as the proven v5.0.1 runtime.
 window.Chart = Chart;
 window.lucide = {

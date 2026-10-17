@@ -7,7 +7,7 @@
  * architecture is modularized without behavior changes.
  */
 /* ==========================================================================
-   AI SCANNER (FIREBASE AI LOGIC • GEMINI 3.5 FLASH • SIN API KEY MANUAL)
+   AI SCANNER (FIREBASE AI LOGIC • PRIMARY/FALLBACK • SIN API KEY MANUAL)
    ========================================================================== */
 function resetScannerState() {
     selectedImageBase64 = null;
@@ -141,7 +141,7 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
             recordAiAttempt('primary', true, performance.now() - t0);
             recordAiGenerationOutcome(true);
             telemetryChanged = true;
-            populateAiResults(parsed, "Firebase AI Logic • Gemini 3.5 Flash");
+            populateAiResults(parsed, `Firebase AI Logic • ${AI_PRIMARY_MODEL}`);
             persistState({ userMutation: true });
             renderAiStatus();
             return;
@@ -173,7 +173,7 @@ Analyze only the food shown in the image and/or described by the user. Estimate 
             recordAiAttempt('fallback', true, performance.now() - t1);
             recordAiGenerationOutcome(true);
             telemetryChanged = true;
-            populateAiResults(parsed, uiText("Firebase AI Logic • Gemini 3.5 Flash Lite (respaldo)", "Firebase AI Logic • Gemini 3.5 Flash Lite (fallback)"));
+            populateAiResults(parsed, `Firebase AI Logic • ${AI_FALLBACK_MODEL} ${uiText('(respaldo)', '(fallback)')}`);
             persistState({ userMutation: true });
             renderAiStatus();
             showToast(uiText('La IA principal falló; el respaldo completó el análisis.', 'Primary AI failed; fallback completed the analysis.'));

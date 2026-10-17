@@ -27,7 +27,7 @@ for (const path of required) {
 }
 
 const unexpected11 = await stat('dist/runtime/11-ai-history-cache.js').catch(() => null);
-if (unexpected11) throw new Error('Unexpected runtime 11 output: v5.6.1 must use the proven 10-module runtime architecture');
+if (unexpected11) throw new Error('Unexpected runtime 11 output: v5.6.2 must use the proven 10-module runtime architecture');
 
 const html = await readFile('dist/index.html', 'utf8');
 if (html.includes('/src/main.ts')) throw new Error('dist/index.html still references TypeScript source');
@@ -37,7 +37,7 @@ for (const needle of ['cdn.jsdelivr.net/npm/chart.js', 'unpkg.com/lucide', 'gsta
 if (!html.includes('./assets/main.js') && !html.includes('assets/main.js')) {
   throw new Error('dist/index.html does not reference the Vite main bundle');
 }
-if (!html.includes('v5.6.1')) throw new Error('dist/index.html does not identify v5.6.1');
+if (!html.includes('v5.6.2')) throw new Error('dist/index.html does not identify v5.6.2');
 if (!html.includes('id="personal-progress-panel"')) throw new Error('dist/index.html is missing Personal Progress UI');
 if (!html.includes('id="ai-history-panel"')) throw new Error('dist/index.html is missing AI History UI');
 if (!html.includes('id="progress-timeline-panel"')) throw new Error('dist/index.html is missing Progress Timeline UI');
@@ -46,10 +46,10 @@ for (const marker of ['id="ai-user-actions"', 'id="ai-api-calls"', 'id="ai-cache
 }
 
 const manifest = JSON.parse(await readFile('dist/manifest.webmanifest', 'utf8'));
-if (manifest.version !== '5.6.1') throw new Error(`Unexpected manifest version: ${manifest.version}`);
+if (manifest.version !== '5.6.2') throw new Error(`Unexpected manifest version: ${manifest.version}`);
 
 const sw = await readFile('dist/sw.js', 'utf8');
-if (!sw.includes("v5.6.1-pwa")) throw new Error('Service worker build ID is not v5.6.1-pwa');
+if (!sw.includes("v5.6.2-pwa")) throw new Error('Service worker build ID is not v5.6.2-pwa');
 if (!sw.includes('./runtime/10-ai-phase2.js')) throw new Error('Service worker does not precache runtime 10');
 if (sw.includes('11-ai-history-cache')) throw new Error('Service worker still references runtime 11');
 
@@ -97,4 +97,4 @@ for (const marker of ['function personalCompareMetric', 'function personalDailyP
   const target = marker.includes('pointRadius') ? await readFile('dist/runtime/06-injections-symptoms.js', 'utf8') : phase2;
   if (!target.includes(marker)) throw new Error(`Production corrective marker missing: ${marker}`);
 }
-console.log(`Verified v5.6.1 Vite dist: ${files.length} files, 10 runtime modules, corrective Personal Progress + PK markers + AI History present.`);
+console.log(`Verified v5.6.2 Vite dist: ${files.length} files, 10 runtime modules, corrective Personal Progress + PK markers + AI History present.`);

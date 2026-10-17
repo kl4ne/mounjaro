@@ -1499,6 +1499,13 @@ function openSosModal() {
           `;
         }
     }
+    // Explicit escalation for red-flag symptoms; guidance remains informational, never dosage advice.
+    if (bodyEl) {
+        const warning = isEn
+            ? 'Seek urgent medical care for severe or persistent abdominal pain, repeated vomiting, inability to keep liquids down, fainting, or signs of dehydration. This guide does not replace medical assessment.'
+            : 'Busca atención médica urgente ante dolor abdominal intenso o persistente, vómitos repetidos, incapacidad de retener líquidos, desmayos o señales de deshidratación. Esta guía no sustituye una evaluación médica.';
+        bodyEl.insertAdjacentHTML('afterbegin', `<div class="p-3 mb-3 rounded-2xl border border-rose-500/50 bg-rose-500/10 text-[11px] text-rose-200 font-semibold">${escapeHtml(warning)}</div>`);
+    }
     document.getElementById('modal-sos').classList.remove('hidden');
     document.getElementById('modal-sos').classList.add('flex');
     lucide.createIcons();
@@ -2083,6 +2090,31 @@ function normalizeImportedTimestamp(value: unknown): number {
 function normalizeImportedActivityFields(raw: UnknownRecord): { activityMinutes: number; activityUpdatedAt: number } {
     return { activityMinutes: Math.max(0, Math.min(1440, Number(raw.activityMinutes) || 0)), activityUpdatedAt: Number(raw.activityUpdatedAt) > 0 ? normalizeImportedTimestamp(raw.activityUpdatedAt) : 0 };
 }
+// Older backups predate immutable water/bowel event arrays. Rebuild them before
+// ensureGranularDayData, which intentionally trusts arrays that already exist.
+function normalizeImportedWaterEvents(dateKey: string, raw: UnknownRecord): RuntimeWaterEvent[] {
+    if (Array.isArray(raw.waterEvents)) {
+        return raw.waterEvents.flatMap((entry: unknown) => {
+            if (!isUnknownRecord(entry) || typeof entry.id !== 'string' || !Number.isFinite(Number(entry.delta))) return [];
+            return [{ id: entry.id, delta: Number(entry.delta), updatedAt: normalizeImportedTimestamp(entry.updatedAt) }];
+        });
+    }
+    const legacyWater = Number(raw.water);
+    return Number.isFinite(legacyWater) && legacyWater > 0
+        ? [{ id: `water_base_${dateKey}`, delta: legacyWater, updatedAt: Number(raw.waterUpdatedAt) > 0 ? normalizeImportedTimestamp(raw.waterUpdatedAt) : 1 }]
+        : [];
+}
+function normalizeImportedBowelMovementRecords(dateKey: string, raw: UnknownRecord): RuntimeBowelMovementRecord[] {
+    if (Array.isArray(raw.bowelMovementRecords)) {
+        return raw.bowelMovementRecords.flatMap((entry: unknown) => {
+            if (!isUnknownRecord(entry) || typeof entry.id !== 'string' || typeof entry.at !== 'string' || Number.isNaN(new Date(entry.at).getTime())) return [];
+            return [{ id: entry.id, at: entry.at, updatedAt: normalizeImportedTimestamp(entry.updatedAt) }];
+        });
+    }
+    const legacy = Array.isArray(raw.bowelMovements) ? raw.bowelMovements : [];
+    return legacy.filter((at: unknown): at is string => typeof at === 'string' && !Number.isNaN(new Date(at).getTime()))
+        .map((at: string) => ({ id: `bm_${simpleStableHash(dateKey + '|' + at)}`, at, updatedAt: Number(raw.bowelMovementsUpdatedAt) > 0 ? normalizeImportedTimestamp(raw.bowelMovementsUpdatedAt) : 1 }));
+}
 let pendingImportCandidate: UnknownRecord | null = null;
 let pendingImportPackageInfo: BackupPackageInfo | null = null;
 function validateBackupStructure(imported: unknown): BackupStructureValidation {
@@ -2191,6 +2223,7 @@ async function confirmImportPreview() {
 async function applyImportedBackup(imported: UnknownRecord, packageInfo: BackupPackageInfo | null = null): Promise<void> {
     // Preserve the current state before an authoritative restore. The rotating
     // snapshot lives in IndexedDB, so a full localStorage quota cannot block it.
+    const beforeImportSnapshot = JSON.parse(JSON.stringify(state)) as RuntimeState;
     try {
         rotateLocalSafetySnapshot();
     }
@@ -2263,15 +2296,9 @@ async function applyImportedBackup(imported: UnknownRecord, packageInfo: BackupP
                     });
                 });
             }
-            const waterEvents: RuntimeWaterEvent[] = Array.isArray(raw.waterEvents) ? raw.waterEvents.flatMap((entry: unknown) => {
-                if (!isUnknownRecord(entry) || typeof entry.id !== 'string') return [];
-                return [{ id: entry.id, delta: Number(entry.delta) || 0, updatedAt: normalizeImportedTimestamp(entry.updatedAt) }];
-            }) : [];
+            const waterEvents = normalizeImportedWaterEvents(dateKey, raw);
             const bowelMovements: string[] = Array.isArray(raw.bowelMovements) ? raw.bowelMovements.filter((value: unknown): value is string => typeof value === 'string' && !Number.isNaN(new Date(value).getTime())) : [];
-            const bowelMovementRecords: RuntimeBowelMovementRecord[] = Array.isArray(raw.bowelMovementRecords) ? raw.bowelMovementRecords.flatMap((entry: unknown) => {
-                if (!isUnknownRecord(entry) || typeof entry.id !== 'string' || typeof entry.at !== 'string' || Number.isNaN(new Date(entry.at).getTime())) return [];
-                return [{ id: entry.id, at: entry.at, updatedAt: normalizeImportedTimestamp(entry.updatedAt) }];
-            }) : [];
+            const bowelMovementRecords = normalizeImportedBowelMovementRecords(dateKey, raw);
             const defaultSymptoms: RuntimeSymptoms = { hunger: 3, nausea: 'none', heartburn: 'none', sulfur: 'none', fatigue: 'none', notes: '' };
             const symptoms: RuntimeSymptoms = isUnknownRecord(raw.symptoms) ? raw.symptoms as RuntimeSymptoms : defaultSymptoms;
             const electrolytes: Record<string, boolean> = isUnknownRecord(raw.electrolytes) ? raw.electrolytes as Record<string, boolean> : {};
@@ -2372,8 +2399,11 @@ async function applyImportedBackup(imported: UnknownRecord, packageInfo: BackupP
     ensureV4State();
     persistState({ userMutation: true, immediateCloud: true });
     let localHistoryRestored = false;
-    if (packageInfo && packageInfo.localBackups.length)
+    if (packageInfo && packageInfo.localBackups.length) {
         localHistoryRestored = await replaceLocalSafetyBackups(packageInfo.localBackups);
+        // Do not discard the immediate pre-restore recovery point when importing a complete package.
+        if (localHistoryRestored) commitLocalSafetySnapshot(beforeImportSnapshot);
+    }
     applyMedicationTheme();
     renderCurrentDay();
     renderAiStatus();

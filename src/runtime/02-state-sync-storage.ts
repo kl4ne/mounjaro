@@ -74,8 +74,9 @@ function createDefaultState(devicePrefs: Partial<Pick<RuntimeSettings, 'language
 }
 let state: RuntimeState = createDefaultState();
 const AI_TELEMETRY_DEVICE_KEY = "glp1_ai_device_id_v4";
-const AI_PRIMARY_MODEL = "gemini-3.5-flash";
-const AI_FALLBACK_MODEL = "gemini-3.5-flash-lite";
+// Firebase bridge owns the model IDs; runtime telemetry follows exactly the models actually requested.
+const AI_PRIMARY_MODEL = window.firebaseAiModels?.primary || "gemini-3.8-flash";
+const AI_FALLBACK_MODEL = window.firebaseAiModels?.fallback || "gemini-3.5-flash-lite";
 function getAiDeviceId() {
     let id = localStorage.getItem(AI_TELEMETRY_DEVICE_KEY);
     if (!id) {
@@ -348,6 +349,8 @@ function recordAiAttempt(role: 'primary' | 'fallback', success: boolean, latency
     const { month, bucket } = ensureCurrentAiDeviceBucket();
     const stats = role === 'fallback' ? bucket.fallback : bucket.primary;
     const now = mutationNow();
+    // Preserve cumulative role statistics across upgrades, but tag the latest attempt with its true model.
+    stats.modelName = role === 'primary' ? AI_PRIMARY_MODEL : AI_FALLBACK_MODEL;
     stats.attempts += 1;
     if (success) {
         stats.successes += 1;
@@ -396,6 +399,7 @@ function aggregateAiMonth(month: string = currentMonthKey()) {
             if (st.lastEventAt > latest.lastEventAt)
                 latest = st;
         });
+        result[role].modelName = latest.modelName || result[role].modelName;
         result[role].lastEventAt = latest.lastEventAt;
         result[role].lastResult = latest.lastResult;
         result[role].consecutiveFailures = latest.consecutiveFailures;
@@ -439,6 +443,10 @@ function renderAiStatus() {
     const agg = aggregateAiMonth();
     const last30 = aggregateAiLast30Days();
     const monthLabel = new Date(`${currentMonthKey()}-01T12:00:00`).toLocaleDateString(isEnglish() ? 'en-US' : 'es-US', { month: 'long', year: 'numeric' });
+    const modelPrimaryLabel = document.getElementById('ai-primary-model-name');
+    if (modelPrimaryLabel) modelPrimaryLabel.textContent = AI_PRIMARY_MODEL;
+    const modelFallbackLabel = document.getElementById('ai-fallback-model-name');
+    if (modelFallbackLabel) modelFallbackLabel.textContent = AI_FALLBACK_MODEL;
     const m = document.getElementById('ai-status-month');
     if (m)
         m.innerText = isEnglish() ? `Current month · ${monthLabel}` : `Mes actual · ${monthLabel}`;
@@ -475,9 +483,15 @@ function renderAiStatus() {
         if (last)
             last.innerText = (isEnglish() ? 'Last use: ' : 'Último uso: ') + formatAiLast(st.lastEventAt);
         let label = uiText('Sin comprobar', 'Unchecked'), cls = 'bg-slate-500';
-        if (st.attempts > 0 && st.lastResult === 'success') {
-            label = uiText('Disponible', 'Available');
-            cls = 'bg-emerald-500';
+        const configuredModel = role === 'primary' ? AI_PRIMARY_MODEL : AI_FALLBACK_MODEL;
+        // Historical role counters survive a model upgrade; they do not prove the replacement model has run.
+        if (st.lastEventAt > 0 && st.modelName !== configuredModel) {
+            label = uiText('Modelo nuevo sin probar', 'New model untested');
+        }
+        else if (st.attempts > 0 && st.lastResult === 'success') {
+            const recent = Date.now() - st.lastEventAt <= 24 * 60 * 60 * 1000;
+            label = recent ? uiText('Último intento correcto', 'Last attempt succeeded') : uiText('Éxito histórico', 'Historical success');
+            cls = recent ? 'bg-emerald-500' : 'bg-slate-500';
         }
         else if (st.attempts > 0 && st.lastResult === 'failure' && st.consecutiveFailures >= 2) {
             label = uiText('Error reciente', 'Recent error');
@@ -701,6 +715,9 @@ function isPassiveEmptyDay(day: RuntimeDayData | null | undefined) {
         (!symptoms.fatigue || symptoms.fatigue === 'none') &&
         !String(symptoms.notes || '').trim();
     return Number(day.water || 0) <= 0 &&
+        // An activity-only day (including an explicitly saved zero) is real user data.
+        (Number(day.activityMinutes) || 0) <= 0 &&
+        (Number(day.activityUpdatedAt) || 0) === 0 &&
         (!Array.isArray(day.meals) || day.meals.length === 0) &&
         (!Array.isArray(day.bowelMovements) || day.bowelMovements.length === 0) &&
         (!Array.isArray(day.waterEvents) || day.waterEvents.length === 0) &&
@@ -949,6 +966,7 @@ function updateLocalBackupStatus() {
         el.innerText = isEnglish() ? `Rotating local backups: ${getLocalSafetyBackups().length}/3` : `Backups locales rotativos: ${getLocalSafetyBackups().length}/3`;
 }
 const CLOUD_SYNC_DELAY_MS = 1800;
+let cloudSizeWarningShownThisSession = false;
 let cloudSyncTimer: ReturnType<typeof setTimeout> | null = null;
 let cloudSyncInFlight = false;
 let cloudSyncPending = false;
@@ -1053,6 +1071,10 @@ async function flushCloudSync() {
         }
         if (localBytes >= CLOUD_SIZE_WARN_BYTES) {
             console.warn('GLP-1 Companion cloud document is becoming large:', localBytes);
+            if (!cloudSizeWarningShownThisSession) {
+                cloudSizeWarningShownThisSession = true;
+                showToast(uiText('El historial está cerca del límite de sincronización. Exporta un backup completo para proteger tus registros.', 'Tracking history is approaching the sync-size limit. Export a complete backup to protect your records.'), 8000);
+            }
         }
         await firebasePlatform.runTransaction(async (transaction) => {
             const serverSnap = await transaction.get(docRef);

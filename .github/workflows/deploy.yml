@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -57,7 +60,7 @@ jobs:
           node --version
           npm --version
 
-      - name: Verify clean v5.6.1 TypeScript source before install
+      - name: Verify clean v5.6.2 TypeScript source before install
         shell: bash
         run: |
           set -euo pipefail
@@ -79,7 +82,7 @@ jobs:
           test ! -e public/sw.js
           grep -Fq "recordAiCacheHit" src/runtime/02-state-sync-storage.ts
           grep -Fq "aggregateAiLast30Days" src/runtime/02-state-sync-storage.ts
-          echo "v5.6.1 clean TypeScript source verified on proven 10-runtime architecture."
+          echo "v5.6.2 clean TypeScript source verified on proven 10-runtime architecture."
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
@@ -90,7 +93,7 @@ jobs:
       - name: Parse deployment workflow YAML
         run: npm run verify:yaml
 
-      - name: Build and validate v5.6.1 with Vite
+      - name: Build and validate v5.6.2 with Vite
         run: npm run build
 
       - name: Run corrective deterministic fixtures
@@ -99,7 +102,7 @@ jobs:
       - name: Validate generated JavaScript syntax
         run: npm run verify:generated-js
 
-      - name: Final v5.6.1 deployment guard
+      - name: Final v5.6.2 deployment guard
         shell: bash
         run: |
           set -euo pipefail
@@ -125,22 +128,22 @@ jobs:
           require_file dist/runtime/02-state-sync-storage.js
 
           if [ -e dist/runtime/11-ai-history-cache.js ]; then
-            echo "::error::Unexpected runtime 11 detected. v5.6.1 must use the proven 10-runtime architecture."
+            echo "::error::Unexpected runtime 11 detected. v5.6.2 must use the proven 10-runtime architecture."
             exit 1
           fi
 
-          if ! grep -q 'v5.6.1' dist/index.html; then
-            echo "::error::dist/index.html does not identify v5.6.1"
+          if ! grep -q 'v5.6.2' dist/index.html; then
+            echo "::error::dist/index.html does not identify v5.6.2"
             exit 1
           fi
-          echo "OK: index.html identifies v5.6.1"
+          echo "OK: index.html identifies v5.6.2"
 
-          if ! grep -q 'v5.6.1-pwa' dist/sw.js; then
-            echo "::error::dist/sw.js does not contain BUILD_ID v5.6.1-pwa"
+          if ! grep -q 'v5.6.2-pwa' dist/sw.js; then
+            echo "::error::dist/sw.js does not contain BUILD_ID v5.6.2-pwa"
             grep -n 'BUILD_ID' dist/sw.js || true
             exit 1
           fi
-          echo "OK: service worker is v5.6.1-pwa"
+          echo "OK: service worker is v5.6.2-pwa"
 
           for marker in \
             'v5.3.0-cache1' \
@@ -182,25 +185,28 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const m = JSON.parse(fs.readFileSync('dist/manifest.webmanifest', 'utf8'));
-          if (m.version !== '5.6.1') {
+          if (m.version !== '5.6.2') {
             console.error(`::error::Unexpected manifest version: ${m.version}`);
             process.exit(1);
           }
           console.log(`OK: manifest version ${m.version}`);
           NODE
 
-          echo "GLP-1 Companion v5.6.1 Corrective Compliance production build verified."
+          echo "GLP-1 Companion v5.6.2 Corrective Compliance production build verified."
           find dist -maxdepth 2 -type f | sort
 
       - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
 
       - name: Upload Vite dist
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: ./dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     needs: build
     environment:
