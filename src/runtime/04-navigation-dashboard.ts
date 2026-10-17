@@ -98,7 +98,7 @@ function getRollingDateKeys(endDateKey: string, days: number): string[] {
 function dayHasMeaningfulTracking(day: RuntimeDayData | null | undefined): boolean {
     if (!day || typeof day !== 'object')
         return false;
-    if (Number(day.water || 0) > 0)
+    if (Number(day.water || 0) > 0 || Number(day.activityUpdatedAt || 0) > 0 || Number(day.activityMinutes || 0) > 0)
         return true;
     if (Array.isArray(day.meals) && day.meals.length > 0)
         return true;

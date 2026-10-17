@@ -6,6 +6,7 @@ Source baseline: v5.6.1, schema 16. Backward-compatible release (minimum client 
 - Gemini primary upgraded from `gemini-3.5-flash` to stable `gemini-3.8-flash`; `gemini-3.5-flash-lite` remains the automatic fallback.
 - Runtime model names now use the Firebase AI bridge as their single source of truth. Existing role counters, failovers, history and Smart Cache are preserved. The status panel no longer implies that historical success proves current live availability.
 - Fixed metric weekly water adherence: goal and consumption are compared in the same units (mL), as they already are in daily progress.
+- Preserve activity-only days (including an explicitly saved zero) during cloud snapshot filtering and include activity in tracked-day coverage.
 - Legacy backup import reconstructs water events and bowel movement event records when those older fields are missing, preserving stored totals/timestamps. Explicitly present modern arrays remain authoritative.
 - Complete-package imports retain a recovery point for the state immediately before restore, even when included local backup history is imported.
 - Show a user-visible, once-per-session early warning when the Firestore snapshot is approaching its existing preventive size threshold.

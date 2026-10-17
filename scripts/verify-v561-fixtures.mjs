@@ -99,6 +99,18 @@ assert.equal(p.tryUseAiHistoryCache('personal-progress', fp), true, 'identical r
 
 const storageJs = await readFile('public/runtime/02-state-sync-storage.js', 'utf8');
 function extractFunction(source, name) { const start = source.indexOf(`function ${name}(`); assert.ok(start >= 0, `missing ${name}`); let brace = source.indexOf('{', start), depth = 0; for (let i = brace; i < source.length; i++) { if (source[i] === '{') depth++; if (source[i] === '}' && --depth === 0) return source.slice(start, i + 1); } throw new Error(`unterminated ${name}`); }
+// Activity-only dates must not be discarded as passive/empty before Firebase sync.
+const storageActivityContext = vm.createContext({});
+vm.runInContext(`${extractFunction(storageJs, 'isPassiveEmptyDay')};globalThis.isPassiveEmptyDay=isPassiveEmptyDay;`, storageActivityContext);
+const activityOnly = { water: 0, meals: [], waterEvents: [], bowelMovements: [], bowelMovementRecords: [], symptoms: {}, electrolytes: {}, waterUpdatedAt: 0, symptomsUpdatedAt: 0, electrolytesUpdatedAt: 0, activityMinutes: 30, activityUpdatedAt: 234 };
+assert.equal(storageActivityContext.isPassiveEmptyDay(activityOnly), false, 'activity-only day must sync');
+assert.equal(storageActivityContext.isPassiveEmptyDay({ ...activityOnly, activityMinutes: 0 }), false, 'explicit zero activity is still a saved record');
+assert.equal(storageActivityContext.isPassiveEmptyDay({ ...activityOnly, activityMinutes: 0, activityUpdatedAt: 0 }), true, 'untouched empty day remains passive');
+const navJs = await readFile('public/runtime/04-navigation-dashboard.js', 'utf8');
+const navContext = vm.createContext({});
+vm.runInContext(`${extractFunction(navJs, 'dayHasMeaningfulTracking')};globalThis.dayHasMeaningfulTracking=dayHasMeaningfulTracking;`, navContext);
+assert.equal(navContext.dayHasMeaningfulTracking(activityOnly), true, 'weekly tracked-day count includes saved activity');
+
 const migrationContext = vm.createContext({}); vm.runInContext(`${extractFunction(storageJs, 'resolveGoalConfigured')};globalThis.resolveGoalConfigured=resolveGoalConfigured;`, migrationContext);
 const resolve = migrationContext.resolveGoalConfigured;
 assert.equal(resolve({ waterGoal: 96 }, { waterGoal: 123 }, 'waterGoalConfigured', 'waterGoal'), true, 'migrated explicitly updated v5.5 goal');

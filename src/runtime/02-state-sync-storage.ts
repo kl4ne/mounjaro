@@ -715,6 +715,9 @@ function isPassiveEmptyDay(day: RuntimeDayData | null | undefined) {
         (!symptoms.fatigue || symptoms.fatigue === 'none') &&
         !String(symptoms.notes || '').trim();
     return Number(day.water || 0) <= 0 &&
+        // An activity-only day (including an explicitly saved zero) is real user data.
+        (Number(day.activityMinutes) || 0) <= 0 &&
+        (Number(day.activityUpdatedAt) || 0) === 0 &&
         (!Array.isArray(day.meals) || day.meals.length === 0) &&
         (!Array.isArray(day.bowelMovements) || day.bowelMovements.length === 0) &&
         (!Array.isArray(day.waterEvents) || day.waterEvents.length === 0) &&
