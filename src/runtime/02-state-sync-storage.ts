@@ -963,6 +963,7 @@ function updateLocalBackupStatus() {
         el.innerText = isEnglish() ? `Rotating local backups: ${getLocalSafetyBackups().length}/3` : `Backups locales rotativos: ${getLocalSafetyBackups().length}/3`;
 }
 const CLOUD_SYNC_DELAY_MS = 1800;
+let cloudSizeWarningShownThisSession = false;
 let cloudSyncTimer: ReturnType<typeof setTimeout> | null = null;
 let cloudSyncInFlight = false;
 let cloudSyncPending = false;
@@ -1067,6 +1068,10 @@ async function flushCloudSync() {
         }
         if (localBytes >= CLOUD_SIZE_WARN_BYTES) {
             console.warn('GLP-1 Companion cloud document is becoming large:', localBytes);
+            if (!cloudSizeWarningShownThisSession) {
+                cloudSizeWarningShownThisSession = true;
+                showToast(uiText('El historial está cerca del límite de sincronización. Exporta un backup completo para proteger tus registros.', 'Tracking history is approaching the sync-size limit. Export a complete backup to protect your records.'), 8000);
+            }
         }
         await firebasePlatform.runTransaction(async (transaction) => {
             const serverSnap = await transaction.get(docRef);

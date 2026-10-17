@@ -94,7 +94,7 @@ assert.notEqual(p.createAiHistoryFingerprint({ ...cacheBase, context: { ...cache
 p.AI_HISTORY_FORCE_ONCE.add('personal-progress'); assert.equal(p.consumeAiHistoryForce('personal-progress'), true, 'Generate New bypasses once'); assert.equal(p.consumeAiHistoryForce('personal-progress'), false, 'bypass consumed once');
 const sourceContext = { generatedAt: 'now', range: { startDate: 'a' }, context: { goals: { water: 80 }, result: { summaryEs: 'ES', summaryEn: 'EN' } } };
 const snapshot = p.buildAiHistorySnapshot(sourceContext); sourceContext.context.goals.water = 90; assert.equal(snapshot.context.goals.water, 80, 'history snapshot immutable clone');
-state.aiHistory = [{ id: 'air_fixture1', type: 'personal-progress', createdAt: 1, updatedAt: 1, deletedAt: 0, favorite: false, fingerprint: fp, rangeDays: 7, rangeStart: 'a', rangeEnd: 'b', requestText: '', result: { summaryEs: 'ES', summaryEn: 'EN' }, snapshot: { context: { goals: { water: 80 } } }, appVersion: 'v5.6.1' }];
+state.aiHistory = [{ id: 'air_fixture1', type: 'personal-progress', createdAt: 1, updatedAt: 1, deletedAt: 0, favorite: false, fingerprint: fp, rangeDays: 7, rangeStart: 'a', rangeEnd: 'b', requestText: '', result: { summaryEs: 'ES', summaryEn: 'EN' }, snapshot: { context: { goals: { water: 80 } } }, appVersion: 'v5.6.2' }];
 assert.equal(p.tryUseAiHistoryCache('personal-progress', fp), true, 'identical report is cache hit'); assert.deepEqual(cacheTelemetry, { actions: 1, hits: 1 }, 'cache hit records action and avoided call without invoking AI');
 
 const storageJs = await readFile('public/runtime/02-state-sync-storage.js', 'utf8');
@@ -173,4 +173,4 @@ assert.equal(capturedPkConfig.data.datasets[0].pointHitRadius, 12, 'touch hit ta
 capturedPkConfig.options.onClick({}, [{ index: 3 }]);
 assert.equal(pkContext.__pkState().selected, 3, 'tapped PK point remains selected');
 
-console.log('v5.6.1 deterministic fixtures PASS: metric water goals, legacy water/bowel recovery, Gemini 3.8 primary, coverage, history and Primary/Fallback telemetry.');
+console.log('v5.6.2 deterministic fixtures PASS: metric water goals, legacy water/bowel recovery, Gemini 3.8 primary, coverage, history and Primary/Fallback telemetry.');

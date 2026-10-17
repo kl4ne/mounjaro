@@ -1499,6 +1499,13 @@ function openSosModal() {
           `;
         }
     }
+    // Explicit escalation for red-flag symptoms; guidance remains informational, never dosage advice.
+    if (bodyEl) {
+        const warning = isEn
+            ? 'Seek urgent medical care for severe or persistent abdominal pain, repeated vomiting, inability to keep liquids down, fainting, or signs of dehydration. This guide does not replace medical assessment.'
+            : 'Busca atención médica urgente ante dolor abdominal intenso o persistente, vómitos repetidos, incapacidad de retener líquidos, desmayos o señales de deshidratación. Esta guía no sustituye una evaluación médica.';
+        bodyEl.insertAdjacentHTML('afterbegin', `<div class="p-3 mb-3 rounded-2xl border border-rose-500/50 bg-rose-500/10 text-[11px] text-rose-200 font-semibold">${escapeHtml(warning)}</div>`);
+    }
     document.getElementById('modal-sos').classList.remove('hidden');
     document.getElementById('modal-sos').classList.add('flex');
     lucide.createIcons();
